@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 14, "column": 0}, "map": {"version":3,"sources":["file:///workspaces/smenuberu-web/app/profile/page.tsx"],"sourcesContent":["export default function ProfilePage() {\n  return (\n    <div className=\"rounded-2xl border bg-white p-5\">\n      Профиль исполнителя (UI-only)\n    </div>\n  );\n}\n"],"names":[],"mappings":";;;;;;AAAe,SAAS;IACtB,qBACE,8WAAC;QAAI,WAAU;kBAAkC;;;;;;AAIrD"}}]
+}
