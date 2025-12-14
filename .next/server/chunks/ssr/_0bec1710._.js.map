@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../../../app/profile/page.tsx"],"sourcesContent":["export default function ProfilePage() {\n  return (\n    <div className=\"rounded-2xl border bg-white p-5\">\n      Профиль исполнителя (UI-only)\n    </div>\n  );\n}\n"],"names":[],"mappings":"6LAAe,SAAS,IACtB,MACE,CAAA,EAAA,EAAA,GAAA,EAAC,MAAA,CAAI,UAAU,2CAAkC,iCAIrD"}

@@ -1,0 +1,13 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/applications/page": "/applications",
+  "/notifications/page": "/notifications",
+  "/objects/page": "/objects",
+  "/page": "/",
+  "/payouts/page": "/payouts",
+  "/profile/page": "/profile",
+  "/shifts/[id]/page": "/shifts/[id]",
+  "/shifts/page": "/shifts",
+  "/support/page": "/support"
+}

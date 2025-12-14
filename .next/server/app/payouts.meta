@@ -1,0 +1,15 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/payouts/layout,_N_T_/payouts/page,_N_T_/payouts"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/payouts/__PAGE__",
+    "/payouts",
+    "/_index",
+    "/_head"
+  ]
+}

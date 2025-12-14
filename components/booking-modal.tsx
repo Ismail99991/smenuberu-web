@@ -76,7 +76,7 @@ export default function BookingModal({
 
   const totalPay = useMemo(() => selectedSlots.reduce((sum, s) => sum + s.pay, 0), [selectedSlots]);
 
-  const isBooked = (slotId: string) => getBooking(slotId) === "booked";
+  const isBooked = (slotId: string) => getBooking(slotId).status === "booked";
 
   // ЧИСТАЯ проверка: можно ли добавить слот без пересечений с выбранными/уже забронированными
   const canSelectWithoutOverlap = (slotId: string) => {

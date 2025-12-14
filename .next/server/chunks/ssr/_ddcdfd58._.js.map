@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../../../app/support/page.tsx"],"sourcesContent":["export default function SupportPage() {\n  return (\n    <div className=\"rounded-2xl border bg-white p-5\">\n      Поддержка (UI-only)\n    </div>\n  );\n}\n"],"names":[],"mappings":"6LAAe,SAAS,IACtB,MACE,CAAA,EAAA,EAAA,GAAA,EAAC,MAAA,CAAI,UAAU,2CAAkC,uBAIrD"}

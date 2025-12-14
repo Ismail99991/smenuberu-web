@@ -5,24 +5,19 @@ import Badge from "@/components/badge";
 import type { Slot } from "@/lib/slots";
 import { formatMoneyRub } from "@/lib/slots";
 import { getBooking, setBooking, type BookingStatus } from "@/lib/booking-state";
-import { getRating } from "@/lib/rating-state";
 
 export default function SlotCard({
   slot,
-  onBook,
-  onRate
+  onBook
 }: {
   slot: Slot;
   onBook: (slot: Slot) => void;
-  onRate: (slot: Slot) => void;
 }) {
-  const [status, setStatus] = useState<BookingStatus>("none");
-  const [hasRating, setHasRating] = useState(false);
+  const [status, setStatusLocal] = useState<BookingStatus>("none");
 
   useEffect(() => {
     const rec = getBooking(slot.id);
-    setStatus(rec.status);
-    setHasRating(!!getRating(slot.id));
+    setStatusLocal(rec.status);
   }, [slot.id]);
 
   const isPremium = slot.pay >= 3500;
@@ -63,12 +58,6 @@ export default function SlotCard({
                 Завершено
               </span>
             ) : null}
-
-            {hasRating ? (
-              <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
-                Оценено
-              </span>
-            ) : null}
           </div>
 
           <div className="mt-1 text-sm text-zinc-600">
@@ -90,24 +79,23 @@ export default function SlotCard({
 
       <div className="mt-3 text-sm text-zinc-600">{slot.address}</div>
 
-      {/* действия */}
       {status === "booked" ? (
         <div className="mt-4 grid gap-2">
           <button
             onClick={() => {
               setBooking(slot.id, "cancelled");
-              setStatus("cancelled");
+              setStatusLocal("cancelled");
             }}
             className="inline-flex w-full items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-900"
           >
             Отменить запись
           </button>
 
-          {/* DEMO: завершить, чтобы включить рейтинг */}
+          {/* demo: завершено */}
           <button
             onClick={() => {
               setBooking(slot.id, "completed");
-              setStatus("completed");
+              setStatusLocal("completed");
             }}
             className="inline-flex w-full items-center justify-center rounded-xl bg-zinc-900 px-4 py-3 text-sm font-medium text-white"
           >
@@ -115,13 +103,8 @@ export default function SlotCard({
           </button>
         </div>
       ) : status === "completed" ? (
-        <div className="mt-4 grid gap-2">
-          <button
-            onClick={() => onRate(slot)}
-            className="inline-flex w-full items-center justify-center rounded-xl bg-zinc-900 px-4 py-3 text-sm font-medium text-white"
-          >
-            Оценить смену
-          </button>
+        <div className="mt-4 rounded-xl border border-zinc-200 bg-zinc-50 p-3 text-sm text-zinc-700">
+          Смена завершена. Оценка смены — в профиле.
         </div>
       ) : (
         <button

@@ -3,7 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Badge from "@/components/badge";
-import { shifts, formatMoneyRub } from "@/lib/mock";
+import {
+  shifts,
+  formatMoneyRub,
+  formatDayLabelRu,
+  formatWeekdayShortRu
+} from "@/lib/mock";
 import {
   getStatus,
   setStatus,
@@ -78,7 +83,8 @@ export default function ShiftDetailsClient({ id }: { id: string }) {
               {formatMoneyRub(shift.pay)}
             </div>
             <div className="mt-1 text-xs text-zinc-500">
-              {shift.dateLabel} · {shift.time}
+              {formatWeekdayShortRu(shift.date)} · {formatDayLabelRu(shift.date)} ·{" "}
+              {shift.time}
             </div>
           </div>
         </div>
@@ -131,7 +137,9 @@ export default function ShiftDetailsClient({ id }: { id: string }) {
             <div className="font-medium text-zinc-900">Как считается сумма</div>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-zinc-600">
               <li>Оплата за смену фиксированная (как в карточке смены)</li>
-              <li>Если есть бонусы/чаевые — они будут отдельной строкой (позже)</li>
+              <li>
+                Если есть бонусы/чаевые — они будут отдельной строкой (позже)
+              </li>
               <li>Комиссии/налоги зависят от статуса исполнителя (позже)</li>
             </ul>
           </div>
@@ -211,7 +219,10 @@ export default function ShiftDetailsClient({ id }: { id: string }) {
         </div>
       </div>
 
-      <Link href="/shifts" className="block text-center text-sm text-zinc-600 underline">
+      <Link
+        href="/shifts"
+        className="block text-center text-sm text-zinc-600 underline"
+      >
         Назад к списку
       </Link>
     </div>
