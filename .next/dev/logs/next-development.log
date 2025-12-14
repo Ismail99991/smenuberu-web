@@ -1,3 +1,1009 @@
-[00:00:00.804] Server  LOG      ✓ Ready in 442ms
-[00:01:05.304] Server  LOG      ○ Compiling / ...
-[00:01:08.655] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:09.600] Server  LOG      ✓ Ready in 8.5s
+[00:00:12.620] Server  LOG      ○ Compiling / ...
+[00:00:20.137] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:01:48.898] Server  WARN    Error: Route "/shifts/[id]" used `params.id`. `params` is a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+[00:06:34.144] Server  LOG      ✓ Compiled in 251ms
+[00:06:59.153] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:08:21.740] Server  LOG      ✓ Compiled in 69ms
+[00:09:31.064] Server  LOG      ✓ Compiled in 22ms
+[00:13:47.104] Browser ERROR   Failed to fetch RSC payload for https://symmetrical-capybara-jjgvrppwqrj4hqxq9-3000.app.github.dev/payouts. Falling back to browser navigation. {}
+[00:15:05.997] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:22:47.492] Server  LOG      ✓ Compiled in 22ms
+[00:23:12.933] Server  LOG      ✓ Compiled in 31ms
+[00:23:58.434] Server  LOG      ✓ Compiled in 88ms
+[00:24:33.267] Server  LOG      ✓ Compiled in 56ms
+[00:30:32.048] Server  LOG      ✓ Compiled in 63ms
+[00:30:54.001] Server  LOG      ✓ Compiled in 28ms
+[00:31:18.792] Server  LOG      ✓ Compiled in 33ms
+[00:31:44.788] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:6:1
+Module not found: Can't resolve '@/components/booking-modal'
+  4 | import DayTabs from "@/components/day-tabs";
+  5 | import SlotCard from "@/components/slot-card";
+> 6 | import BookingModal from "@/components/booking-modal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+  9 |
+
+Import map: aliased to relative './components/booking-modal' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:31:44.791] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:6:1
+Module not found: Can't resolve '@/components/booking-modal'
+  4 | import DayTabs from "@/components/day-tabs";
+  5 | import SlotCard from "@/components/slot-card";
+> 6 | import BookingModal from "@/components/booking-modal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+  9 |
+
+Import map: aliased to relative './components/booking-modal' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:31:44.792] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:6:1
+Module not found: Can't resolve '@/components/booking-modal'
+  4 | import DayTabs from "@/components/day-tabs";
+  5 | import SlotCard from "@/components/slot-card";
+> 6 | import BookingModal from "@/components/booking-modal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+  9 |
+
+Import map: aliased to relative './components/booking-modal' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:31:44.795] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:6:1
+Module not found: Can't resolve '@/components/booking-modal'
+  4 | import DayTabs from "@/components/day-tabs";
+  5 | import SlotCard from "@/components/slot-card";
+> 6 | import BookingModal from "@/components/booking-modal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+  9 |
+
+Import map: aliased to relative './components/booking-modal' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:31:44.807] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:31:44.809] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:31:44.811] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:31:44.812] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:31:44.820] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:6:1
+Module not found: Can't resolve '@/components/booking-modal'
+  4 | import DayTabs from "@/components/day-tabs";
+  5 | import SlotCard from "@/components/slot-card";
+> 6 | import BookingModal from "@/components/booking-modal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+  9 |
+
+Import map: aliased to relative './components/booking-modal' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:31:44.825] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:6:1
+Module not found: Can't resolve '@/components/booking-modal'
+  4 | import DayTabs from "@/components/day-tabs";
+  5 | import SlotCard from "@/components/slot-card";
+> 6 | import BookingModal from "@/components/booking-modal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+  9 |
+
+Import map: aliased to relative './components/booking-modal' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:31:44.833] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:6:1
+Module not found: Can't resolve '@/components/booking-modal'
+  4 | import DayTabs from "@/components/day-tabs";
+  5 | import SlotCard from "@/components/slot-card";
+> 6 | import BookingModal from "@/components/booking-modal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+  9 |
+
+Import map: aliased to relative './components/booking-modal' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:31:44.836] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:6:1
+Module not found: Can't resolve '@/components/booking-modal'
+  4 | import DayTabs from "@/components/day-tabs";
+  5 | import SlotCard from "@/components/slot-card";
+> 6 | import BookingModal from "@/components/booking-modal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+  9 |
+
+Import map: aliased to relative './components/booking-modal' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:31:44.837] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:31:44.838] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:31:44.839] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:31:44.846] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:31:44.849] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:6:1
+Module not found: Can't resolve '@/components/booking-modal'
+  4 | import DayTabs from "@/components/day-tabs";
+  5 | import SlotCard from "@/components/slot-card";
+> 6 | import BookingModal from "@/components/booking-modal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+  9 |
+
+Import map: aliased to relative './components/booking-modal' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:31:44.851] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:6:1
+Module not found: Can't resolve '@/components/booking-modal'
+  4 | import DayTabs from "@/components/day-tabs";
+  5 | import SlotCard from "@/components/slot-card";
+> 6 | import BookingModal from "@/components/booking-modal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+  9 |
+
+Import map: aliased to relative './components/booking-modal' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:31:44.853] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:6:1
+Module not found: Can't resolve '@/components/booking-modal'
+  4 | import DayTabs from "@/components/day-tabs";
+  5 | import SlotCard from "@/components/slot-card";
+> 6 | import BookingModal from "@/components/booking-modal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+  9 |
+
+Import map: aliased to relative './components/booking-modal' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:31:44.859] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:6:1
+Module not found: Can't resolve '@/components/booking-modal'
+  4 | import DayTabs from "@/components/day-tabs";
+  5 | import SlotCard from "@/components/slot-card";
+> 6 | import BookingModal from "@/components/booking-modal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+  9 |
+
+Import map: aliased to relative './components/booking-modal' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:31:44.862] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:31:44.865] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:31:44.866] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:31:44.869] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:31:44.873] Server  LOG      ✓ Compiled in 91ms
+[00:31:45.617] Browser ERROR   ./app/shifts/shifts-client.tsx:6:1
+Module not found: Can't resolve '@/components/booking-modal'
+  4 | import DayTabs from "@/components/day-tabs";
+  5 | import SlotCard from "@/components/slot-card";
+> 6 | import BookingModal from "@/components/booking-modal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+  9 |
+
+Import map: aliased to relative './components/booking-modal' inside of [project]/
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+[00:31:45.617] Browser ERROR   ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+[00:32:41.527] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:32:41.535] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:32:41.542] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:32:41.547] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:32:41.549] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:32:41.551] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:32:41.553] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:32:41.554] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:32:41.555] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:32:41.557] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:32:41.558] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:32:41.560] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:32:41.577] Server  LOG      ✓ Compiled in 86ms
+[00:32:42.614] Browser ERROR   ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+[00:32:47.691] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:32:47.941] Browser ERROR   ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+[00:32:49.768] Browser ERROR   ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+[00:32:49.872] Browser ERROR   ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+[00:33:01.747] Server  ERROR    ⨯ ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:33:25.040] Browser ERROR   uncaughtError: Error: ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:33:25.604] Browser ERROR   ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+[00:33:25.604] Browser ERROR   ./app/shifts/shifts-client.tsx:5:1
+Module not found: Can't resolve '@/components/slot-card'
+  3 | import { useEffect, useMemo, useState } from "react";
+  4 | import DayTabs from "@/components/day-tabs";
+> 5 | import SlotCard from "@/components/slot-card";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import BookingModal from "@/components/booking-modal";
+  7 | import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+  8 | import type { Slot } from "@/lib/slots";
+
+Import map: aliased to relative './components/slot-card' inside of [project]/
+
+Import trace:
+  Server Component:
+    ./app/shifts/shifts-client.tsx
+    ./app/shifts/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+[00:34:00.343] Server  LOG      ✓ Compiled in 32ms
+[00:40:07.647] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:40:08.441] Server  LOG      ✓ Compiled in 86ms
+[00:41:17.019] Server  LOG      ✓ Compiled in 24ms
+[00:41:18.674] Server  LOG      ✓ Compiled in 28ms
+[00:41:19.821] Server  LOG      ✓ Compiled in 25ms
+[00:42:08.720] Server  LOG      ✓ Compiled in 25ms
+[00:42:40.743] Server  LOG      ✓ Compiled in 34ms
+[00:45:33.894] Server  LOG      ✓ Compiled in 42ms
+[00:45:38.121] Server  LOG      ✓ Compiled in 21ms
+[00:46:33.714] Server  LOG      ✓ Compiled in 42ms
+[00:52:09.379] Server  LOG      ✓ Compiled in 91ms
+[00:52:10.635] Browser ERROR   uncaughtError: Error: Too many re-renders. React limits the number of renders to prevent an infinite loop.
+[00:52:52.195] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:52:59.958] Browser ERROR   uncaughtError: Error: Too many re-renders. React limits the number of renders to prevent an infinite loop.
+[00:53:33.828] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:53:36.847] Browser ERROR   uncaughtError: Error: Too many re-renders. React limits the number of renders to prevent an infinite loop.
+[00:55:46.948] Server  LOG      ✓ Compiled in 71ms
+[00:55:47.199] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[00:55:49.933] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:55:53.351] Browser ERROR   uncaughtError: Error: Too many re-renders. React limits the number of renders to prevent an infinite loop.
+[00:58:38.201] Server  LOG      ✓ Compiled in 46ms
+[00:58:38.389] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[00:59:03.169] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:02:29.166] Server  LOG      ✓ Compiled in 20ms
+[01:03:33.334] Server  LOG      ✓ Compiled in 24ms
+[01:03:57.978] Server  LOG      ✓ Compiled in 87ms

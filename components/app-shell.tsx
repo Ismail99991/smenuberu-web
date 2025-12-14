@@ -9,11 +9,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   const title =
     pathname.startsWith("/shifts") ? "Смены" :
-    pathname.startsWith("/applications") ? "Заявки" :
-    pathname.startsWith("/notifications") ? "Уведомления" :
-    pathname.startsWith("/profile") ? "Профиль" :
-    pathname.startsWith("/support") ? "Поддержка" :
-    "Главная";
+  pathname.startsWith("/objects") ? "Объекты" :
+  pathname.startsWith("/payouts") ? "Выплаты" :
+  pathname.startsWith("/profile") ? "Профиль" :
+  pathname.startsWith("/support") ? "Поддержка" :
+  pathname.startsWith("/notifications") ? "Уведомления" :
+  "Главная";
 
   return (
     <div className="min-h-dvh">

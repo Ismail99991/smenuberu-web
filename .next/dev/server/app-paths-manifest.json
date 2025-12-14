@@ -1,7 +1,10 @@
 {
   "/applications/page": "app/applications/page.js",
   "/notifications/page": "app/notifications/page.js",
+  "/objects/page": "app/objects/page.js",
   "/page": "app/page.js",
+  "/payouts/page": "app/payouts/page.js",
   "/profile/page": "app/profile/page.js",
+  "/shifts/[id]/page": "app/shifts/[id]/page.js",
   "/shifts/page": "app/shifts/page.js"
 }

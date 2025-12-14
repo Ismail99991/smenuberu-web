@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Briefcase, ClipboardList, Bell, User } from "lucide-react";
+import { Briefcase, Building2, Wallet, User } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 const items = [
   { href: "/shifts", label: "Смены", icon: Briefcase },
-  { href: "/applications", label: "Заявки", icon: ClipboardList },
-  { href: "/notifications", label: "Уведомления", icon: Bell },
+  { href: "/objects", label: "Объекты", icon: Building2 },
+  { href: "/payouts", label: "Выплаты", icon: Wallet },
   { href: "/profile", label: "Профиль", icon: User }
 ];
 
@@ -26,8 +26,9 @@ export default function BottomNav() {
               href={href}
               className={cn(
                 "flex flex-col items-center gap-1 rounded-xl py-2 text-xs",
-                active ? "bg-zinc-900 text-white" : "text-zinc-600"
+                active ? "bg-zinc-900 text-white" : "text-zinc-600 hover:bg-zinc-100"
               )}
+              aria-current={active ? "page" : undefined}
             >
               <Icon className="h-5 w-5" />
               {label}

@@ -1,7 +1,5 @@
-export default function ShiftDetailsPage() {
-  return (
-    <div className="rounded-2xl border bg-white p-5">
-      Детали смены (UI-only)
-    </div>
-  );
+import ShiftDetailsClient from "./shift-details-client";
+
+export default function Page({ params }: { params: { id: string } }) {
+  return <ShiftDetailsClient id={params.id} />;
 }

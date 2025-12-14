@@ -1,12 +1,5 @@
-import EmptyState from "@/components/empty-state";
+import ShiftsClient from "./shifts-client";
 
 export default function ShiftsPage() {
-  return (
-    <EmptyState
-      title="Пока нет доступных смен"
-      description="Здесь появятся смены по фильтрам и геолокации."
-      actionHref="/profile"
-      actionLabel="Настроить профиль"
-    />
-  );
+  return <ShiftsClient />;
 }
