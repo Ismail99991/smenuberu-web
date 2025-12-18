@@ -1,6 +1,12 @@
 "use client";
 
 import { cn } from "@/lib/cn";
+import {
+  uiCard,
+  uiTab,
+  uiButtonGhost,
+  uiTransition,
+} from "@/lib/ui";
 import { formatDayLabelRu, formatWeekdayShortRu } from "@/lib/slots";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import MonthCalendar from "@/components/month-calendar";
@@ -13,7 +19,6 @@ type Props = {
   hotDays?: Set<string>;
   premiumDays?: Set<string>;
 
-  // для “месячного” режима
   calendarOpen?: boolean;
   onToggleCalendar?: () => void;
   month?: Date;
@@ -29,17 +34,20 @@ export default function DayTabs({
   calendarOpen,
   onToggleCalendar,
   month,
-  availableDays
+  availableDays,
 }: Props) {
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-3">
+    <div className={cn(uiCard, "p-3")}>
       <div className="mb-2 flex items-center justify-between gap-2 px-1">
         <div className="text-sm font-semibold">Календарь</div>
 
-        {onToggleCalendar ? (
+        {onToggleCalendar && (
           <button
             onClick={onToggleCalendar}
-            className="inline-flex items-center gap-1 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm"
+            className={cn(
+              uiButtonGhost,
+              "px-3 py-2 text-sm rounded-xl border border-zinc-200"
+            )}
             aria-label="Переключить календарь"
           >
             {calendarOpen ? "Табы" : "Месяц"}
@@ -49,7 +57,7 @@ export default function DayTabs({
               <ChevronDown className="h-4 w-4" />
             )}
           </button>
-        ) : null}
+        )}
       </div>
 
       {/* РЕЖИМ 1: табы */}
@@ -65,38 +73,48 @@ export default function DayTabs({
                 <button
                   key={iso}
                   onClick={() => onChange(iso)}
+                  data-active={active}
                   className={cn(
-                    "relative min-w-[92px] flex-shrink-0 rounded-2xl border px-3 py-2 text-left transition",
+                    uiTab,
+                    "relative min-w-[92px] flex-shrink-0 border text-left",
                     active
                       ? "border-zinc-900 bg-zinc-900 text-white"
                       : "border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50"
                   )}
                 >
+                  {/* маркеры */}
                   <div className="absolute right-2 top-2 flex items-center gap-1">
-                    {isPremium ? (
+                    {isPremium && (
                       <span
                         className={cn(
-                          "h-2 w-2 rounded-full",
+                          "h-2 w-2 rounded-full transition-colors duration-150",
                           active ? "bg-sky-300" : "bg-sky-500"
                         )}
                         title="Высокий тариф"
                       />
-                    ) : null}
-                    {isHot ? (
+                    )}
+                    {isHot && (
                       <span
                         className={cn(
-                          "h-2 w-2 rounded-full",
+                          "h-2 w-2 rounded-full transition-colors duration-150",
                           active ? "bg-red-300" : "bg-red-500"
                         )}
                         title="Горящие слоты"
                       />
-                    ) : null}
+                    )}
                   </div>
 
-                  <div className={cn("text-xs", active ? "text-white/80" : "text-zinc-500")}>
+                  <div
+                    className={cn(
+                      "text-xs transition-colors duration-150",
+                      active ? "text-white/80" : "text-zinc-500"
+                    )}
+                  >
                     {formatWeekdayShortRu(iso)}
                   </div>
-                  <div className="mt-0.5 text-sm font-semibold">{formatDayLabelRu(iso)}</div>
+                  <div className="mt-0.5 text-sm font-semibold">
+                    {formatDayLabelRu(iso)}
+                  </div>
                 </button>
               );
             })}
@@ -112,15 +130,16 @@ export default function DayTabs({
           </div>
         </>
       ) : (
-        /* РЕЖИМ 2: календарь месяца (внутри этого же блока) */
-        <MonthCalendar
-          month={month ?? new Date()}
-          value={value}
-          onChange={onChange}
-          availableDays={availableDays}
-          hotDays={hotDays}
-          premiumDays={premiumDays}
-        />
+        <div className={cn(uiTransition)}>
+          <MonthCalendar
+            month={month ?? new Date()}
+            value={value}
+            onChange={onChange}
+            availableDays={availableDays}
+            hotDays={hotDays}
+            premiumDays={premiumDays}
+          />
+        </div>
       )}
     </div>
   );
