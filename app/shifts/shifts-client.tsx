@@ -5,7 +5,6 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import DayTabs from "@/components/day-tabs";
 import SlotCard from "@/components/slot-card";
 import BookingModal from "@/components/booking-modal";
-import MonthCalendar from "@/components/month-calendar";
 import SortFilterModal, { type TaskFilters, type SortKey } from "@/components/sort-filter-modal";
 import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
 import type { Slot } from "@/lib/slots";
@@ -229,23 +228,11 @@ export default function ShiftsClient() {
         premiumDays={premiumDays}
         calendarOpen={calendarOpen}
         onToggleCalendar={() => setCalendarOpen((v) => !v)}
+        month={month}                 // 👈 передаём месяц
+        availableDays={availableDays} 
       />
 
-      {/* Раскрывающийся календарь месяца */}
-      {calendarOpen ? (
-        <MonthCalendar
-          month={month}
-          value={selectedDay}
-          onChange={(iso) => {
-            setSelectedDay(iso);
-            setCalendarOpen(false);
-          }}
-          availableDays={availableDays}
-          hotDays={hotDays}
-          premiumDays={premiumDays}
-        />
-      ) : null}
-
+      
       {/* Список */}
       {filtered.length === 0 ? (
         <div className="rounded-2xl border border-zinc-200 bg-white p-5 text-sm text-zinc-600">
