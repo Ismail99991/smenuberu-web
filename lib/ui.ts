@@ -1,5 +1,5 @@
 // lib/ui.ts
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 
 /**
  * Базовая плавность для всего интерактива
