@@ -6,10 +6,12 @@ import type { Slot } from "@/lib/slots";
 import { formatMoneyRub } from "@/lib/slots";
 import { getBooking, setBooking, type BookingStatus } from "@/lib/booking-state";
 import { TaskTypeIcon } from "@/components/task-type-icon";
+import { cn } from "@/lib/cn";
+import { uiCard, uiTransition, uiButtonGhost, uiButtonPrimary } from "@/lib/ui";
 
 export default function SlotCard({
   slot,
-  onBook
+  onBook,
 }: {
   slot: Slot;
   onBook: (slot: Slot) => void;
@@ -24,7 +26,14 @@ export default function SlotCard({
   const isPremium = slot.pay >= 3500;
 
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-5">
+    <div
+      className={cn(
+        uiCard,
+        "p-5",
+        // чуть более “живой” hover именно для карточек списка
+        "hover:shadow-md hover:border-zinc-300"
+      )}
+    >
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
@@ -34,31 +43,31 @@ export default function SlotCard({
             </div>
 
             {slot.hot ? (
-              <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
+              <span className={cn(uiTransition, "inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700")}>
                 Горящий
               </span>
             ) : null}
 
             {isPremium ? (
-              <span className="inline-flex items-center rounded-full bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-700">
+              <span className={cn(uiTransition, "inline-flex items-center rounded-full bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-700")}>
                 Высокий тариф
               </span>
             ) : null}
 
             {status === "booked" ? (
-              <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+              <span className={cn(uiTransition, "inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700")}>
                 Записан
               </span>
             ) : null}
 
             {status === "cancelled" ? (
-              <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
+              <span className={cn(uiTransition, "inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600")}>
                 Отменено
               </span>
             ) : null}
 
             {status === "completed" ? (
-              <span className="inline-flex items-center rounded-full bg-zinc-900 px-2 py-0.5 text-xs font-medium text-white">
+              <span className={cn(uiTransition, "inline-flex items-center rounded-full bg-zinc-900 px-2 py-0.5 text-xs font-medium text-white")}>
                 Завершено
               </span>
             ) : null}
@@ -90,7 +99,10 @@ export default function SlotCard({
               setBooking(slot.id, "cancelled");
               setStatusLocal("cancelled");
             }}
-            className="inline-flex w-full items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-900"
+            className={cn(
+              uiButtonGhost,
+              "w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm font-medium text-zinc-900"
+            )}
           >
             Отменить запись
           </button>
@@ -101,19 +113,25 @@ export default function SlotCard({
               setBooking(slot.id, "completed");
               setStatusLocal("completed");
             }}
-            className="inline-flex w-full items-center justify-center rounded-xl bg-zinc-900 px-4 py-3 text-sm font-medium text-white"
+            className={cn(
+              uiButtonPrimary,
+              "w-full rounded-xl px-4 py-3 text-sm font-medium"
+            )}
           >
             Отметить как завершено (demo)
           </button>
         </div>
       ) : status === "completed" ? (
-        <div className="mt-4 rounded-xl border border-zinc-200 bg-zinc-50 p-3 text-sm text-zinc-700">
+        <div className={cn(uiTransition, "mt-4 rounded-xl border border-zinc-200 bg-zinc-50 p-3 text-sm text-zinc-700")}>
           Смена завершена. Оценка смены — в профиле.
         </div>
       ) : (
         <button
           onClick={() => onBook(slot)}
-          className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-zinc-900 px-4 py-3 text-sm font-medium text-white"
+          className={cn(
+            uiButtonPrimary,
+            "mt-4 w-full rounded-xl px-4 py-3 text-sm font-medium"
+          )}
         >
           Записаться
         </button>

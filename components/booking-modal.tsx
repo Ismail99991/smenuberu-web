@@ -5,11 +5,19 @@ import DayTabs from "@/components/day-tabs";
 import type { Slot } from "@/lib/slots";
 import { getBooking, setBooking } from "@/lib/booking-state";
 import { formatMoneyRub } from "@/lib/slots";
+import { cn } from "@/lib/cn";
+import {
+  uiCard,
+  uiOverlay,
+  uiModal,
+  uiTransition,
+  uiButtonGhost,
+  uiButtonPrimary,
+} from "@/lib/ui";
 
 type Range = { start: number; end: number }; // minutes
 
 function parseRangeMinutes(timeRange: string): Range {
-  // "08:00–15:00"
   const [aRaw, bRaw] = timeRange.split("–").map((x) => x.trim());
   const [ah, am] = (aRaw ?? "00:00").split(":").map(Number);
   const [bh, bm] = (bRaw ?? "00:00").split(":").map(Number);
@@ -30,7 +38,7 @@ export default function BookingModal({
   hotDays,
   premiumDays,
   initialDay,
-  initialTitle
+  initialTitle,
 }: {
   open: boolean;
   onClose: () => void;
@@ -46,7 +54,6 @@ export default function BookingModal({
   const [onlyConsecutive, setOnlyConsecutive] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // reset при открытии
   useEffect(() => {
     if (open) {
       setDay(initialDay);
@@ -58,7 +65,9 @@ export default function BookingModal({
 
   const daySlots = useMemo(() => {
     const list = slots.filter((s) => s.date === day);
-    return list.sort((a, b) => parseRangeMinutes(a.time).start - parseRangeMinutes(b.time).start);
+    return list.sort(
+      (a, b) => parseRangeMinutes(a.time).start - parseRangeMinutes(b.time).start
+    );
   }, [slots, day]);
 
   const idsOrdered = useMemo(() => daySlots.map((s) => s.id), [daySlots]);
@@ -74,18 +83,19 @@ export default function BookingModal({
     [selected, daySlotById]
   );
 
-  const totalPay = useMemo(() => selectedSlots.reduce((sum, s) => sum + s.pay, 0), [selectedSlots]);
+  const totalPay = useMemo(
+    () => selectedSlots.reduce((sum, s) => sum + s.pay, 0),
+    [selectedSlots]
+  );
 
   const isBooked = (slotId: string) => getBooking(slotId).status === "booked";
 
-  // ЧИСТАЯ проверка: можно ли добавить слот без пересечений с выбранными/уже забронированными
   const canSelectWithoutOverlap = (slotId: string) => {
     const slot = daySlotById.get(slotId);
     if (!slot) return false;
 
     const r = parseRangeMinutes(slot.time);
 
-    // 1) не пересекаться с выбранными
     for (const sid of selected) {
       if (sid === slotId) continue;
       const other = daySlotById.get(sid);
@@ -93,7 +103,6 @@ export default function BookingModal({
       if (overlaps(r, parseRangeMinutes(other.time))) return false;
     }
 
-    // 2) не пересекаться с уже booked в этот день
     for (const s of daySlots) {
       if (!isBooked(s.id)) continue;
       if (s.id === slotId) continue;
@@ -103,7 +112,6 @@ export default function BookingModal({
     return true;
   };
 
-  // ЧИСТАЯ проверка: режим “подряд” (только соседние по списку)
   const canAddConsecutive = (slotId: string) => {
     if (!onlyConsecutive) return true;
     if (selected.length === 0) return true;
@@ -121,9 +129,8 @@ export default function BookingModal({
     return idx === min - 1 || idx === max + 1;
   };
 
-  // ЧИСТАЯ проверка: можно ли выбрать (не booked, не пересекается, и подряд если включено)
   const canSelect = (slotId: string) => {
-    if (selected.includes(slotId)) return true; // снятие разрешаем всегда
+    if (selected.includes(slotId)) return true;
     if (isBooked(slotId)) return false;
     if (!canSelectWithoutOverlap(slotId)) return false;
     if (!canAddConsecutive(slotId)) return false;
@@ -132,21 +139,22 @@ export default function BookingModal({
 
   const toggle = (slotId: string) => {
     setSelected((prev) => {
-      // снять
       if (prev.includes(slotId)) {
         setError(null);
         return prev.filter((x) => x !== slotId);
       }
 
-      // добавить
       if (!canSelect(slotId)) {
-        // объясняем причину
         if (isBooked(slotId)) {
           setError("Этот слот уже забронирован.");
         } else if (!canSelectWithoutOverlap(slotId)) {
-          setError("Нельзя выбрать: слот пересекается по времени с выбранным или уже забронированным.");
+          setError(
+            "Нельзя выбрать: слот пересекается по времени с выбранным или уже забронированным."
+          );
         } else if (!canAddConsecutive(slotId)) {
-          setError("В режиме “подряд” можно добавлять только соседние слоты (слева/справа).");
+          setError(
+            "В режиме “подряд” можно добавлять только соседние слоты (слева/справа)."
+          );
         } else {
           setError("Нельзя выбрать этот слот.");
         }
@@ -162,15 +170,22 @@ export default function BookingModal({
 
   return (
     <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className={uiOverlay} onClick={onClose} />
+
       <div className="absolute left-1/2 top-4 w-[min(560px,calc(100%-16px))] -translate-x-1/2">
-        <div className="rounded-2xl border border-zinc-200 bg-white shadow-lg">
+        <div className={cn(uiCard, uiModal)} data-open>
           <div className="flex items-start justify-between gap-3 border-b border-zinc-200 p-4">
             <div>
               <div className="text-sm text-zinc-500">Запись на слоты</div>
-              <div className="text-base font-semibold">{initialTitle ?? "Выбери дату и слоты"}</div>
+              <div className="text-base font-semibold">
+                {initialTitle ?? "Выбери дату и слоты"}
+              </div>
             </div>
-            <button onClick={onClose} className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm">
+
+            <button
+              onClick={onClose}
+              className={cn(uiButtonGhost, "border border-zinc-200 rounded-xl px-3 py-2 text-sm")}
+            >
               Закрыть
             </button>
           </div>
@@ -188,31 +203,43 @@ export default function BookingModal({
               premiumDays={premiumDays}
             />
 
-            <div className="flex items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-white p-3">
-              <div>
-                <div className="text-sm font-medium">Выбирать “подряд”</div>
-                <div className="text-xs text-zinc-500">Вкл — только соседние слоты, плюс запрет пересечений по времени.</div>
+            <div className={cn(uiCard, "p-3")}>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-medium">Выбирать “подряд”</div>
+                  <div className="text-xs text-zinc-500">
+                    Вкл — только соседние слоты, плюс запрет пересечений по времени.
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setOnlyConsecutive((v) => !v);
+                    setSelected([]);
+                    setError(null);
+                  }}
+                  className={cn(
+                    uiButtonGhost,
+                    "border border-zinc-200 rounded-xl px-3 py-2 text-sm"
+                  )}
+                >
+                  {onlyConsecutive ? "Вкл" : "Выкл"}
+                </button>
               </div>
-              <button
-                onClick={() => {
-                  setOnlyConsecutive((v) => !v);
-                  setSelected([]);
-                  setError(null);
-                }}
-                className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm"
-              >
-                {onlyConsecutive ? "Вкл" : "Выкл"}
-              </button>
             </div>
 
-            {error ? (
-              <div className="rounded-2xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">
+            {error && (
+              <div
+                className={cn(
+                  uiTransition,
+                  "rounded-2xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800"
+                )}
+              >
                 {error}
               </div>
-            ) : null}
+            )}
 
             {daySlots.length === 0 ? (
-              <div className="rounded-2xl border border-zinc-200 bg-white p-4 text-sm text-zinc-600">
+              <div className={cn(uiCard, "p-4 text-sm text-zinc-600")}>
                 На этот день слотов нет. Листай табы сверху.
               </div>
             ) : (
@@ -220,8 +247,6 @@ export default function BookingModal({
                 {daySlots.map((s) => {
                   const checked = selected.includes(s.id);
                   const booked = isBooked(s.id);
-
-                  // ВАЖНО: canSelect() ЧИСТАЯ и НЕ setState
                   const disabled = !checked && !canSelect(s.id);
 
                   return (
@@ -229,30 +254,48 @@ export default function BookingModal({
                       key={s.id}
                       onClick={() => toggle(s.id)}
                       disabled={disabled}
-                      className={[
-                        "w-full rounded-2xl border p-4 text-left transition",
-                        checked ? "border-zinc-900 bg-zinc-50" : "border-zinc-200 hover:bg-zinc-50",
-                        disabled ? "opacity-50 cursor-not-allowed" : ""
-                      ].join(" ")}
                       title={booked ? "Уже записан на этот слот" : undefined}
+                      className={cn(
+                        uiTransition,
+                        "w-full rounded-2xl border p-4 text-left",
+                        checked
+                          ? "border-zinc-900 bg-zinc-50"
+                          : "border-zinc-200 bg-white hover:bg-zinc-50",
+                        disabled && "opacity-50 cursor-not-allowed"
+                      )}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <div className="flex items-center gap-2">
                             <span
-                              className={[
+                              className={cn(
+                                uiTransition,
                                 "inline-flex h-5 w-5 items-center justify-center rounded-md border text-xs",
-                                checked ? "border-zinc-900 bg-zinc-900 text-white" : "border-zinc-300 bg-white"
-                              ].join(" ")}
+                                checked
+                                  ? "border-zinc-900 bg-zinc-900 text-white"
+                                  : "border-zinc-300 bg-white"
+                              )}
                             >
                               {checked ? "✓" : ""}
                             </span>
 
                             <div className="font-semibold">
                               {s.title}
-                              {s.hot ? <span className="ml-2 text-xs text-red-600">• горячий</span> : null}
-                              {s.pay >= 3500 ? <span className="ml-2 text-xs text-sky-700">• высокий тариф</span> : null}
-                              {booked ? <span className="ml-2 text-xs text-emerald-700">• уже записан</span> : null}
+                              {s.hot && (
+                                <span className="ml-2 text-xs text-red-600">
+                                  • горячий
+                                </span>
+                              )}
+                              {s.pay >= 3500 && (
+                                <span className="ml-2 text-xs text-sky-700">
+                                  • высокий тариф
+                                </span>
+                              )}
+                              {booked && (
+                                <span className="ml-2 text-xs text-emerald-700">
+                                  • уже записан
+                                </span>
+                              )}
                             </div>
                           </div>
 
@@ -263,7 +306,9 @@ export default function BookingModal({
 
                         <div className="text-right">
                           <div className="text-sm font-semibold">{s.time}</div>
-                          <div className="text-xs text-zinc-500">{formatMoneyRub(s.pay)}</div>
+                          <div className="text-xs text-zinc-500">
+                            {formatMoneyRub(s.pay)}
+                          </div>
                         </div>
                       </div>
                     </button>
@@ -272,7 +317,7 @@ export default function BookingModal({
               </div>
             )}
 
-            <div className="rounded-2xl border border-zinc-200 bg-white p-4 text-sm">
+            <div className={cn(uiCard, "p-4 text-sm")}>
               <div className="flex items-center justify-between">
                 <span className="text-zinc-600">Выбрано слотов:</span>
                 <span className="font-semibold">{selected.length}</span>
@@ -286,12 +331,16 @@ export default function BookingModal({
             <button
               disabled={selected.length === 0}
               onClick={() => {
-                // финальная проверка пересечений внутри selected (на всякий)
-                const ranges = selectedSlots.map((s) => ({ id: s.id, r: parseRangeMinutes(s.time) }));
+                const ranges = selectedSlots.map((s) => ({
+                  id: s.id,
+                  r: parseRangeMinutes(s.time),
+                }));
                 for (let i = 0; i < ranges.length; i++) {
                   for (let j = i + 1; j < ranges.length; j++) {
                     if (overlaps(ranges[i].r, ranges[j].r)) {
-                      setError("Есть пересекающиеся по времени слоты. Убери конфликт и попробуй снова.");
+                      setError(
+                        "Есть пересекающиеся по времени слоты. Убери конфликт и попробуй снова."
+                      );
                       return;
                     }
                   }
@@ -300,7 +349,11 @@ export default function BookingModal({
                 for (const id of selected) setBooking(id, "booked");
                 onClose();
               }}
-              className="inline-flex w-full items-center justify-center rounded-xl bg-zinc-900 px-4 py-3 text-sm font-medium text-white disabled:opacity-50"
+              className={cn(
+                uiButtonPrimary,
+                "w-full rounded-xl px-4 py-3 text-sm font-medium",
+                "disabled:opacity-50 disabled:cursor-not-allowed"
+              )}
             >
               Подтвердить запись ({selected.length})
             </button>
