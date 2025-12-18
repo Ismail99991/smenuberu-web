@@ -5,6 +5,7 @@ import Badge from "@/components/badge";
 import type { Slot } from "@/lib/slots";
 import { formatMoneyRub } from "@/lib/slots";
 import { getBooking, setBooking, type BookingStatus } from "@/lib/booking-state";
+import { TaskTypeIcon } from "@/components/task-type-icon";
 
 export default function SlotCard({
   slot,
@@ -27,7 +28,10 @@ export default function SlotCard({
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <div className="text-base font-semibold">{slot.title}</div>
+            <div className="flex items-center gap-2">
+              <TaskTypeIcon type={slot.type} className="h-5 w-5 text-zinc-700" />
+              <div className="text-base font-semibold">{slot.title}</div>
+            </div>
 
             {slot.hot ? (
               <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
