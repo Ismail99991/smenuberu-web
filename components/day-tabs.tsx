@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/cn";
 import { formatDayLabelRu, formatWeekdayShortRu } from "@/lib/slots";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 type Props = {
   days: string[];
@@ -9,11 +10,36 @@ type Props = {
   onChange: (iso: string) => void;
   hotDays?: Set<string>;     // red notch
   premiumDays?: Set<string>; // blue notch
+  calendarOpen?: boolean;
+  onToggleCalendar?: () => void;
 };
 
-export default function DayTabs({ days, value, onChange, hotDays, premiumDays }: Props) {
+export default function DayTabs({
+  days,
+  value,
+  onChange,
+  hotDays,
+  premiumDays,
+  calendarOpen,
+  onToggleCalendar
+}: Props) {
   return (
     <div className="rounded-2xl border border-zinc-200 bg-white p-3">
+      <div className="mb-2 flex items-center justify-between gap-2 px-1">
+        <div className="text-sm font-semibold">Календарь</div>
+
+        {onToggleCalendar ? (
+          <button
+            onClick={onToggleCalendar}
+            className="inline-flex items-center gap-1 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm"
+            aria-label="Открыть календарь месяца"
+          >
+            {calendarOpen ? "Свернуть" : "Месяц"}
+            {calendarOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
+        ) : null}
+      </div>
+
       <div className="flex gap-2 overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch]">
         {days.map((iso) => {
           const active = iso === value;
@@ -31,21 +57,12 @@ export default function DayTabs({ days, value, onChange, hotDays, premiumDays }:
                   : "border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50"
               )}
             >
-              {/* notches */}
               <div className="absolute right-2 top-2 flex items-center gap-1">
                 {isPremium ? (
-                  <span
-                    className={cn("h-2 w-2 rounded-full", active ? "bg-sky-300" : "bg-sky-500")}
-                    aria-label="Высокий тариф"
-                    title="Высокий тариф"
-                  />
+                  <span className={cn("h-2 w-2 rounded-full", active ? "bg-sky-300" : "bg-sky-500")} title="Высокий тариф" />
                 ) : null}
                 {isHot ? (
-                  <span
-                    className={cn("h-2 w-2 rounded-full", active ? "bg-red-300" : "bg-red-500")}
-                    aria-label="Горящие слоты"
-                    title="Горящие слоты"
-                  />
+                  <span className={cn("h-2 w-2 rounded-full", active ? "bg-red-300" : "bg-red-500")} title="Горящие слоты" />
                 ) : null}
               </div>
 
