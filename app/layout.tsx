@@ -4,7 +4,20 @@ import AppShell from "@/components/app-shell";
 
 export const metadata: Metadata = {
   title: "Smenuberu — Исполнитель",
-  description: "Личный кабинет исполнителя"
+  description: "Личный кабинет исполнителя",
+
+  applicationName: "Smenuberu",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Smenuberu",
+  },
+
+  icons: {
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
+
+  themeColor: "#0B1220",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
