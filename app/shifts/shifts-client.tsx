@@ -6,7 +6,7 @@ import DayTabs from "@/components/day-tabs";
 import SlotCard from "@/components/slot-card";
 import BookingModal from "@/components/booking-modal";
 import SortFilterModal, { type TaskFilters, type SortKey } from "@/components/sort-filter-modal";
-import { addDays, getMockSlots, toISODateLocal } from "@/lib/slots";
+import { addDays, getMockSlots, getSlotsFromApi, toISODateLocal } from "@/lib/slots";
 import type { Slot } from "@/lib/slots";
 
 function getDaysWindow(from: Date, windowDays = 14) {
