@@ -64,8 +64,17 @@ export default function SortFilterModal({
 
       {/* container */}
       <div className="absolute left-1/2 top-6 w-[min(560px,calc(100%-16px))] -translate-x-1/2">
-        <div className={cn(uiCard, uiModal)} data-open>
-          {/* header */}
+        {/* panel */}
+        <div
+          className={cn(
+            uiCard,
+            uiModal,
+            // ✅ чтобы модалка нормально скроллилась на мобиле
+            "max-h-[calc(100dvh-48px)] overflow-hidden"
+          )}
+          data-open
+        >
+          {/* header (не скроллится) */}
           <div className="flex items-start justify-between gap-3 border-b border-zinc-200 p-4">
             <div>
               <div className="text-sm text-zinc-500">Задания</div>
@@ -74,11 +83,12 @@ export default function SortFilterModal({
               </div>
             </div>
 
+            {/* ❗фикс “лупы” — без scale/transform */}
             <button
               onClick={onClose}
               className={cn(
                 uiButtonGhost,
-                "p-2 border border-zinc-200 rounded-xl"
+                "p-2 border border-zinc-200 rounded-xl transform-none active:scale-100"
               )}
               aria-label="Закрыть"
             >
@@ -86,127 +96,127 @@ export default function SortFilterModal({
             </button>
           </div>
 
-          {/* content */}
-          <div className="space-y-4 p-4">
-            {/* Сортировка */}
-            <div className="rounded-2xl border border-zinc-200 p-4">
-              <div className="text-sm font-semibold">Сортировка</div>
+          {/* content (СКРОЛЛИТСЯ) */}
+          <div className="p-4 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] touch-pan-y">
+            <div className="space-y-4">
+              {/* Сортировка */}
+              <div className="rounded-2xl border border-zinc-200 p-4">
+                <div className="text-sm font-semibold">Сортировка</div>
 
-              <div className="mt-3 grid gap-2">
-                {[
-                  { k: "relevance", label: "По умолчанию" },
-                  { k: "pay_desc", label: "По цене: сначала дороже" },
-                  { k: "pay_asc", label: "По цене: сначала дешевле" },
-                  { k: "premium_first", label: "Сначала высокий тариф" },
-                  { k: "near", label: "По близости (пока заглушка)" },
-                ].map((x) => {
-                  const active = value.sort === x.k;
-                  return (
-                    <button
-                      key={x.k}
-                      onClick={() =>
-                        onChange({ ...value, sort: x.k as SortKey })
-                      }
+                <div className="mt-3 grid gap-2">
+                  {[
+                    { k: "relevance", label: "По умолчанию" },
+                    { k: "pay_desc", label: "По цене: сначала дороже" },
+                    { k: "pay_asc", label: "По цене: сначала дешевле" },
+                    { k: "premium_first", label: "Сначала высокий тариф" },
+                    { k: "near", label: "По близости (пока заглушка)" },
+                  ].map((x) => {
+                    const active = value.sort === x.k;
+                    return (
+                      <button
+                        key={x.k}
+                        onClick={() => onChange({ ...value, sort: x.k as SortKey })}
+                        className={cn(
+                          uiTransition,
+                          "w-full rounded-xl border px-3 py-2 text-left text-sm",
+                          active
+                            ? "border-zinc-900 bg-zinc-900 text-white"
+                            : "border-zinc-200 bg-white hover:bg-zinc-50"
+                        )}
+                      >
+                        {x.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Фильтры */}
+              <div className="rounded-2xl border border-zinc-200 p-4">
+                <div className="text-sm font-semibold">Фильтры</div>
+
+                <div className="mt-3 grid gap-2">
+                  {[
+                    {
+                      label: "Только “горящие”",
+                      checked: value.onlyHot,
+                      onChange: (v: boolean) =>
+                        onChange({ ...value, onlyHot: v }),
+                    },
+                    {
+                      label: "Только “высокий тариф”",
+                      checked: value.onlyPremium,
+                      onChange: (v: boolean) =>
+                        onChange({ ...value, onlyPremium: v }),
+                    },
+                  ].map((f) => (
+                    <label
+                      key={f.label}
                       className={cn(
                         uiTransition,
-                        "w-full rounded-xl border px-3 py-2 text-left text-sm",
-                        active
-                          ? "border-zinc-900 bg-zinc-900 text-white"
-                          : "border-zinc-200 bg-white hover:bg-zinc-50"
+                        "flex items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm"
                       )}
                     >
-                      {x.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+                      <span>{f.label}</span>
+                      <input
+                        type="checkbox"
+                        checked={f.checked}
+                        onChange={(e) => f.onChange(e.target.checked)}
+                        className="h-4 w-4"
+                      />
+                    </label>
+                  ))}
+                </div>
 
-            {/* Фильтры */}
-            <div className="rounded-2xl border border-zinc-200 p-4">
-              <div className="text-sm font-semibold">Фильтры</div>
+                <div className="mt-4 text-sm font-semibold">Тип задания</div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {TASK_TYPES.map((t) => {
+                    const active = value.types.includes(t.value);
+                    return (
+                      <button
+                        key={t.value}
+                        onClick={() => toggleType(t.value)}
+                        className={cn(
+                          uiTransition,
+                          "rounded-full border px-3 py-1 text-sm",
+                          active
+                            ? "border-zinc-900 bg-zinc-900 text-white"
+                            : "border-zinc-200 bg-white hover:bg-zinc-50"
+                        )}
+                      >
+                        {t.label}
+                      </button>
+                    );
+                  })}
+                </div>
 
-              <div className="mt-3 grid gap-2">
-                {[
-                  {
-                    label: "Только “горящие”",
-                    checked: value.onlyHot,
-                    onChange: (v: boolean) =>
-                      onChange({ ...value, onlyHot: v }),
-                  },
-                  {
-                    label: "Только “высокий тариф”",
-                    checked: value.onlyPremium,
-                    onChange: (v: boolean) =>
-                      onChange({ ...value, onlyPremium: v }),
-                  },
-                ].map((f) => (
-                  <label
-                    key={f.label}
-                    className={cn(
-                      uiTransition,
-                      "flex items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm"
-                    )}
-                  >
-                    <span>{f.label}</span>
-                    <input
-                      type="checkbox"
-                      checked={f.checked}
-                      onChange={(e) => f.onChange(e.target.checked)}
-                      className="h-4 w-4"
-                    />
-                  </label>
-                ))}
+                <div className="mt-2 text-xs text-zinc-500">
+                  Если типы не выбраны — показываем все.
+                </div>
               </div>
 
-              <div className="mt-4 text-sm font-semibold">Тип задания</div>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {TASK_TYPES.map((t) => {
-                  const active = value.types.includes(t.value);
-                  return (
-                    <button
-                      key={t.value}
-                      onClick={() => toggleType(t.value)}
-                      className={cn(
-                        uiTransition,
-                        "rounded-full border px-3 py-1 text-sm",
-                        active
-                          ? "border-zinc-900 bg-zinc-900 text-white"
-                          : "border-zinc-200 bg-white hover:bg-zinc-50"
-                      )}
-                    >
-                      {t.label}
-                    </button>
-                  );
-                })}
+              {/* actions */}
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={reset}
+                  className={cn(
+                    uiButtonGhost,
+                    "border border-zinc-200 px-4 py-3 text-sm font-medium"
+                  )}
+                >
+                  Сбросить
+                </button>
+                <button
+                  onClick={onClose}
+                  className={cn(uiButtonPrimary, "px-4 py-3 text-sm font-medium")}
+                >
+                  Применить
+                </button>
               </div>
 
-              <div className="mt-2 text-xs text-zinc-500">
-                Если типы не выбраны — показываем все.
+              <div className="text-xs text-zinc-500">
+                UI-only: “близость” сейчас считается условно.
               </div>
-            </div>
-
-            {/* actions */}
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={reset}
-                className={cn(
-                  uiButtonGhost,
-                  "border border-zinc-200 px-4 py-3 text-sm font-medium"
-                )}
-              >
-                Сбросить
-              </button>
-              <button
-                onClick={onClose}
-                className={cn(uiButtonPrimary, "px-4 py-3 text-sm font-medium")}
-              >
-                Применить
-              </button>
-            </div>
-
-            <div className="text-xs text-zinc-500">
-              UI-only: “близость” сейчас считается условно.
             </div>
           </div>
         </div>
