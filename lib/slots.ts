@@ -14,6 +14,9 @@ export type Slot = {
   type: TaskType; // 👈 тип задания (для иконки/фильтра)
 };
 
+const API_BASE =
+  (import.meta as any).env?.VITE_API_BASE ?? "https://smenuberu-api.onrender.com";
+
 export function toISODateLocal(d: Date) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -41,6 +44,49 @@ export function formatWeekdayShortRu(isoDate: string) {
 
 export function formatMoneyRub(amount: number) {
   return new Intl.NumberFormat("ru-RU").format(amount) + " ₽";
+}
+
+/**
+ * Пробуем взять слоты из API (UI-формат уже совпадает с нашим Slot).
+ */
+export async function getSlotsFromApi(): Promise<Slot[]> {
+  const res = await fetch(`${API_BASE}/slots/ui`, {
+    headers: { Accept: "application/json" }
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`GET /slots/ui failed: ${res.status} ${text}`);
+  }
+
+  const data = (await res.json()) as unknown;
+
+  if (!Array.isArray(data)) {
+    throw new Error("GET /slots/ui returned non-array");
+  }
+
+  // Минимальная валидация формы (без фанатизма)
+  return data.filter(Boolean) as Slot[];
+}
+
+/**
+ * Главная функция для UI:
+ * - сначала API
+ * - если API упал/пусто/ошибка → моки
+ *
+ * Важно: days/start используются только для моков (API отдаёт всё как есть).
+ */
+export async function getSlots(start: Date, days = 14): Promise<Slot[]> {
+  try {
+    const apiSlots = await getSlotsFromApi();
+    // Если API вернул пусто — считаем это "нет данных" и даём моки, чтобы UI не выглядел сломанным.
+    if (apiSlots.length > 0) return apiSlots;
+  } catch (e) {
+    // Чтобы не шуметь в проде, можно оставить warn.
+    console.warn("[slots] API failed, using mock slots:", e);
+  }
+
+  return getMockSlots(start, days);
 }
 
 // Генератор “условных” слотов на 14 дней вперёд.
@@ -116,4 +162,13 @@ export function getMockSlots(start: Date, days = 14): Slot[] {
   }
 
   return out;
+}
+export async function getSlotsFromApi() {
+  const res = await fetch("https://smenuberu-api.onrender.com/slots/ui");
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch slots from API");
+  }
+
+  return res.json();
 }
