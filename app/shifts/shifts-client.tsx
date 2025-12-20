@@ -73,7 +73,8 @@ export default function ShiftsClient() {
   const days = useMemo(() => getDaysWindow(today, 14), [today]);
 
   // мок-слоты на окно
-  const slots = useMemo(() => getMockSlots(today, 14), [today]);
+  const [slots, setSlots] = useState<Slot[]>(() => getMockSlots(today, 14));
+
 
   // дни с любыми слотами (чтобы в месяце можно приглушать пустые)
   const availableDays = useMemo(() => new Set(slots.map((s) => s.date)), [slots]);
