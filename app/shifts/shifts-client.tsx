@@ -75,6 +75,26 @@ export default function ShiftsClient() {
   // мок-слоты на окно
   const [slots, setSlots] = useState<Slot[]>(() => getMockSlots(today, 14));
 
+  useEffect(() => {
+  let cancelled = false;
+
+  (async () => {
+    try {
+      const apiSlots = await getSlotsFromApi();
+      if (!cancelled && apiSlots.length > 0) {
+        setSlots(apiSlots);
+      }
+    } catch {
+      // тихо остаёмся на моках
+    }
+  })();
+
+  return () => {
+    cancelled = true;
+  };
+}, [today]);
+
+
 
   // дни с любыми слотами (чтобы в месяце можно приглушать пустые)
   const availableDays = useMemo(() => new Set(slots.map((s) => s.date)), [slots]);
