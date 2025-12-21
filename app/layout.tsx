@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import AppShell from "@/components/app-shell";
+import { AuthProvider } from "@/components/auth-provider";
 
 export const metadata: Metadata = {
   title: "Smenuberu — Исполнитель",
@@ -22,7 +23,6 @@ export const metadata: Metadata = {
 
 /**
  * 🔒 Запрещаем масштабирование интерфейса
- * (pinch-zoom, double-tap zoom, “лупа”)
  */
 export const viewport: Viewport = {
   width: "device-width",
@@ -39,7 +39,9 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <body className="min-h-dvh antialiased">
-        <AppShell>{children}</AppShell>
+        <AuthProvider>
+          <AppShell>{children}</AppShell>
+        </AuthProvider>
       </body>
     </html>
   );
