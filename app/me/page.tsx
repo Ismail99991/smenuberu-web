@@ -1,0 +1,65 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/auth-provider";
+
+function getLoginUrl() {
+  return (
+    process.env.NEXT_PUBLIC_API_URL ??
+    "https://smenuberu-api.onrender.com"
+  ) + "/auth/yandex/start";
+}
+
+export default function MePage() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      // ⬅️ не залогинен → уводим на Яндекс
+      window.location.href = getLoginUrl();
+    }
+  }, [loading, user]);
+
+  if (loading || !user) {
+    return (
+      <div className="p-6 text-sm text-gray-500">
+        Проверка авторизации…
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6 space-y-4">
+      <h1 className="text-xl font-semibold">Личный кабинет</h1>
+
+      <div className="flex items-center gap-4">
+        {user.avatarUrl ? (
+          <img
+            src={user.avatarUrl}
+            alt=""
+            className="h-16 w-16 rounded-full"
+          />
+        ) : null}
+
+        <div>
+          <div className="font-medium">
+            {user.displayName ?? "Без имени"}
+          </div>
+          {user.email ? (
+            <div className="text-sm text-gray-500">
+              {user.email}
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      {/* дальше будут:
+          - мои записи
+          - уведомления
+          - выход
+      */}
+    </div>
+  );
+}
