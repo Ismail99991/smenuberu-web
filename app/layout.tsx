@@ -10,12 +10,14 @@ export const metadata: Metadata = {
   applicationName: "Smenuberu",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent", // было "default"
     title: "Smenuberu",
   },
 
   icons: {
     apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+    // опционально, но иногда помогает iOS/вебкиту:
+    icon: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
 
   themeColor: "#0B1220",
@@ -29,6 +31,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  viewportFit: "cover", // добавили для iPhone с вырезом / safe-area
 };
 
 export default function RootLayout({
@@ -38,9 +41,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ru">
+      {/* Важно: не даём скроллить body, скроллим один контейнер внутри */}
       <body className="min-h-dvh antialiased">
         <AuthProvider>
-          <AppShell>{children}</AppShell>
+          <div className="app-viewport">
+            <AppShell>{children}</AppShell>
+          </div>
         </AuthProvider>
       </body>
     </html>
