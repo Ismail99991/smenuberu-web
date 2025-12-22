@@ -11,6 +11,10 @@ import {
   Store,
   Truck,
   Factory,
+  Star,
+  Bus,
+  Utensils,
+  BadgePercent,
 } from "lucide-react";
 
 /* =======================
@@ -29,7 +33,7 @@ type ApiObject = {
 };
 
 /* =======================
-   DEMO ОБЪЕКТЫ (TEMP)
+   DEMO ОБЪЕКТЫ
 ======================= */
 
 const DEMO_OBJECTS: ApiObject[] = [
@@ -43,7 +47,6 @@ const DEMO_OBJECTS: ApiObject[] = [
     photos: [
       "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d",
       "https://images.unsplash.com/photo-1581092334631-7b7b42f1b1f1",
-      "https://images.unsplash.com/photo-1605902711622-cfb43c4437d1",
     ],
   },
   {
@@ -51,7 +54,7 @@ const DEMO_OBJECTS: ApiObject[] = [
     name: "Adidas",
     type: "Склад",
     city: "Подольск",
-    address: "Промышленная зона",
+    address: "Промзона",
     logoUrl: "https://upload.wikimedia.org/wikipedia/commons/2/20/Adidas_Logo.svg",
     photos: [
       "https://images.unsplash.com/photo-1590490360182-c33d57733427",
@@ -73,10 +76,6 @@ function firstLetter(s?: string | null) {
   return t ? t[0]!.toUpperCase() : "•";
 }
 
-function clamp(n: number, a: number, b: number) {
-  return Math.max(a, Math.min(b, n));
-}
-
 function normalizeType(t?: string | null) {
   return (t ?? "").toLowerCase();
 }
@@ -87,7 +86,7 @@ function TypeBadge({ type }: { type: string }) {
 
   if (t.includes("склад")) Icon = Warehouse;
   else if (t.includes("сортиров")) Icon = Package;
-  else if (t.includes("рц") || t.includes("распредел")) Icon = Truck;
+  else if (t.includes("рц")) Icon = Truck;
   else if (t.includes("магаз")) Icon = Store;
   else if (t.includes("фабрик") || t.includes("завод")) Icon = Factory;
 
@@ -98,6 +97,19 @@ function TypeBadge({ type }: { type: string }) {
     </div>
   );
 }
+
+/* =======================
+   Tabs (UI-only)
+======================= */
+
+const FILTER_TABS = [
+  { key: "all", label: "Все" },
+  { key: "type", label: "Тип склада", icon: Warehouse },
+  { key: "bus", label: "Есть автобусы", icon: Bus },
+  { key: "premium", label: "Высокий тариф", icon: BadgePercent },
+  { key: "food", label: "Есть обеды", icon: Utensils },
+  { key: "fav", label: "Избранные", icon: Star },
+] as const;
 
 /* =======================
    Карточка объекта
@@ -114,13 +126,13 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
     const el = ref.current;
     if (!el) return;
     const idx = Math.round(el.scrollLeft / el.clientWidth);
-    setActive(clamp(idx, 0, slidesCount - 1));
+    setActive(idx);
   };
 
   return (
     <Link
       href={`/objects/${obj.id}`}
-      className="block overflow-hidden rounded-2xl border border-gray-200 bg-white"
+      className="block w-full overflow-hidden rounded-2xl border border-gray-200 bg-white"
     >
       {/* Фото */}
       <div
@@ -166,14 +178,18 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
         <div className="flex items-start gap-3">
           {obj.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={obj.logoUrl} alt="" className="h-10 w-10 rounded-xl object-contain bg-gray-50 p-1" />
+            <img
+              src={obj.logoUrl}
+              alt=""
+              className="h-10 w-10 rounded-xl bg-gray-50 p-1 object-contain"
+            />
           ) : (
             <div className="h-10 w-10 rounded-xl bg-gray-100 flex items-center justify-center font-semibold">
               {firstLetter(obj.name)}
             </div>
           )}
 
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <TypeBadge type={obj.type ?? "Объект"} />
             <div className="font-semibold truncate">{obj.name}</div>
             <div className="flex items-center gap-1 text-sm text-gray-500">
@@ -185,7 +201,7 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
             </div>
           </div>
 
-          <ChevronRight className="ml-auto text-gray-400" />
+          <ChevronRight className="text-gray-400 shrink-0" />
         </div>
       </div>
     </Link>
@@ -198,7 +214,7 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
 
 export default function ObjectsPage() {
   const [items, setItems] = useState<ApiObject[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<string>("all");
 
   const url = useMemo(() => `${apiBase()}/objects`, []);
 
@@ -209,26 +225,48 @@ export default function ObjectsPage() {
         if (Array.isArray(data) && data.length > 0) {
           setItems(data);
         } else {
-          setItems(DEMO_OBJECTS); // 👈 ВАЖНО
+          setItems(DEMO_OBJECTS);
         }
       })
-      .catch(() => setItems(DEMO_OBJECTS))
-      .finally(() => setLoading(false));
+      .catch(() => setItems(DEMO_OBJECTS));
   }, [url]);
 
   return (
-    <div className="p-6 space-y-4">
-      <h1 className="text-xl font-semibold">Объекты</h1>
+    <div className="space-y-4">
+      <h1 className="px-4 text-xl font-semibold">Объекты</h1>
 
-      {loading ? (
-        <div className="text-sm text-gray-500">Загрузка…</div>
-      ) : (
-        <div className="grid gap-3">
-          {items.map((o) => (
-            <ObjectCard key={o.id} obj={o} />
-          ))}
+      {/* Tabs */}
+      <div className="px-2">
+        <div className="flex gap-2 overflow-x-auto snap-x">
+          {FILTER_TABS.map((t) => {
+            const active = activeTab === t.key;
+            const Icon = t.icon;
+
+            return (
+              <button
+                key={t.key}
+                onClick={() => setActiveTab(t.key)}
+                className={[
+                  "snap-start shrink-0 flex items-center gap-2 rounded-full px-4 py-2 text-sm transition",
+                  active
+                    ? "bg-black text-white"
+                    : "border border-gray-200 bg-white text-gray-700",
+                ].join(" ")}
+              >
+                {Icon && <Icon size={16} />}
+                {t.label}
+              </button>
+            );
+          })}
         </div>
-      )}
+      </div>
+
+      {/* List */}
+      <div className="px-4 space-y-3">
+        {items.map((o) => (
+          <ObjectCard key={o.id} obj={o} />
+        ))}
+      </div>
     </div>
   );
 }
