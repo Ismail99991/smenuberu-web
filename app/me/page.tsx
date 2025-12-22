@@ -10,7 +10,9 @@ function getApiBase() {
 }
 
 function getLoginUrl() {
-  return getApiBase() + "/auth/yandex/start";
+  // ✅ web-flow: отдельное OAuth-приложение + вернуться обратно в web
+  const next = "/me";
+  return getApiBase() + "/auth/yandex/web/start?next=" + encodeURIComponent(next);
 }
 
 function SectionLink({
