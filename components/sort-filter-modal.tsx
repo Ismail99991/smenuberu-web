@@ -92,6 +92,8 @@ export default function SortFilterModal({
           className={cn(
             uiCard,
             uiModal,
+            // ✅ added: делаем колонку, чтобы body мог занять остаток высоты и скроллиться
+            "flex flex-col", // ✅ added
             // ✅ чтобы модалка нормально скроллилась на мобиле
             "max-h-[calc(100dvh-48px)] overflow-hidden"
           )}
@@ -103,7 +105,9 @@ export default function SortFilterModal({
           <div className="flex items-start justify-between gap-3 border-b border-zinc-200 p-4">
             <div>
               <div className="text-sm text-zinc-500">Задания</div>
-              <div className="text-base font-semibold">Сортировать и фильтровать</div>
+              <div className="text-base font-semibold">
+                Сортировать и фильтровать
+              </div>
             </div>
 
             {/* ❗фикс “лупы” — без scale/transform */}
@@ -121,7 +125,10 @@ export default function SortFilterModal({
 
           {/* content (СКРОЛЛИТСЯ) */}
           <div
-            className="p-4 overflow-y-auto overscroll-contain touch-pan-y"
+            className={cn(
+              // ✅ added: flex-1 + min-h-0 критично для overflow внутри flex-колонки
+              "p-4 overflow-y-auto overscroll-contain touch-pan-y flex-1 min-h-0" // ✅ added
+            )}
             style={{ WebkitOverflowScrolling: "touch" }}
             // ✅ чтобы тачи/скролл не “проваливались” в фон
             onPointerDown={(e) => e.stopPropagation()}
@@ -144,7 +151,9 @@ export default function SortFilterModal({
                     return (
                       <button
                         key={x.k}
-                        onClick={() => onChange({ ...value, sort: x.k as SortKey })}
+                        onClick={() =>
+                          onChange({ ...value, sort: x.k as SortKey })
+                        }
                         className={cn(
                           uiTransition,
                           "w-full rounded-xl border px-3 py-2 text-left text-sm",
@@ -169,12 +178,14 @@ export default function SortFilterModal({
                     {
                       label: "Только “горящие”",
                       checked: value.onlyHot,
-                      onChange: (v: boolean) => onChange({ ...value, onlyHot: v }),
+                      onChange: (v: boolean) =>
+                        onChange({ ...value, onlyHot: v }),
                     },
                     {
                       label: "Только “высокий тариф”",
                       checked: value.onlyPremium,
-                      onChange: (v: boolean) => onChange({ ...value, onlyPremium: v }),
+                      onChange: (v: boolean) =>
+                        onChange({ ...value, onlyPremium: v }),
                     },
                   ].map((f) => (
                     <label

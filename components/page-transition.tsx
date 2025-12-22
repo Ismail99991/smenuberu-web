@@ -3,25 +3,36 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
-export default function PageTransition({ children }: { children: React.ReactNode }) {
+export default function PageTransition({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
-  const [show, setShow] = useState(false);
+  const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    setShow(false);
-    const id = requestAnimationFrame(() => setShow(true));
-    return () => cancelAnimationFrame(id);
+    // сначала чуть прячем
+    setVisible(false);
+
+    // микрозадержка — iOS ловит корректно
+    const t = setTimeout(() => {
+      setVisible(true);
+    }, 20);
+
+    return () => clearTimeout(t);
   }, [pathname]);
 
   return (
     <div
-      key={pathname}
       className={[
-        "transform-gpu",
-        "transition-all",
-        "duration-300",
+        "will-change-transform will-change-opacity",
+        "transition-[opacity,transform]",
+        "duration-200",
         "ease-out",
-        show ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4",
+        visible
+          ? "opacity-100 translate-x-0"
+          : "opacity-0 translate-x-1.5",
       ].join(" ")}
     >
       {children}

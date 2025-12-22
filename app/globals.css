@@ -42,3 +42,10 @@ body {
   overflow: auto;
   -webkit-overflow-scrolling: touch;
 }
+.tap {
+  transition: transform 160ms ease-out, opacity 160ms ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+.tap:active {
+  transform: scale(0.98);
+}

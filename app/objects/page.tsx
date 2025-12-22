@@ -16,6 +16,7 @@ import {
   Utensils,
   BadgePercent,
 } from "lucide-react";
+import { cn } from "@/lib/cn";
 
 /* =======================
    Типы
@@ -170,7 +171,12 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
   return (
     <Link
       href={`/objects/${obj.id}`}
-      className="block w-full overflow-hidden rounded-2xl border border-gray-200 bg-white"
+      className="
+        tap
+        block w-full overflow-hidden rounded-2xl border border-gray-200 bg-white
+        transition-[box-shadow,transform] duration-200 ease-out
+        active:shadow-[0_12px_24px_rgba(0,0,0,0.12)]
+      "
     >
       {/* Фото */}
       <div
@@ -187,7 +193,12 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
         <div
           ref={ref}
           onScroll={onScroll}
-          className="flex h-full w-full overflow-x-auto snap-x snap-mandatory overscroll-x-contain touch-pan-x scroll-smooth"
+          className="
+            flex h-full w-full overflow-x-auto
+            snap-x snap-mandatory
+            overscroll-x-contain touch-pan-x
+            scroll-smooth
+          "
           style={{ WebkitOverflowScrolling: "touch" }}
         >
           {photos.length ? (
@@ -209,9 +220,10 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
           {Array.from({ length: slidesCount }).map((_, i) => (
             <span
               key={i}
-              className={`h-1.5 w-1.5 rounded-full ${
-                i === active ? "bg-white" : "bg-white/50"
-              }`}
+              className={cn(
+                "h-1.5 rounded-full transition-all duration-200",
+                i === active ? "bg-white w-4" : "bg-white/50 w-1.5"
+              )}
             />
           ))}
         </div>
@@ -297,7 +309,10 @@ export default function ObjectsPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold">Объекты</h1>
+      <div className="space-y-0.5">
+        <h1 className="text-xl font-semibold">Объекты</h1>
+        <div className="text-sm text-gray-500">Выберите место работы и условия</div>
+      </div>
 
       {/* Tabs — full width */}
       <FullBleed>
@@ -312,10 +327,11 @@ export default function ObjectsPage() {
                   key={t.key}
                   onClick={() => setActiveTab(t.key)}
                   className={[
-                    "snap-start shrink-0 flex items-center gap-2 rounded-full px-4 py-2 text-sm transition",
+                    "snap-start shrink-0 flex items-center gap-2 rounded-full px-4 py-2 text-sm tap",
+                    "transition-[background-color,color,box-shadow,transform] duration-200 ease-out",
                     active
-                      ? "bg-black text-white"
-                      : "border border-gray-200 bg-white text-gray-700",
+                      ? "bg-brand text-white shadow-[0_8px_18px_rgba(79,70,229,0.28)]"
+                      : "border border-gray-200 bg-white/80 text-gray-700 backdrop-blur",
                   ].join(" ")}
                 >
                   {Icon ? <Icon size={16} /> : null}
@@ -331,7 +347,26 @@ export default function ObjectsPage() {
       <FullBleed>
         <div className="px-4 space-y-3">
           {loading ? (
-            <div className="text-sm text-gray-500">Загрузка…</div>
+            <div className="space-y-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="overflow-hidden rounded-2xl border border-gray-200 bg-white"
+                >
+                  <div className="h-40 bg-gray-100 animate-pulse" />
+                  <div className="p-4 space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-gray-100 animate-pulse" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-3 w-24 rounded bg-gray-100 animate-pulse" />
+                        <div className="h-4 w-40 rounded bg-gray-100 animate-pulse" />
+                        <div className="h-3 w-56 rounded bg-gray-100 animate-pulse" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : shown.length === 0 ? (
             <div className="rounded-2xl border border-gray-200 bg-white p-4 text-sm text-gray-600">
               Пока нет объектов.

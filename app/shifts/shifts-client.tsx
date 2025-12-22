@@ -5,7 +5,10 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import DayTabs from "@/components/day-tabs";
 import SlotCard from "@/components/slot-card";
 import BookingModal from "@/components/booking-modal";
-import SortFilterModal, { type TaskFilters, type SortKey } from "@/components/sort-filter-modal";
+import SortFilterModal, {
+  type TaskFilters,
+  type SortKey,
+} from "@/components/sort-filter-modal";
 import { addDays, getMockSlots, getSlotsFromApi, toISODateLocal } from "@/lib/slots";
 import type { Slot } from "@/lib/slots";
 
@@ -66,7 +69,7 @@ export default function ShiftsClient() {
     onlyHot: false,
     onlyPremium: false,
     types: [],
-    sort: "relevance"
+    sort: "relevance",
   });
 
   // окно дней 14 дней
@@ -76,25 +79,23 @@ export default function ShiftsClient() {
   const [slots, setSlots] = useState<Slot[]>(() => getMockSlots(today, 14));
 
   useEffect(() => {
-  let cancelled = false;
+    let cancelled = false;
 
-  (async () => {
-    try {
-      const apiSlots = await getSlotsFromApi();
-      if (!cancelled && apiSlots.length > 0) {
-        setSlots(apiSlots);
+    (async () => {
+      try {
+        const apiSlots = await getSlotsFromApi();
+        if (!cancelled && apiSlots.length > 0) {
+          setSlots(apiSlots);
+        }
+      } catch {
+        // тихо остаёмся на моках
       }
-    } catch {
-      // тихо остаёмся на моках
-    }
-  })();
+    })();
 
-  return () => {
-    cancelled = true;
-  };
-}, [today]);
-
-
+    return () => {
+      cancelled = true;
+    };
+  }, [today]);
 
   // дни с любыми слотами (чтобы в месяце можно приглушать пустые)
   const availableDays = useMemo(() => new Set(slots.map((s) => s.date)), [slots]);
@@ -134,6 +135,27 @@ export default function ShiftsClient() {
     if (!y || !m) return;
     setMonth(new Date(y, m - 1, 1));
   }, [selectedDay]);
+
+  // NEW: метрики “Сегодня” (и для выбранного дня тоже)
+  const todayIso = useMemo(() => toISODateLocal(today), [today]);
+
+  const statsToday = useMemo(() => {
+    const list = slots.filter((x) => x.date === todayIso);
+    const total = list.length;
+    const hot = list.filter((x) => !!x.hot).length;
+    const premium = list.filter((x) => x.pay >= 3500).length;
+    const bestPay = list.reduce((m, x) => Math.max(m, x.pay), 0);
+    return { total, hot, premium, bestPay };
+  }, [slots, todayIso]);
+
+  const statsSelected = useMemo(() => {
+    const list = slots.filter((x) => x.date === selectedDay);
+    const total = list.length;
+    const hot = list.filter((x) => !!x.hot).length;
+    const premium = list.filter((x) => x.pay >= 3500).length;
+    const bestPay = list.reduce((m, x) => Math.max(m, x.pay), 0);
+    return { total, hot, premium, bestPay };
+  }, [slots, selectedDay]);
 
   // слоты выбранного дня + поиск + фильтры + сортировка
   const filtered = useMemo(() => {
@@ -185,18 +207,30 @@ export default function ShiftsClient() {
   return (
     <div className="space-y-4">
       {/* Верхняя панель: поиск (сворачиваемый) + фильтры */}
-      <div className="rounded-2xl border border-zinc-200 bg-white p-3">
+      <div
+        className="
+          rounded-2xl border border-zinc-200 bg-white/90 p-3
+          shadow-[0_10px_28px_rgba(0,0,0,0.06)]
+          backdrop-blur
+        "
+      >
         <div className="flex items-center justify-between gap-2">
           {!showSearch ? (
             <div className="text-sm font-semibold">Задания</div>
           ) : (
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Поиск: профессия, компания, город…"
-              className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-zinc-900/10"
-              autoFocus
-            />
+            <div className="flex w-full items-center gap-2">
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Поиск: профессия, компания, город…"
+                className="
+                  w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none
+                  transition-[border-color,box-shadow] duration-200
+                  focus:border-brand/30 focus:ring-2 focus:ring-brand/20
+                "
+                autoFocus
+              />
+            </div>
           )}
 
           <div className="flex items-center gap-2">
@@ -205,7 +239,11 @@ export default function ShiftsClient() {
                 setShowSearch((v) => !v);
                 if (showSearch) setQ(""); // при сворачивании очищаем
               }}
-              className="inline-flex items-center justify-center rounded-xl border border-zinc-200 bg-white p-2"
+              className="
+                tap inline-flex items-center justify-center rounded-xl border border-zinc-200 bg-white p-2
+                transition-[box-shadow,transform] duration-200
+                active:shadow-[0_10px_22px_rgba(0,0,0,0.10)]
+              "
               aria-label="Поиск"
               title="Поиск"
             >
@@ -214,7 +252,11 @@ export default function ShiftsClient() {
 
             <button
               onClick={() => setFilterOpen(true)}
-              className="inline-flex items-center justify-center rounded-xl border border-zinc-200 bg-white p-2"
+              className="
+                tap inline-flex items-center justify-center rounded-xl border border-zinc-200 bg-white p-2
+                transition-[box-shadow,transform] duration-200
+                active:shadow-[0_10px_22px_rgba(0,0,0,0.10)]
+              "
               aria-label="Сортировать и фильтровать"
               title="Сортировать и фильтровать"
             >
@@ -225,19 +267,98 @@ export default function ShiftsClient() {
 
         {/* небольшая строка статуса */}
         <div className="mt-2 flex flex-wrap gap-2 text-xs text-zinc-500">
-          {filters.onlyHot ? <span className="rounded-full border border-zinc-200 bg-white px-2 py-0.5">горящие</span> : null}
-          {filters.onlyPremium ? <span className="rounded-full border border-zinc-200 bg-white px-2 py-0.5">высокий тариф</span> : null}
+          {filters.onlyHot ? (
+            <span className="rounded-full border border-zinc-200 bg-white/80 px-2 py-0.5">
+              горящие
+            </span>
+          ) : null}
+          {filters.onlyPremium ? (
+            <span className="rounded-full border border-zinc-200 bg-white/80 px-2 py-0.5">
+              высокий тариф
+            </span>
+          ) : null}
           {filters.types.length ? (
-            <span className="rounded-full border border-zinc-200 bg-white px-2 py-0.5">
+            <span className="rounded-full border border-zinc-200 bg-white/80 px-2 py-0.5">
               типов: {filters.types.length}
             </span>
           ) : null}
           {filters.sort !== "relevance" ? (
-            <span className="rounded-full border border-zinc-200 bg-white px-2 py-0.5">
+            <span className="rounded-full border border-zinc-200 bg-white/80 px-2 py-0.5">
               сорт: {filters.sort}
             </span>
           ) : null}
         </div>
+      </div>
+
+      {/* NEW: “Сегодня”/“Выбранный день” — живой виджет */}
+      <div
+        className="
+          rounded-2xl border border-zinc-200 bg-white/90 p-3
+          shadow-[0_10px_28px_rgba(0,0,0,0.06)]
+          backdrop-blur
+        "
+      >
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <div className="text-xs text-zinc-500">
+              {selectedDay === todayIso ? "Сегодня" : "Выбранный день"}
+            </div>
+            <div className="text-sm font-semibold truncate">
+              {selectedDay === todayIso ? "Что можно взять прямо сейчас" : "Сводка по выбранной дате"}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setSelectedDay(todayIso)}
+            className="
+              tap shrink-0 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs
+              transition-[box-shadow,transform] duration-200
+              active:shadow-[0_10px_22px_rgba(0,0,0,0.10)]
+            "
+            title="Перейти на сегодня"
+            aria-label="Перейти на сегодня"
+          >
+            Сегодня
+          </button>
+        </div>
+
+        <div className="mt-3 grid grid-cols-4 gap-2">
+          {(() => {
+            const s = selectedDay === todayIso ? statsToday : statsSelected;
+            return (
+              <>
+                <div className="rounded-2xl border border-zinc-200 bg-white p-2.5">
+                  <div className="text-[11px] text-zinc-500">Смен</div>
+                  <div className="text-base font-semibold tabular-nums">{s.total}</div>
+                </div>
+
+                <div className="rounded-2xl border border-zinc-200 bg-white p-2.5">
+                  <div className="text-[11px] text-zinc-500">Горящих</div>
+                  <div className="text-base font-semibold tabular-nums">{s.hot}</div>
+                </div>
+
+                <div className="rounded-2xl border border-zinc-200 bg-white p-2.5">
+                  <div className="text-[11px] text-zinc-500">Премиум</div>
+                  <div className="text-base font-semibold tabular-nums">{s.premium}</div>
+                </div>
+
+                <div className="rounded-2xl border border-zinc-200 bg-white p-2.5">
+                  <div className="text-[11px] text-zinc-500">Макс ₽</div>
+                  <div className="text-base font-semibold tabular-nums text-brand">
+                    {s.bestPay ? s.bestPay.toLocaleString("ru-RU") : "—"}
+                  </div>
+                </div>
+              </>
+            );
+          })()}
+        </div>
+
+        {selectedDay !== todayIso ? (
+          <div className="mt-2 text-xs text-zinc-500">
+            Подсказка: нажми <span className="font-medium text-zinc-700">Сегодня</span>, чтобы быстро вернуться к актуальным сменам.
+          </div>
+        ) : null}
       </div>
 
       {/* Табы + кнопка месяца (внутри DayTabs уже есть кнопка справа) */}
@@ -249,11 +370,10 @@ export default function ShiftsClient() {
         premiumDays={premiumDays}
         calendarOpen={calendarOpen}
         onToggleCalendar={() => setCalendarOpen((v) => !v)}
-        month={month}                 // 👈 передаём месяц
-        availableDays={availableDays} 
+        month={month} // 👈 передаём месяц
+        availableDays={availableDays}
       />
 
-      
       {/* Список */}
       {filtered.length === 0 ? (
         <div className="rounded-2xl border border-zinc-200 bg-white p-5 text-sm text-zinc-600">
