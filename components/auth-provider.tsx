@@ -1,77 +1,72 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from "react";
 
-export type AuthUser = {
+type User = {
   id: string;
-  displayName: string | null;
-  yandexLogin: string | null;
-  email: string | null;
-  avatarUrl: string | null;
-  createdAt: string;
+  displayName?: string | null;
+  yandexLogin?: string | null;
+  email?: string | null;
+  avatarUrl?: string | null;
+  createdAt?: string | null;
 };
 
-type AuthContextValue = {
-  user: AuthUser | null;
+type AuthState = {
+  user: User | null;
   loading: boolean;
   refresh: () => Promise<void>;
 };
 
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+const AuthContext = createContext<AuthState | null>(null);
 
-function getApiBaseUrl() {
-  return process.env.NEXT_PUBLIC_API_URL ?? "https://smenuberu-api.onrender.com";
+function apiBaseUrl() {
+  // ⚠️ Важно: НЕ оставляй дефолтом onrender в web.
+  // Если env не задан — лучше локалка.
+  return (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000").replace(/\/+$/, "");
+}
+
+async function fetchMe(): Promise<User | null> {
+  const res = await fetch(`${apiBaseUrl()}/auth/me`, {
+    method: "GET",
+    credentials: "include", // ✅ обязательно
+    cache: "no-store", // ✅ не кешировать /auth/me
+    headers: {
+      "Accept": "application/json",
+    },
+  });
+
+  if (!res.ok) return null;
+
+  const data = (await res.json()) as { ok?: boolean; user?: User | null };
+  return data?.user ?? null;
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  async function loadMe() {
+  const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${getApiBaseUrl()}/auth/me`, {
-        method: "GET",
-        credentials: "include", // ⬅️ важно: cookie
-        headers: { Accept: "application/json" },
-        cache: "no-store",
-      });
-
-      if (!res.ok) {
-        setUser(null);
-        return;
-      }
-
-      const data = await res.json();
-      setUser(data?.user ?? null);
-    } catch {
-      setUser(null);
+      const u = await fetchMe();
+      setUser(u);
     } finally {
       setLoading(false);
     }
-  }
-
-  useEffect(() => {
-    loadMe();
   }, []);
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        refresh: loadMe,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  useEffect(() => {
+    // при первом маунте подтягиваем /auth/me
+    refresh();
+  }, [refresh]);
+
+  const value = useMemo<AuthState>(() => ({ user, loading, refresh }), [user, loading, refresh]);
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) {
-    throw new Error("useAuth must be used inside AuthProvider");
-  }
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }
