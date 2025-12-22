@@ -9,14 +9,26 @@ const items = [
   { href: "/shifts", label: "Смены", icon: Briefcase },
   { href: "/objects", label: "Объекты", icon: Building2 },
   { href: "/payouts", label: "Выплаты", icon: Wallet },
-  { href: "/me", label: "Профиль", icon: User }
+  { href: "/me", label: "Профиль", icon: User },
 ];
 
 export default function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 border-t bg-white">
+    <nav
+      className="
+        fixed
+        bottom-0
+        left-0
+        right-0
+        z-10
+        border-t
+        bg-white/95
+        backdrop-blur
+        pb-[env(safe-area-inset-bottom)]
+      "
+    >
       <div className="mx-auto grid max-w-xl grid-cols-4 px-2 py-2">
         {items.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/");

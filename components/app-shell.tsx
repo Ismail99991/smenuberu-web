@@ -9,20 +9,23 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   const title =
     pathname.startsWith("/shifts") ? "Смены" :
-  pathname.startsWith("/objects") ? "Объекты" :
-  pathname.startsWith("/payouts") ? "Выплаты" :
-  pathname.startsWith("/me") ? "Профиль" :
-  pathname.startsWith("/support") ? "Поддержка" :
-  pathname.startsWith("/notifications") ? "Уведомления" :
-  "Главная";
+    pathname.startsWith("/objects") ? "Объекты" :
+    pathname.startsWith("/payouts") ? "Выплаты" :
+    pathname.startsWith("/me") ? "Профиль" :
+    pathname.startsWith("/support") ? "Поддержка" :
+    pathname.startsWith("/notifications") ? "Уведомления" :
+    "Главная";
 
   return (
-    <div className="min-h-dvh">
+    <div className="app-shell">
       <Topbar title={title} />
 
-      <main className="mx-auto w-full max-w-xl px-4 pb-24 pt-4">
-        {children}
-      </main>
+      {/* Скроллится только эта область — так iOS меньше показывает панели */}
+      <div className="app-scroll">
+        <main className="mx-auto w-full max-w-xl px-4 pb-24 pt-4">
+          {children}
+        </main>
+      </div>
 
       <BottomNav />
     </div>
