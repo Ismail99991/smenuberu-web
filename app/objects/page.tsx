@@ -47,6 +47,7 @@ const DEMO_OBJECTS: ApiObject[] = [
     photos: [
       "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d",
       "https://images.unsplash.com/photo-1581092334631-7b7b42f1b1f1",
+      "https://images.unsplash.com/photo-1605902711622-cfb43c4437d1",
     ],
   },
   {
@@ -80,19 +81,24 @@ function normalizeType(t?: string | null) {
   return (t ?? "").toLowerCase();
 }
 
+function clamp(n: number, a: number, b: number) {
+  return Math.max(a, Math.min(b, n));
+}
+
 function TypeBadge({ type }: { type: string }) {
   const t = normalizeType(type);
   let Icon = Building2;
 
   if (t.includes("склад")) Icon = Warehouse;
   else if (t.includes("сортиров")) Icon = Package;
-  else if (t.includes("рц")) Icon = Truck;
+  else if (t.includes("рц") || t.includes("распредел")) Icon = Truck;
   else if (t.includes("магаз")) Icon = Store;
-  else if (t.includes("фабрик") || t.includes("завод")) Icon = Factory;
+  else if (t.includes("фабрик") || t.includes("завод") || t.includes("производ"))
+    Icon = Factory;
 
   return (
     <div className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500">
-      <Icon size={14} />
+      <Icon size={14} className="shrink-0" />
       <span>{type}</span>
     </div>
   );
@@ -102,7 +108,16 @@ function TypeBadge({ type }: { type: string }) {
    Tabs (UI-only)
 ======================= */
 
-const FILTER_TABS = [
+// тип для иконки lucide
+type TabIcon = React.ComponentType<{ size?: number; className?: string }>;
+
+type FilterTab = {
+  key: "all" | "type" | "bus" | "premium" | "food" | "fav";
+  label: string;
+  icon?: TabIcon; // ✅ optional
+};
+
+const FILTER_TABS: readonly FilterTab[] = [
   { key: "all", label: "Все" },
   { key: "type", label: "Тип склада", icon: Warehouse },
   { key: "bus", label: "Есть автобусы", icon: Bus },
@@ -121,13 +136,25 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
 
   const [active, setActive] = useState(0);
   const ref = useRef<HTMLDivElement | null>(null);
+  const rafRef = useRef<number | null>(null);
 
   const onScroll = () => {
     const el = ref.current;
     if (!el) return;
-    const idx = Math.round(el.scrollLeft / el.clientWidth);
-    setActive(idx);
+
+    if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(() => {
+      const w = el.clientWidth || 1;
+      const idx = Math.round(el.scrollLeft / w);
+      setActive(clamp(idx, 0, slidesCount - 1));
+    });
   };
+
+  useEffect(() => {
+    return () => {
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
 
   return (
     <Link
@@ -137,13 +164,20 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
       {/* Фото */}
       <div
         className="relative h-40 bg-gray-100"
-        onClickCapture={(e) => e.preventDefault()}
-        onPointerDownCapture={(e) => e.preventDefault()}
+        // свайп по фото не должен открывать карточку
+        onClickCapture={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+        onPointerDownCapture={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
       >
         <div
           ref={ref}
           onScroll={onScroll}
-          className="flex h-full w-full overflow-x-auto snap-x snap-mandatory"
+          className="flex h-full w-full overflow-x-auto snap-x snap-mandatory overscroll-x-contain touch-pan-x scroll-smooth"
           style={{ WebkitOverflowScrolling: "touch" }}
         >
           {photos.length ? (
@@ -154,7 +188,7 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
               </div>
             ))
           ) : (
-            <div className="min-w-full h-full flex items-center justify-center text-sm text-gray-500">
+            <div className="min-w-full h-full snap-start flex items-center justify-center text-sm text-gray-500">
               Фото объекта
             </div>
           )}
@@ -184,7 +218,7 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
               className="h-10 w-10 rounded-xl bg-gray-50 p-1 object-contain"
             />
           ) : (
-            <div className="h-10 w-10 rounded-xl bg-gray-100 flex items-center justify-center font-semibold">
+            <div className="h-10 w-10 rounded-xl bg-gray-100 flex items-center justify-center font-semibold text-gray-700">
               {firstLetter(obj.name)}
             </div>
           )}
@@ -193,7 +227,7 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
             <TypeBadge type={obj.type ?? "Объект"} />
             <div className="font-semibold truncate">{obj.name}</div>
             <div className="flex items-center gap-1 text-sm text-gray-500">
-              <MapPin size={14} />
+              <MapPin size={14} className="shrink-0" />
               <span className="truncate">
                 {obj.city}
                 {obj.address ? `, ${obj.address}` : ""}
@@ -214,22 +248,42 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
 
 export default function ObjectsPage() {
   const [items, setItems] = useState<ApiObject[]>([]);
-  const [activeTab, setActiveTab] = useState<string>("all");
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<FilterTab["key"]>("all");
 
   const url = useMemo(() => `${apiBase()}/objects`, []);
 
   useEffect(() => {
-    fetch(url, { credentials: "include" })
-      .then((r) => r.json())
-      .then((data) => {
+    let cancelled = false;
+
+    async function run() {
+      setLoading(true);
+      try {
+        const res = await fetch(url, { credentials: "include", cache: "no-store" });
+        const data = await res.json().catch(() => null);
+
+        if (cancelled) return;
+
         if (Array.isArray(data) && data.length > 0) {
           setItems(data);
         } else {
           setItems(DEMO_OBJECTS);
         }
-      })
-      .catch(() => setItems(DEMO_OBJECTS));
+      } catch {
+        if (!cancelled) setItems(DEMO_OBJECTS);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    run();
+    return () => {
+      cancelled = true;
+    };
   }, [url]);
+
+  // пока UI-only: табы не фильтруют, только подсвечиваются
+  const shown = items;
 
   return (
     <div className="space-y-4">
@@ -253,7 +307,7 @@ export default function ObjectsPage() {
                     : "border border-gray-200 bg-white text-gray-700",
                 ].join(" ")}
               >
-                {Icon && <Icon size={16} />}
+                {Icon ? <Icon size={16} /> : null}
                 {t.label}
               </button>
             );
@@ -263,9 +317,15 @@ export default function ObjectsPage() {
 
       {/* List */}
       <div className="px-4 space-y-3">
-        {items.map((o) => (
-          <ObjectCard key={o.id} obj={o} />
-        ))}
+        {loading ? (
+          <div className="text-sm text-gray-500">Загрузка…</div>
+        ) : shown.length === 0 ? (
+          <div className="rounded-2xl border border-gray-200 bg-white p-4 text-sm text-gray-600">
+            Пока нет объектов.
+          </div>
+        ) : (
+          shown.map((o) => <ObjectCard key={o.id} obj={o} />)
+        )}
       </div>
     </div>
   );
