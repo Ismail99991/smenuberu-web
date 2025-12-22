@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import type { TaskType } from "@/lib/task-types";
 import { TASK_TYPES } from "@/lib/task-types";
@@ -38,7 +40,25 @@ export default function SortFilterModal({
   value: TaskFilters;
   onChange: (next: TaskFilters) => void;
 }) {
-  if (!open) return null;
+  // ✅ чтобы портал работал только на клиенте
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  // ✅ lock scroll body на время открытой модалки (особенно важно на iOS)
+  useEffect(() => {
+    if (!open) return;
+
+    const prevOverflow = document.body.style.overflow;
+    const prevTouchAction = (document.body.style as any).touchAction;
+
+    document.body.style.overflow = "hidden";
+    (document.body.style as any).touchAction = "none";
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      (document.body.style as any).touchAction = prevTouchAction;
+    };
+  }, [open]);
 
   const toggleType = (t: TaskType) => {
     const has = value.types.includes(t);
@@ -57,10 +77,13 @@ export default function SortFilterModal({
     });
   };
 
-  return (
-    <div className="fixed inset-0 z-50">
+  if (!open) return null;
+  if (!mounted) return null;
+
+  const modal = (
+    <div className="fixed inset-0 z-[9999]">
       {/* overlay */}
-      <div className={uiOverlay} onClick={onClose} />
+      <div className={cn(uiOverlay, "touch-none")} onClick={onClose} />
 
       {/* container */}
       <div className="absolute left-1/2 top-6 w-[min(560px,calc(100%-16px))] -translate-x-1/2">
@@ -73,14 +96,14 @@ export default function SortFilterModal({
             "max-h-[calc(100dvh-48px)] overflow-hidden"
           )}
           data-open
+          // ✅ чтобы клики/свайпы внутри не уходили на overlay
+          onClick={(e) => e.stopPropagation()}
         >
           {/* header (не скроллится) */}
           <div className="flex items-start justify-between gap-3 border-b border-zinc-200 p-4">
             <div>
               <div className="text-sm text-zinc-500">Задания</div>
-              <div className="text-base font-semibold">
-                Сортировать и фильтровать
-              </div>
+              <div className="text-base font-semibold">Сортировать и фильтровать</div>
             </div>
 
             {/* ❗фикс “лупы” — без scale/transform */}
@@ -97,7 +120,13 @@ export default function SortFilterModal({
           </div>
 
           {/* content (СКРОЛЛИТСЯ) */}
-          <div className="p-4 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] touch-pan-y">
+          <div
+            className="p-4 overflow-y-auto overscroll-contain touch-pan-y"
+            style={{ WebkitOverflowScrolling: "touch" }}
+            // ✅ чтобы тачи/скролл не “проваливались” в фон
+            onPointerDown={(e) => e.stopPropagation()}
+            onPointerMove={(e) => e.stopPropagation()}
+          >
             <div className="space-y-4">
               {/* Сортировка */}
               <div className="rounded-2xl border border-zinc-200 p-4">
@@ -140,14 +169,12 @@ export default function SortFilterModal({
                     {
                       label: "Только “горящие”",
                       checked: value.onlyHot,
-                      onChange: (v: boolean) =>
-                        onChange({ ...value, onlyHot: v }),
+                      onChange: (v: boolean) => onChange({ ...value, onlyHot: v }),
                     },
                     {
                       label: "Только “высокий тариф”",
                       checked: value.onlyPremium,
-                      onChange: (v: boolean) =>
-                        onChange({ ...value, onlyPremium: v }),
+                      onChange: (v: boolean) => onChange({ ...value, onlyPremium: v }),
                     },
                   ].map((f) => (
                     <label
@@ -223,4 +250,6 @@ export default function SortFilterModal({
       </div>
     </div>
   );
+
+  return createPortal(modal, document.body);
 }
