@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import DayTabs from "@/components/day-tabs";
 import type { Slot } from "@/lib/slots";
 import { getBooking, setBooking } from "@/lib/booking-state";
@@ -53,6 +54,26 @@ export default function BookingModal({
   const [selected, setSelected] = useState<string[]>([]);
   const [onlyConsecutive, setOnlyConsecutive] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // ✅ чтобы портал работал только на клиенте
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  // ✅ lock scroll body на время открытой модалки (особенно важно на iOS)
+  useEffect(() => {
+    if (!open) return;
+
+    const prevOverflow = document.body.style.overflow;
+    const prevTouchAction = (document.body.style as any).touchAction;
+
+    document.body.style.overflow = "hidden";
+    (document.body.style as any).touchAction = "none";
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      (document.body.style as any).touchAction = prevTouchAction;
+    };
+  }, [open]);
 
   useEffect(() => {
     if (open) {
@@ -168,12 +189,31 @@ export default function BookingModal({
 
   if (!open) return null;
 
-  return (
-    <div className="fixed inset-0 z-50">
-      <div className={uiOverlay} onClick={onClose} />
+  // ✅ Портал в body гарантирует, что модалка всегда поверх,
+  // независимо от transform/stacking contexts выше по дереву.
+  if (!mounted) return null;
 
+  const modal = (
+    <div className="fixed inset-0 z-[9999]">
+      {/* overlay: перехватывает тачи/клики и закрывает модалку */}
+      <div
+        className={cn(uiOverlay, "touch-none")}
+        onClick={onClose}
+      />
+
+      {/* контейнер модалки */}
       <div className="absolute left-1/2 top-4 w-[min(560px,calc(100%-16px))] -translate-x-1/2">
-        <div className={cn(uiCard, uiModal)} data-open>
+        <div
+          className={cn(
+            uiCard,
+            uiModal,
+            // ✅ чтобы модалка могла скроллиться и не “упиралась” в высоту экрана
+            "max-h-[calc(100dvh-32px)] overflow-hidden"
+          )}
+          data-open
+          // ✅ чтобы клики/свайпы внутри не уходили на overlay
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="flex items-start justify-between gap-3 border-b border-zinc-200 p-4">
             <div>
               <div className="text-sm text-zinc-500">Запись на слоты</div>
@@ -190,7 +230,19 @@ export default function BookingModal({
             </button>
           </div>
 
-          <div className="space-y-3 p-4">
+          {/* ✅ вот тут делаем нормальный вертикальный скролл */}
+          <div
+            className={cn(
+              "space-y-3 p-4",
+              "overflow-y-auto",
+              "overscroll-contain",
+              "touch-pan-y"
+            )}
+            style={{
+              WebkitOverflowScrolling: "touch",
+              maxHeight: "calc(100dvh - 32px - 72px)", // экран - отступы - хедер (прибл.)
+            }}
+          >
             <DayTabs
               days={days}
               value={day}
@@ -366,4 +418,6 @@ export default function BookingModal({
       </div>
     </div>
   );
+
+  return createPortal(modal, document.body);
 }
