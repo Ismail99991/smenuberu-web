@@ -43,31 +43,37 @@ export default function BottomNav() {
                 href={href}
                 className={cn(
                   "relative flex flex-col items-center justify-center py-3",
-                  "rounded-2xl transition-colors duration-200",
-                  active ? "text-black" : "text-zinc-600"
+                  "rounded-2xl transition-all duration-200",
+                  active
+                    ? "text-white"
+                    : "text-zinc-600 active:scale-95"
                 )}
               >
-                {/* active background */}
+                {/* Active background */}
                 <span
                   aria-hidden
                   className={cn(
                     "pointer-events-none absolute inset-1 rounded-2xl",
-                    "bg-black/90 transition-all duration-200",
-                    active ? "opacity-100 scale-100" : "opacity-0 scale-95"
+                    "transition-all duration-200",
+                    active
+                      ? "bg-brand opacity-100"
+                      : "opacity-0 scale-95"
                   )}
                 />
 
                 <Icon
                   className={cn(
                     "relative h-5 w-5 transition-transform duration-200",
-                    active && "translate-y-[-1px] scale-[1.05] text-white"
+                    active
+                      ? "translate-y-[-1px] scale-[1.05]"
+                      : "scale-100"
                   )}
                 />
 
                 <span
                   className={cn(
                     "relative mt-1 text-[11px]",
-                    active ? "text-white" : "text-zinc-600"
+                    active ? "opacity-100" : "opacity-80"
                   )}
                 >
                   {label}
