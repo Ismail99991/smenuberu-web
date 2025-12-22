@@ -2,6 +2,21 @@
 
 import { useAuth } from "@/components/auth-provider";
 
+function Field({
+  label,
+  value,
+}: {
+  label: string;
+  value: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-lg border border-gray-100 p-3">
+      <div className="text-xs text-gray-500">{label}</div>
+      <div className="text-sm text-gray-700 mt-1">{value}</div>
+    </div>
+  );
+}
+
 export default function AboutMePage() {
   const { user, loading } = useAuth();
 
@@ -22,8 +37,8 @@ export default function AboutMePage() {
     (user as any).displayName ?? (user as any).name ?? (user as any).fullName ?? "Без имени";
 
   const email = (user as any).email ?? null;
-  const phone = (user as any).phone ?? null;
-  const taxStatus = (user as any).taxStatus ?? null;
+  const phone = (user as any).phone ?? null; // пока заглушка, если нет в /auth/me
+  const taxStatus = (user as any).taxStatus ?? null; // позже
   const yandexLogin = (user as any).yandexLogin ?? null;
   const createdAt = (user as any).createdAt ?? null;
 
@@ -38,43 +53,28 @@ export default function AboutMePage() {
         </div>
 
         <div className="grid grid-cols-1 gap-3">
-          <div className="rounded-lg border border-gray-100 p-3">
-            <div className="text-xs text-gray-500">ФИО</div>
-            <div className="text-sm">{displayName}</div>
-          </div>
-
-          <div className="rounded-lg border border-gray-100 p-3">
-            <div className="text-xs text-gray-500">Телефон</div>
-            <div className="text-sm text-gray-700">
-              {phone ?? <span className="text-gray-400">— (позже из профиля исполнителя)</span>}
-            </div>
-          </div>
-
-          <div className="rounded-lg border border-gray-100 p-3">
-            <div className="text-xs text-gray-500">Email</div>
-            <div className="text-sm text-gray-700">{email ?? <span className="text-gray-400">—</span>}</div>
-          </div>
-
-          <div className="rounded-lg border border-gray-100 p-3">
-            <div className="text-xs text-gray-500">Учетные данные</div>
-            <div className="text-sm text-gray-700">
-              {yandexLogin ? `Яндекс (${yandexLogin})` : "Яндекс OAuth (cookie-сессия)"}
-            </div>
-          </div>
-
-          <div className="rounded-lg border border-gray-100 p-3">
-            <div className="text-xs text-gray-500">Налоговый статус</div>
-            <div className="text-sm text-gray-700">
-              {taxStatus ?? <span className="text-gray-400">— (ИП / НПД / ГПХ… позже)</span>}
-            </div>
-          </div>
-
-          <div className="rounded-lg border border-gray-100 p-3">
-            <div className="text-xs text-gray-500">Дата регистрации</div>
-            <div className="text-sm text-gray-700">
-              {createdAt ? new Date(createdAt).toLocaleString() : <span className="text-gray-400">—</span>}
-            </div>
-          </div>
+          <Field label="ФИО" value={displayName} />
+          <Field
+            label="Телефон"
+            value={phone ?? <span className="text-gray-400">— (позже из профиля исполнителя)</span>}
+          />
+          <Field label="Email" value={email ?? <span className="text-gray-400">—</span>} />
+          <Field
+            label="Учетные данные"
+            value={yandexLogin ? `Яндекс (${yandexLogin})` : "Яндекс OAuth (cookie-сессия)"}
+          />
+          <Field
+            label="Налоговый статус"
+            value={taxStatus ?? <span className="text-gray-400">— (ИП / НПД / ГПХ… позже)</span>}
+          />
+          <Field
+            label="Дата регистрации"
+            value={
+              createdAt
+                ? new Date(createdAt).toLocaleString()
+                : <span className="text-gray-400">—</span>
+            }
+          />
         </div>
       </div>
     </div>
