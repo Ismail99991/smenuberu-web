@@ -11,7 +11,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     pathname.startsWith("/shifts") ? "Смены" :
   pathname.startsWith("/objects") ? "Объекты" :
   pathname.startsWith("/payouts") ? "Выплаты" :
-  pathname.startsWith("/profile") ? "Профиль" :
+  pathname.startsWith("/me") ? "Профиль" :
   pathname.startsWith("/support") ? "Поддержка" :
   pathname.startsWith("/notifications") ? "Уведомления" :
   "Главная";

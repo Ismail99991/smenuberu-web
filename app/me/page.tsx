@@ -12,6 +12,31 @@ function getLoginUrl() {
   return getApiBase() + "/auth/yandex/start";
 }
 
+function SectionLink({
+  href,
+  title,
+  subtitle,
+}: {
+  href: string;
+  title: string;
+  subtitle: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="rounded-xl border border-gray-200 p-4 hover:bg-gray-50 transition flex items-center justify-between gap-4"
+    >
+      <div className="min-w-0">
+        <div className="font-medium">{title}</div>
+        <div className="text-sm text-gray-500 mt-1">{subtitle}</div>
+      </div>
+
+      {/* ✅ визуальный индикатор перехода */}
+      <div className="text-gray-400 text-lg leading-none select-none">{">"}</div>
+    </Link>
+  );
+}
+
 export default function MePage() {
   const { user, loading } = useAuth();
   const [logoutLoading, setLogoutLoading] = useState(false);
@@ -20,7 +45,7 @@ export default function MePage() {
     return <div className="p-6 text-sm text-gray-500">Проверка авторизации…</div>;
   }
 
-  // ✅ Никаких авто-редиректов (иначе петля)
+  // ✅ Больше НЕ делаем авто-редирект (иначе петля)
   if (!user) {
     return (
       <div className="p-6 space-y-4">
@@ -47,9 +72,6 @@ export default function MePage() {
         method: "POST",
         credentials: "include",
       });
-
-      // Самый надежный UI-way без бизнес-логики в web:
-      // просто перезагрузить страницу, чтобы useAuth заново подтянул /auth/me
       window.location.reload();
     } finally {
       setLogoutLoading(false);
@@ -57,25 +79,17 @@ export default function MePage() {
   }
 
   const displayName =
-    // поддержим разные названия полей, чтобы не ломаться от разной формы /auth/me
-    (user as any).displayName ??
-    (user as any).name ??
-    (user as any).fullName ??
-    "Без имени";
-
+    (user as any).displayName ?? (user as any).name ?? (user as any).fullName ?? "Без имени";
   const email = (user as any).email ?? null;
   const phone = (user as any).phone ?? null;
   const taxStatus = (user as any).taxStatus ?? null;
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold">Личный кабинет</h1>
-          <div className="text-xs text-gray-500 mt-1">
-            web = UI, бизнес-логика только в API
-          </div>
+          <div className="text-xs text-gray-500 mt-1">web = UI, бизнес-логика только в API</div>
         </div>
 
         <button
@@ -88,7 +102,6 @@ export default function MePage() {
         </button>
       </div>
 
-      {/* About / Profile */}
       <section className="rounded-xl border border-gray-200 p-4 space-y-3">
         <div className="flex items-center gap-4">
           {(user as any).avatarUrl ? (
@@ -137,53 +150,25 @@ export default function MePage() {
             <div className="rounded-lg border border-gray-100 p-3 sm:col-span-2">
               <div className="text-xs text-gray-500">Налоговый статус</div>
               <div className="text-sm text-gray-700">
-                {taxStatus ?? (
-                  <span className="text-gray-400">— (ИП / НПД / ГПХ… можно позже)</span>
-                )}
+                {taxStatus ?? <span className="text-gray-400">— (ИП / НПД / ГПХ… позже)</span>}
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Sections */}
       <section className="space-y-3">
         <div className="text-sm text-gray-500">Разделы</div>
 
         <div className="grid grid-cols-1 gap-3">
-          <Link
-            href="/me/documents"
-            className="rounded-xl border border-gray-200 p-4 hover:bg-gray-50 transition"
-          >
-            <div className="font-medium">Мои документы</div>
-            <div className="text-sm text-gray-500 mt-1">Активные договоры</div>
-          </Link>
-
-          <Link
-            href="/me/rating"
-            className="rounded-xl border border-gray-200 p-4 hover:bg-gray-50 transition"
-          >
-            <div className="font-medium">Личный рейтинг</div>
-            <div className="text-sm text-gray-500 mt-1">Оценка, история, показатели</div>
-          </Link>
-
-          <Link
+          <SectionLink href="/me/documents" title="Мои документы" subtitle="Активные договоры" />
+          <SectionLink href="/me/rating" title="Личный рейтинг" subtitle="Оценка и показатели" />
+          <SectionLink
             href="/me/bookings"
-            className="rounded-xl border border-gray-200 p-4 hover:bg-gray-50 transition"
-          >
-            <div className="font-medium">Забронированные смены</div>
-            <div className="text-sm text-gray-500 mt-1">
-              Скоро: подключим <span className="font-mono">GET /bookings/me</span>
-            </div>
-          </Link>
-
-          <Link
-            href="/me/favorites"
-            className="rounded-xl border border-gray-200 p-4 hover:bg-gray-50 transition"
-          >
-            <div className="font-medium">Избранное</div>
-            <div className="text-sm text-gray-500 mt-1">Понравившиеся объекты/смены</div>
-          </Link>
+            title="Забронированные смены"
+            subtitle="Скоро: GET /bookings/me"
+          />
+          <SectionLink href="/me/favorites" title="Избранное" subtitle="Понравившиеся объекты/смены" />
         </div>
       </section>
     </div>
