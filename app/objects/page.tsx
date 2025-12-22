@@ -85,6 +85,18 @@ function clamp(n: number, a: number, b: number) {
   return Math.max(a, Math.min(b, n));
 }
 
+/**
+ * FullBleed: “вырваться” из max-w контейнера AppShell и занять 100vw.
+ * Работает без правок AppShell, не трогает BottomNav.
+ */
+function FullBleed({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen">
+      {children}
+    </div>
+  );
+}
+
 function TypeBadge({ type }: { type: string }) {
   const t = normalizeType(type);
   let Icon = Building2;
@@ -108,13 +120,12 @@ function TypeBadge({ type }: { type: string }) {
    Tabs (UI-only)
 ======================= */
 
-// тип для иконки lucide
 type TabIcon = React.ComponentType<{ size?: number; className?: string }>;
 
 type FilterTab = {
   key: "all" | "type" | "bus" | "premium" | "food" | "fav";
   label: string;
-  icon?: TabIcon; // ✅ optional
+  icon?: TabIcon;
 };
 
 const FILTER_TABS: readonly FilterTab[] = [
@@ -164,7 +175,6 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
       {/* Фото */}
       <div
         className="relative h-40 bg-gray-100"
-        // свайп по фото не должен открывать карточку
         onClickCapture={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -287,46 +297,50 @@ export default function ObjectsPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="px-4 text-xl font-semibold">Объекты</h1>
+      <h1 className="text-xl font-semibold">Объекты</h1>
 
-      {/* Tabs */}
-      <div className="px-2">
-        <div className="flex gap-2 overflow-x-auto snap-x">
-          {FILTER_TABS.map((t) => {
-            const active = activeTab === t.key;
-            const Icon = t.icon;
+      {/* Tabs — full width */}
+      <FullBleed>
+        <div className="px-4">
+          <div className="flex gap-2 overflow-x-auto snap-x py-1">
+            {FILTER_TABS.map((t) => {
+              const active = activeTab === t.key;
+              const Icon = t.icon;
 
-            return (
-              <button
-                key={t.key}
-                onClick={() => setActiveTab(t.key)}
-                className={[
-                  "snap-start shrink-0 flex items-center gap-2 rounded-full px-4 py-2 text-sm transition",
-                  active
-                    ? "bg-black text-white"
-                    : "border border-gray-200 bg-white text-gray-700",
-                ].join(" ")}
-              >
-                {Icon ? <Icon size={16} /> : null}
-                {t.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* List */}
-      <div className="px-4 space-y-3">
-        {loading ? (
-          <div className="text-sm text-gray-500">Загрузка…</div>
-        ) : shown.length === 0 ? (
-          <div className="rounded-2xl border border-gray-200 bg-white p-4 text-sm text-gray-600">
-            Пока нет объектов.
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => setActiveTab(t.key)}
+                  className={[
+                    "snap-start shrink-0 flex items-center gap-2 rounded-full px-4 py-2 text-sm transition",
+                    active
+                      ? "bg-black text-white"
+                      : "border border-gray-200 bg-white text-gray-700",
+                  ].join(" ")}
+                >
+                  {Icon ? <Icon size={16} /> : null}
+                  {t.label}
+                </button>
+              );
+            })}
           </div>
-        ) : (
-          shown.map((o) => <ObjectCard key={o.id} obj={o} />)
-        )}
-      </div>
+        </div>
+      </FullBleed>
+
+      {/* List — full width */}
+      <FullBleed>
+        <div className="px-4 space-y-3">
+          {loading ? (
+            <div className="text-sm text-gray-500">Загрузка…</div>
+          ) : shown.length === 0 ? (
+            <div className="rounded-2xl border border-gray-200 bg-white p-4 text-sm text-gray-600">
+              Пока нет объектов.
+            </div>
+          ) : (
+            shown.map((o) => <ObjectCard key={o.id} obj={o} />)
+          )}
+        </div>
+      </FullBleed>
     </div>
   );
 }
