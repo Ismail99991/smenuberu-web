@@ -17,6 +17,10 @@ type Props = {
   onToggleCalendar?: () => void;
   month?: Date;
   availableDays?: Set<string>;
+  
+  // ДОБАВИТЬ ЭТИ ДВА ПРОПСА:
+  onPrevMonth?: () => void;
+  onNextMonth?: () => void;
 };
 
 export default function DayTabs({
@@ -28,7 +32,11 @@ export default function DayTabs({
   calendarOpen,
   onToggleCalendar,
   month,
-  availableDays
+  availableDays,
+  
+  // ДОБАВИТЬ ЭТИ ДВА ПРОПСА В ДЕСТРУКТУРИЗАЦИЮ:
+  onPrevMonth,
+  onNextMonth
 }: Props) {
   return (
     <div className="rounded-2xl border border-zinc-200 bg-white p-3">
@@ -119,6 +127,9 @@ export default function DayTabs({
           availableDays={availableDays}
           hotDays={hotDays}
           premiumDays={premiumDays}
+          // ПЕРЕДАЕМ ПРОПСЫ В MonthCalendar:
+          onPrevMonth={onPrevMonth}
+          onNextMonth={onNextMonth}
         />
       )}
     </div>
