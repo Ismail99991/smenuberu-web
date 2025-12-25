@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Search, SlidersHorizontal, ChevronRight, Users, Trophy, Sparkles } from "lucide-react";
+import { Search, SlidersHorizontal, ChevronRight, Users, Trophy, Sparkles, ChevronLeft } from "lucide-react";
 import DayTabs from "@/components/day-tabs";
 import SlotCard from "@/components/slot-card";
 import BookingModal from "@/components/booking-modal";
@@ -71,6 +71,9 @@ export default function ShiftsClient() {
     types: [],
     sort: "relevance",
   });
+
+  // карусель баннеров
+  const [currentBanner, setCurrentBanner] = useState(0);
 
   // окно дней 14 дней
   const days = useMemo(() => getDaysWindow(today, 14), [today]);
@@ -303,125 +306,163 @@ export default function ShiftsClient() {
         </div>
       </div>
 
-      {/* НОВЫЙ РАЗДЕЛ: АКЦИИ (вместо контейнера "Сегодня") */}
-      <div className="space-y-3">
-        {/* Баннер 1: Выполни 10 заданий */}
-        <div
-          className="
-            rounded-2xl border border-zinc-200 bg-gradient-to-r from-amber-50 to-orange-50 p-4
-            shadow-[0_10px_28px_rgba(251,191,36,0.15)]
-            relative overflow-hidden
-          "
-        >
-          <div className="relative z-10">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <Trophy className="h-5 w-5 text-amber-600" />
-                  <div className="text-sm font-semibold text-zinc-900">Спецзадание</div>
-                </div>
-                <div className="mt-1 text-base font-semibold text-zinc-900">
-                  Выполни 10 заданий и получи <span className="text-green-600">10 000 ₽</span>
-                </div>
-                <div className="mt-1 text-xs text-zinc-600">
-                  До конца акции осталось: 7 дней
-                </div>
-              </div>
-              
-              <button
-                type="button"
-                onClick={() => {/* навигация в раздел акций */}}
-                className="
-                  tap shrink-0 rounded-xl bg-white px-3 py-2 text-xs font-medium text-amber-700
-                  border border-amber-200
-                  transition-[box-shadow,transform] duration-200
-                  active:shadow-[0_10px_22px_rgba(251,191,36,0.20)]
-                "
-                title="Подробнее об акции"
-                aria-label="Подробнее об акции"
-              >
-                <div className="flex items-center gap-1">
-                  <span>Подробнее</span>
-                  <ChevronRight className="h-3 w-3" />
-                </div>
-              </button>
-            </div>
-            
-            <div className="mt-3">
-              <div className="text-xs text-zinc-500 mb-1">Прогресс: 6/10 заданий</div>
-              <div className="h-2 w-full rounded-full bg-amber-100 overflow-hidden">
-                <div 
-                  className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500"
-                  style={{ width: '60%' }}
-                />
-              </div>
-            </div>
+      {/* НОВЫЙ РАЗДЕЛ: АКЦИИ (карусель с свайпом) */}
+      <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-[0_10px_28px_rgba(0,0,0,0.06)]">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="text-sm font-semibold">Акции</div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentBanner(0)}
+              disabled={currentBanner === 0}
+              className="rounded-xl border border-zinc-200 p-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+              aria-label="Предыдущий баннер"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setCurrentBanner(1)}
+              disabled={currentBanner === 1}
+              className="rounded-xl border border-zinc-200 p-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+              aria-label="Следующий баннер"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
           </div>
-          
-          {/* Декоративные элементы */}
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-amber-200/30 to-orange-200/20 rounded-full -translate-y-6 translate-x-6"></div>
-          <Sparkles className="absolute top-4 right-4 h-6 w-6 text-amber-400/50" />
         </div>
 
-        {/* Баннер 2: Реферальная программа */}
-        <div
-          className="
-            rounded-2xl border border-zinc-200 bg-gradient-to-r from-sky-50 to-indigo-50 p-4
-            shadow-[0_10px_28px_rgba(56,189,248,0.15)]
-            relative overflow-hidden
-          "
-        >
-          <div className="relative z-10">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-sky-600" />
-                  <div className="text-sm font-semibold text-zinc-900">Пригласи друга</div>
+        {/* Карусель баннеров */}
+        <div className="relative overflow-hidden rounded-xl">
+          <div
+            className="flex transition-transform duration-300 ease-out"
+            style={{ transform: `translateX(-${currentBanner * 100}%)` }}
+          >
+            {/* Баннер 1: Выполни 10 заданий */}
+            <div className="w-full flex-shrink-0">
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-4 rounded-xl relative overflow-hidden">
+                <div className="relative z-10">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <Trophy className="h-5 w-5 text-amber-600" />
+                        <div className="text-sm font-semibold text-zinc-900">Спецзадание</div>
+                      </div>
+                      <div className="mt-1 text-base font-semibold text-zinc-900">
+                        Выполни 10 заданий и получи <span className="text-green-600">10 000 ₽</span>
+                      </div>
+                      <div className="mt-1 text-xs text-zinc-600">
+                        До конца акции осталось: 7 дней
+                      </div>
+                    </div>
+                    
+                    <button
+                      type="button"
+                      onClick={() => {/* навигация в раздел акций */}}
+                      className="
+                        tap shrink-0 rounded-xl bg-white px-3 py-2 text-xs font-medium text-amber-700
+                        border border-amber-200
+                        transition-[box-shadow,transform] duration-200
+                        active:shadow-[0_10px_22px_rgba(251,191,36,0.20)]
+                      "
+                      title="Подробнее об акции"
+                      aria-label="Подробнее об акции"
+                    >
+                      <div className="flex items-center gap-1">
+                        <span>Подробнее</span>
+                        <ChevronRight className="h-3 w-3" />
+                      </div>
+                    </button>
+                  </div>
+                  
+                  <div className="mt-3">
+                    <div className="text-xs text-zinc-500 mb-1">Прогресс: 6/10 заданий</div>
+                    <div className="h-2 w-full rounded-full bg-amber-100 overflow-hidden">
+                      <div 
+                        className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500"
+                        style={{ width: '60%' }}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="mt-1 text-base font-semibold text-zinc-900">
-                  Получи <span className="text-green-600">3 000 ₽</span> за каждого друга
-                </div>
-                <div className="mt-1 text-xs text-zinc-600">
-                  Друг тоже получит 1 000 ₽ на первый заказ
-                </div>
+                
+                {/* Декоративные элементы */}
+                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-amber-200/30 to-orange-200/20 rounded-full -translate-y-6 translate-x-6"></div>
+                <Sparkles className="absolute top-4 right-4 h-6 w-6 text-amber-400/50" />
               </div>
-              
-              <button
-                type="button"
-                onClick={() => {/* открыть модалку с реферальной ссылкой */}}
-                className="
-                  tap shrink-0 rounded-xl bg-white px-3 py-2 text-xs font-medium text-sky-700
-                  border border-sky-200
-                  transition-[box-shadow,transform] duration-200
-                  active:shadow-[0_10px_22px_rgba(56,189,248,0.20)]
-                "
-                title="Получить реферальную ссылку"
-                aria-label="Получить реферальную ссылку"
-              >
-                <div className="flex items-center gap-1">
-                  <span>Получить ссылку</span>
-                  <ChevronRight className="h-3 w-3" />
-                </div>
-              </button>
             </div>
-            
-            <div className="mt-3 flex items-center gap-3">
-              <div className="text-xs">
-                <div className="text-zinc-500">Приглашено друзей:</div>
-                <div className="text-base font-semibold text-sky-700">2</div>
-              </div>
-              <div className="text-xs">
-                <div className="text-zinc-500">Заработано:</div>
-                <div className="text-base font-semibold text-green-600">6 000 ₽</div>
+
+            {/* Баннер 2: Реферальная программа */}
+            <div className="w-full flex-shrink-0">
+              <div className="bg-gradient-to-r from-sky-50 to-indigo-50 p-4 rounded-xl relative overflow-hidden">
+                <div className="relative z-10">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-5 w-5 text-sky-600" />
+                        <div className="text-sm font-semibold text-zinc-900">Пригласи друга</div>
+                      </div>
+                      <div className="mt-1 text-base font-semibold text-zinc-900">
+                        Получи <span className="text-green-600">3 000 ₽</span> за каждого друга
+                      </div>
+                      <div className="mt-1 text-xs text-zinc-600">
+                        Друг тоже получит 1 000 ₽ на первый заказ
+                      </div>
+                    </div>
+                    
+                    <button
+                      type="button"
+                      onClick={() => {/* открыть модалку с реферальной ссылкой */}}
+                      className="
+                        tap shrink-0 rounded-xl bg-white px-3 py-2 text-xs font-medium text-sky-700
+                        border border-sky-200
+                        transition-[box-shadow,transform] duration-200
+                        active:shadow-[0_10px_22px_rgba(56,189,248,0.20)]
+                      "
+                      title="Получить реферальную ссылку"
+                      aria-label="Получить реферальную ссылку"
+                    >
+                      <div className="flex items-center gap-1">
+                        <span>Получить ссылку</span>
+                        <ChevronRight className="h-3 w-3" />
+                      </div>
+                    </button>
+                  </div>
+                  
+                  <div className="mt-3 flex items-center gap-3">
+                    <div className="text-xs">
+                      <div className="text-zinc-500">Приглашено друзей:</div>
+                      <div className="text-base font-semibold text-sky-700">2</div>
+                    </div>
+                    <div className="text-xs">
+                      <div className="text-zinc-500">Заработано:</div>
+                      <div className="text-base font-semibold text-green-600">6 000 ₽</div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Декоративные элементы */}
+                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-sky-200/30 to-indigo-200/20 rounded-full -translate-y-6 translate-x-6"></div>
+                <div className="absolute bottom-4 right-4 text-xs font-mono bg-white/80 backdrop-blur-sm rounded-lg px-2 py-1 border border-sky-200">
+                  REF:USER789
+                </div>
               </div>
             </div>
           </div>
-          
-          {/* Декоративные элементы */}
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-sky-200/30 to-indigo-200/20 rounded-full -translate-y-6 translate-x-6"></div>
-          <div className="absolute bottom-4 right-4 text-xs font-mono bg-white/80 backdrop-blur-sm rounded-lg px-2 py-1 border border-sky-200">
-            REF:USER789
-          </div>
+        </div>
+
+        {/* Точки навигации */}
+        <div className="mt-4 flex items-center justify-center gap-2">
+          {[0, 1].map((index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentBanner(index)}
+              className={`h-2 rounded-full transition-all duration-200 ${
+                currentBanner === index 
+                  ? "w-8 bg-zinc-900" 
+                  : "w-2 bg-zinc-300 hover:bg-zinc-400"
+              }`}
+              aria-label={`Перейти к баннеру ${index + 1}`}
+            />
+          ))}
         </div>
       </div>
 
