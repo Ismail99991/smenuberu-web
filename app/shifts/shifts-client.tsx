@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal, ChevronRight, Users, Trophy, Sparkles } from "lucide-react";
 import DayTabs from "@/components/day-tabs";
 import SlotCard from "@/components/slot-card";
 import BookingModal from "@/components/booking-modal";
@@ -122,6 +122,19 @@ export default function ShiftsClient() {
     setMonth(new Date(now.getFullYear(), now.getMonth(), 1));
   }, []);
   useAutoTodayRollover(handleRollover);
+
+  // навигация по месяцам в календаре
+  const handlePrevMonth = useCallback(() => {
+    const prev = new Date(month);
+    prev.setMonth(prev.getMonth() - 1);
+    setMonth(prev);
+  }, [month]);
+
+  const handleNextMonth = useCallback(() => {
+    const next = new Date(month);
+    next.setMonth(next.getMonth() + 1);
+    setMonth(next);
+  }, [month]);
 
   // если selectedDay выпал из окна — аккуратно поправим
   useEffect(() => {
@@ -290,75 +303,126 @@ export default function ShiftsClient() {
         </div>
       </div>
 
-      {/* NEW: “Сегодня”/“Выбранный день” — живой виджет */}
-      <div
-        className="
-          rounded-2xl border border-zinc-200 bg-white/90 p-3
-          shadow-[0_10px_28px_rgba(0,0,0,0.06)]
-          backdrop-blur
-        "
-      >
-        <div className="flex items-center justify-between gap-2">
-          <div className="min-w-0">
-            <div className="text-xs text-zinc-500">
-              {selectedDay === todayIso ? "Сегодня" : "Выбранный день"}
+      {/* НОВЫЙ РАЗДЕЛ: АКЦИИ (вместо контейнера "Сегодня") */}
+      <div className="space-y-3">
+        {/* Баннер 1: Выполни 10 заданий */}
+        <div
+          className="
+            rounded-2xl border border-zinc-200 bg-gradient-to-r from-amber-50 to-orange-50 p-4
+            shadow-[0_10px_28px_rgba(251,191,36,0.15)]
+            relative overflow-hidden
+          "
+        >
+          <div className="relative z-10">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <Trophy className="h-5 w-5 text-amber-600" />
+                  <div className="text-sm font-semibold text-zinc-900">Спецзадание</div>
+                </div>
+                <div className="mt-1 text-base font-semibold text-zinc-900">
+                  Выполни 10 заданий и получи <span className="text-green-600">10 000 ₽</span>
+                </div>
+                <div className="mt-1 text-xs text-zinc-600">
+                  До конца акции осталось: 7 дней
+                </div>
+              </div>
+              
+              <button
+                type="button"
+                onClick={() => {/* навигация в раздел акций */}}
+                className="
+                  tap shrink-0 rounded-xl bg-white px-3 py-2 text-xs font-medium text-amber-700
+                  border border-amber-200
+                  transition-[box-shadow,transform] duration-200
+                  active:shadow-[0_10px_22px_rgba(251,191,36,0.20)]
+                "
+                title="Подробнее об акции"
+                aria-label="Подробнее об акции"
+              >
+                <div className="flex items-center gap-1">
+                  <span>Подробнее</span>
+                  <ChevronRight className="h-3 w-3" />
+                </div>
+              </button>
             </div>
-            <div className="text-sm font-semibold truncate">
-              {selectedDay === todayIso ? "Что можно взять прямо сейчас" : "Сводка по выбранной дате"}
+            
+            <div className="mt-3">
+              <div className="text-xs text-zinc-500 mb-1">Прогресс: 6/10 заданий</div>
+              <div className="h-2 w-full rounded-full bg-amber-100 overflow-hidden">
+                <div 
+                  className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500"
+                  style={{ width: '60%' }}
+                />
+              </div>
             </div>
           </div>
-
-          <button
-            type="button"
-            onClick={() => setSelectedDay(todayIso)}
-            className="
-              tap shrink-0 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs
-              transition-[box-shadow,transform] duration-200
-              active:shadow-[0_10px_22px_rgba(0,0,0,0.10)]
-            "
-            title="Перейти на сегодня"
-            aria-label="Перейти на сегодня"
-          >
-            Сегодня
-          </button>
+          
+          {/* Декоративные элементы */}
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-amber-200/30 to-orange-200/20 rounded-full -translate-y-6 translate-x-6"></div>
+          <Sparkles className="absolute top-4 right-4 h-6 w-6 text-amber-400/50" />
         </div>
 
-        <div className="mt-3 grid grid-cols-4 gap-2">
-          {(() => {
-            const s = selectedDay === todayIso ? statsToday : statsSelected;
-            return (
-              <>
-                <div className="rounded-2xl border border-zinc-200 bg-white p-2.5">
-                  <div className="text-[11px] text-zinc-500">Смен</div>
-                  <div className="text-base font-semibold tabular-nums">{s.total}</div>
+        {/* Баннер 2: Реферальная программа */}
+        <div
+          className="
+            rounded-2xl border border-zinc-200 bg-gradient-to-r from-sky-50 to-indigo-50 p-4
+            shadow-[0_10px_28px_rgba(56,189,248,0.15)]
+            relative overflow-hidden
+          "
+        >
+          <div className="relative z-10">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-sky-600" />
+                  <div className="text-sm font-semibold text-zinc-900">Пригласи друга</div>
                 </div>
-
-                <div className="rounded-2xl border border-zinc-200 bg-white p-2.5">
-                  <div className="text-[11px] text-zinc-500">Горящих</div>
-                  <div className="text-base font-semibold tabular-nums">{s.hot}</div>
+                <div className="mt-1 text-base font-semibold text-zinc-900">
+                  Получи <span className="text-green-600">3 000 ₽</span> за каждого друга
                 </div>
-
-                <div className="rounded-2xl border border-zinc-200 bg-white p-2.5">
-                  <div className="text-[11px] text-zinc-500">Премиум</div>
-                  <div className="text-base font-semibold tabular-nums">{s.premium}</div>
+                <div className="mt-1 text-xs text-zinc-600">
+                  Друг тоже получит 1 000 ₽ на первый заказ
                 </div>
-
-                <div className="rounded-2xl border border-zinc-200 bg-white p-2.5">
-                  <div className="text-[11px] text-zinc-500">Макс ₽</div>
-                  <div className="text-base font-semibold tabular-nums text-brand">
-                    {s.bestPay ? s.bestPay.toLocaleString("ru-RU") : "—"}
-                  </div>
+              </div>
+              
+              <button
+                type="button"
+                onClick={() => {/* открыть модалку с реферальной ссылкой */}}
+                className="
+                  tap shrink-0 rounded-xl bg-white px-3 py-2 text-xs font-medium text-sky-700
+                  border border-sky-200
+                  transition-[box-shadow,transform] duration-200
+                  active:shadow-[0_10px_22px_rgba(56,189,248,0.20)]
+                "
+                title="Получить реферальную ссылку"
+                aria-label="Получить реферальную ссылку"
+              >
+                <div className="flex items-center gap-1">
+                  <span>Получить ссылку</span>
+                  <ChevronRight className="h-3 w-3" />
                 </div>
-              </>
-            );
-          })()}
-        </div>
-
-        {selectedDay !== todayIso ? (
-          <div className="mt-2 text-xs text-zinc-500">
-            Подсказка: нажми <span className="font-medium text-zinc-700">Сегодня</span>, чтобы быстро вернуться к актуальным сменам.
+              </button>
+            </div>
+            
+            <div className="mt-3 flex items-center gap-3">
+              <div className="text-xs">
+                <div className="text-zinc-500">Приглашено друзей:</div>
+                <div className="text-base font-semibold text-sky-700">2</div>
+              </div>
+              <div className="text-xs">
+                <div className="text-zinc-500">Заработано:</div>
+                <div className="text-base font-semibold text-green-600">6 000 ₽</div>
+              </div>
+            </div>
           </div>
-        ) : null}
+          
+          {/* Декоративные элементы */}
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-sky-200/30 to-indigo-200/20 rounded-full -translate-y-6 translate-x-6"></div>
+          <div className="absolute bottom-4 right-4 text-xs font-mono bg-white/80 backdrop-blur-sm rounded-lg px-2 py-1 border border-sky-200">
+            REF:USER789
+          </div>
+        </div>
       </div>
 
       {/* Табы + кнопка месяца (внутри DayTabs уже есть кнопка справа) */}
@@ -372,6 +436,8 @@ export default function ShiftsClient() {
         onToggleCalendar={() => setCalendarOpen((v) => !v)}
         month={month} // 👈 передаём месяц
         availableDays={availableDays}
+        onPrevMonth={handlePrevMonth}
+        onNextMonth={handleNextMonth}
       />
 
       {/* Список */}
