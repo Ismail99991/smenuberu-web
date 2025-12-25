@@ -8,6 +8,8 @@ import { getBooking, setBooking, type BookingStatus } from "@/lib/booking-state"
 import { TaskTypeIcon } from "@/components/task-type-icon";
 import { cn } from "@/lib/cn";
 import { uiCard, uiTransition, uiButtonGhost, uiButtonPrimary } from "@/lib/ui";
+import { Flame } from "lucide-react";
+import { ChartNoAxesCombined } from "lucide-react";
 
 export default function SlotCard({
   slot,
@@ -43,15 +45,11 @@ export default function SlotCard({
             </div>
 
             {slot.hot ? (
-              <span className={cn(uiTransition, "inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700")}>
-                Горящий
-              </span>
+              <Flame className="h-4 w-4 text-red-500" />
             ) : null}
 
             {isPremium ? (
-              <span className={cn(uiTransition, "inline-flex items-center rounded-full bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-700")}>
-                Высокий тариф
-              </span>
+              <ChartNoAxesCombined className="h-4 w-4 text-sky-600" />
             ) : null}
 
             {status === "booked" ? (
