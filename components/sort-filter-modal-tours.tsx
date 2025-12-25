@@ -5,6 +5,7 @@ import { cn } from "@/lib/cn";
 import { uiTransition } from "@/lib/ui";
 import { useState } from "react";
 
+// Исправляем определение типа - убираем лишний перенос строки
 export type TourSortKey = 
   | "relevance" 
   | "pay_desc" 
