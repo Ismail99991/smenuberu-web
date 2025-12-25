@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Briefcase, Building2, Wallet, User } from "lucide-react";
+import { Briefcase, PlaneTakeoff, Building2, Wallet, User } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 const items = [
   { href: "/shifts", label: "Смены", icon: Briefcase },
+  { href: "/tours", label: "Вахты", icon: PlaneTakeoff },
   { href: "/objects", label: "Объекты", icon: Building2 },
   { href: "/payouts", label: "Выплаты", icon: Wallet },
   { href: "/me", label: "Профиль", icon: User },
@@ -25,12 +26,12 @@ export default function BottomNav() {
       <div className="mx-auto w-full max-w-xl px-3 pb-2">
         <div
           className="
-            grid grid-cols-4 gap-1
+            grid grid-cols-5 gap-1
             rounded-3xl
             border border-black/10
             bg-white/70
             backdrop-blur-xl
-            shadow-[0_10px_30px_rgba(0,0,0,0.12)]
+            shadow-[0_10px_30px(rgba(0,0,0,0.12))]
           "
         >
           {items.map(({ href, label, icon: Icon }) => {
