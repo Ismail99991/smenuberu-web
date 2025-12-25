@@ -2,7 +2,8 @@
 
 import { useMemo } from "react";
 import { cn } from "@/lib/cn";
-import { uiCard, uiTransition } from "@/lib/ui";
+import { uiTransition } from "@/lib/ui";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 function isoFromDate(d: Date) {
   const y = d.getFullYear();
@@ -37,6 +38,8 @@ export default function MonthCalendar({
   availableDays,
   hotDays,
   premiumDays,
+  onPrevMonth,
+  onNextMonth,
 }: {
   month: Date;
   value: string;
@@ -44,6 +47,8 @@ export default function MonthCalendar({
   availableDays?: Set<string>;
   hotDays?: Set<string>;
   premiumDays?: Set<string>;
+  onPrevMonth?: () => void;
+  onNextMonth?: () => void;
 }) {
   const data = useMemo(() => {
     const m0 = startOfMonth(month);
@@ -65,32 +70,86 @@ export default function MonthCalendar({
       year: "numeric",
     }).format(month);
 
-    return { title, days };
+    const today = new Date();
+    const todayIso = isoFromDate(today);
+
+    return { title, days, todayIso };
   }, [month]);
 
   const weekdays = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 
   return (
-    <div className={cn(uiCard, "p-3")}>
-      <div className="px-1 pb-2 text-sm font-semibold capitalize">
-        {data.title}
+    <div className={cn(
+      "rounded-2xl border border-zinc-200 bg-white p-4",
+      "shadow-[0_10px_28px_rgba(0,0,0,0.06)]"
+    )}>
+      {/* Заголовок с навигацией */}
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onPrevMonth}
+            className={cn(
+              uiTransition,
+              "rounded-xl border border-zinc-200 p-2",
+              "hover:bg-zinc-50 active:shadow-inner",
+              !onPrevMonth && "invisible"
+            )}
+            aria-label="Предыдущий месяц"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          
+          <div className="text-sm font-semibold capitalize text-zinc-900">
+            {data.title}
+          </div>
+          
+          <button
+            onClick={onNextMonth}
+            className={cn(
+              uiTransition,
+              "rounded-xl border border-zinc-200 p-2",
+              "hover:bg-zinc-50 active:shadow-inner",
+              !onNextMonth && "invisible"
+            )}
+            aria-label="Следующий месяц"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+        
+        <button
+          onClick={() => onChange(data.todayIso)}
+          className={cn(
+            uiTransition,
+            "rounded-xl border border-zinc-200 px-3 py-1.5 text-xs font-medium",
+            "hover:bg-zinc-50 active:shadow-inner"
+          )}
+        >
+          Сегодня
+        </button>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 px-1 pb-2 text-[11px] text-zinc-500">
+      {/* Дни недели */}
+      <div className="mb-2 grid grid-cols-7 gap-1 text-center">
         {weekdays.map((w) => (
-          <div key={w} className="text-center">
+          <div 
+            key={w} 
+            className="text-xs font-medium text-zinc-500 py-1.5"
+          >
             {w}
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-1 px-1">
+      {/* Дни месяца */}
+      <div className="grid grid-cols-7 gap-1">
         {data.days.map(({ iso, inMonth }) => {
           const dayNum = Number(iso.slice(8, 10));
           const active = iso === value;
+          const isToday = iso === data.todayIso;
 
           const hasAvail = availableDays ? availableDays.has(iso) : true;
-          const disabled = !hasAvail; // честнее UX: если “слотов нет” — не кликаем
+          const disabled = !hasAvail;
           const isHot = hotDays?.has(iso);
           const isPremium = premiumDays?.has(iso);
 
@@ -101,46 +160,72 @@ export default function MonthCalendar({
               disabled={disabled}
               className={cn(
                 uiTransition,
-                "relative h-10 rounded-xl border text-sm",
+                "relative flex h-12 flex-col items-center justify-center rounded-xl text-sm",
+                "border-2",
                 active
-                  ? "border-zinc-900 bg-zinc-900 text-white"
-                  : "border-zinc-200 bg-white text-zinc-900 hover:bg-zinc-50",
-                !inMonth && "opacity-50",
-                disabled && "opacity-60 cursor-not-allowed hover:bg-white"
+                  ? "border-brand bg-brand text-white"
+                  : isToday
+                  ? "border-brand/30 bg-brand/5 text-brand"
+                  : "border-transparent bg-white text-zinc-900 hover:bg-zinc-50",
+                !inMonth && "opacity-30",
+                disabled && "opacity-50 cursor-not-allowed hover:bg-white"
               )}
               title={!hasAvail ? "Слотов нет (пока)" : undefined}
             >
+              {/* Номер дня */}
               <span
                 className={cn(
-                  "font-medium transition-colors duration-150",
-                  active ? "text-white" : "text-zinc-900"
+                  "text-sm font-medium",
+                  active ? "text-white" : isToday ? "text-brand" : "text-zinc-900",
+                  !inMonth && "text-zinc-500"
                 )}
               >
                 {dayNum}
               </span>
 
-              {/* notches */}
-              <div className="absolute right-2 top-2 flex gap-1">
+              {/* Индикаторы */}
+              <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-1">
                 {isPremium ? (
                   <span
                     className={cn(
-                      "h-2 w-2 rounded-full transition-colors duration-150",
-                      active ? "bg-sky-300" : "bg-sky-500"
+                      "h-1.5 w-1.5 rounded-full",
+                      active ? "bg-sky-300" : isToday ? "bg-sky-500" : "bg-sky-500"
                     )}
                   />
                 ) : null}
                 {isHot ? (
                   <span
                     className={cn(
-                      "h-2 w-2 rounded-full transition-colors duration-150",
-                      active ? "bg-red-300" : "bg-red-500"
+                      "h-1.5 w-1.5 rounded-full",
+                      active ? "bg-red-300" : isToday ? "bg-red-500" : "bg-red-500"
                     )}
                   />
                 ) : null}
               </div>
+              
+              {/* Бейдж "Сегодня" */}
+              {isToday && !active && (
+                <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-brand"></div>
+              )}
             </button>
           );
         })}
+      </div>
+
+      {/* Легенда */}
+      <div className="mt-4 flex items-center justify-center gap-4 text-xs text-zinc-600">
+        <div className="flex items-center gap-1.5">
+          <div className="h-3 w-3 rounded-full bg-brand/20 border border-brand/30"></div>
+          <span>Сегодня</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="h-3 w-3 rounded-full bg-sky-500"></div>
+          <span>Высокий тариф</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="h-3 w-3 rounded-full bg-red-500"></div>
+          <span>Горящие</span>
+        </div>
       </div>
     </div>
   );
