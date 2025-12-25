@@ -74,6 +74,38 @@ export default function ShiftsClient() {
 
   // карусель баннеров
   const [currentBanner, setCurrentBanner] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  // Обработчик начала касания
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  // Обработчик движения касания
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  // Обработчик окончания свайпа
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50; // Минимальное расстояние свайпа
+    const isRightSwipe = distance < -50;
+    
+    if (isLeftSwipe) {
+      // Свайп влево → следующий баннер
+      setCurrentBanner(prev => (prev === 1 ? 0 : prev + 1));
+    }
+    
+    if (isRightSwipe) {
+      // Свайп вправо → предыдущий баннер
+      setCurrentBanner(prev => (prev === 0 ? 1 : prev - 1));
+    }
+  };
 
   // окно дней 14 дней
   const days = useMemo(() => getDaysWindow(today, 14), [today]);
@@ -308,48 +340,55 @@ export default function ShiftsClient() {
 
       {/* НОВЫЙ РАЗДЕЛ: АКЦИИ (карусель с свайпом) */}
       <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-[0_10px_28px_rgba(0,0,0,0.06)]">
-        <div className="mb-3 flex items-center justify-between">
-          <div className="text-sm font-semibold">Акции</div>
-          <div className="flex items-center gap-2">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="text-sm font-semibold text-zinc-900">Акции</div>
+          <div className="flex items-center gap-1.5">
             <button
               onClick={() => setCurrentBanner(0)}
               disabled={currentBanner === 0}
-              className="rounded-xl border border-zinc-200 p-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="tap rounded-xl border border-zinc-200 bg-white p-2 disabled:opacity-30 disabled:cursor-not-allowed"
               aria-label="Предыдущий баннер"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={() => setCurrentBanner(1)}
               disabled={currentBanner === 1}
-              className="rounded-xl border border-zinc-200 p-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="tap rounded-xl border border-zinc-200 bg-white p-2 disabled:opacity-30 disabled:cursor-not-allowed"
               aria-label="Следующий баннер"
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-3.5 w-3.5" />
             </button>
           </div>
         </div>
 
         {/* Карусель баннеров */}
         <div className="relative overflow-hidden rounded-xl">
-          <div
+          <div 
             className="flex transition-transform duration-300 ease-out"
             style={{ transform: `translateX(-${currentBanner * 100}%)` }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
           >
             {/* Баннер 1: Выполни 10 заданий */}
             <div className="w-full flex-shrink-0">
-              <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-4 rounded-xl relative overflow-hidden">
-                <div className="relative z-10">
+              <div className="relative h-full min-h-[156px] overflow-hidden rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 p-4">
+                {/* Декоративные элементы */}
+                <div className="absolute -top-6 -right-6 h-32 w-32 rounded-full bg-gradient-to-br from-amber-200/40 to-orange-200/20"></div>
+                <Sparkles className="absolute top-3 right-3 h-5 w-5 text-amber-400/50" />
+                
+                <div className="relative z-10 flex h-full flex-col">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <Trophy className="h-5 w-5 text-amber-600" />
-                        <div className="text-sm font-semibold text-zinc-900">Спецзадание</div>
+                        <Trophy className="h-4 w-4 text-amber-600" />
+                        <div className="text-xs font-semibold text-zinc-900">Спецзадание</div>
                       </div>
-                      <div className="mt-1 text-base font-semibold text-zinc-900">
+                      <div className="mt-1.5 text-sm font-semibold text-zinc-900">
                         Выполни 10 заданий и получи <span className="text-green-600">10 000 ₽</span>
                       </div>
-                      <div className="mt-1 text-xs text-zinc-600">
+                      <div className="mt-1 text-[11px] text-zinc-600">
                         До конца акции осталось: 7 дней
                       </div>
                     </div>
@@ -357,12 +396,7 @@ export default function ShiftsClient() {
                     <button
                       type="button"
                       onClick={() => {/* навигация в раздел акций */}}
-                      className="
-                        tap shrink-0 rounded-xl bg-white px-3 py-2 text-xs font-medium text-amber-700
-                        border border-amber-200
-                        transition-[box-shadow,transform] duration-200
-                        active:shadow-[0_10px_22px_rgba(251,191,36,0.20)]
-                      "
+                      className="tap shrink-0 self-start rounded-xl bg-white px-3 py-1.5 text-xs font-medium text-amber-700 border border-amber-200"
                       title="Подробнее об акции"
                       aria-label="Подробнее об акции"
                     >
@@ -373,9 +407,9 @@ export default function ShiftsClient() {
                     </button>
                   </div>
                   
-                  <div className="mt-3">
-                    <div className="text-xs text-zinc-500 mb-1">Прогресс: 6/10 заданий</div>
-                    <div className="h-2 w-full rounded-full bg-amber-100 overflow-hidden">
+                  <div className="mt-auto pt-3">
+                    <div className="mb-1 text-[11px] text-zinc-500">Прогресс: 6/10 заданий</div>
+                    <div className="h-1.5 w-full rounded-full bg-amber-100 overflow-hidden">
                       <div 
                         className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500"
                         style={{ width: '60%' }}
@@ -383,27 +417,26 @@ export default function ShiftsClient() {
                     </div>
                   </div>
                 </div>
-                
-                {/* Декоративные элементы */}
-                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-amber-200/30 to-orange-200/20 rounded-full -translate-y-6 translate-x-6"></div>
-                <Sparkles className="absolute top-4 right-4 h-6 w-6 text-amber-400/50" />
               </div>
             </div>
 
             {/* Баннер 2: Реферальная программа */}
             <div className="w-full flex-shrink-0">
-              <div className="bg-gradient-to-r from-sky-50 to-indigo-50 p-4 rounded-xl relative overflow-hidden">
-                <div className="relative z-10">
+              <div className="relative h-full min-h-[156px] overflow-hidden rounded-xl bg-gradient-to-r from-sky-50 to-indigo-50 p-4">
+                {/* Декоративные элементы */}
+                <div className="absolute -top-6 -right-6 h-32 w-32 rounded-full bg-gradient-to-br from-sky-200/40 to-indigo-200/20"></div>
+                
+                <div className="relative z-10 flex h-full flex-col">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <Users className="h-5 w-5 text-sky-600" />
-                        <div className="text-sm font-semibold text-zinc-900">Пригласи друга</div>
+                        <Users className="h-4 w-4 text-sky-600" />
+                        <div className="text-xs font-semibold text-zinc-900">Пригласи друга</div>
                       </div>
-                      <div className="mt-1 text-base font-semibold text-zinc-900">
+                      <div className="mt-1.5 text-sm font-semibold text-zinc-900">
                         Получи <span className="text-green-600">3 000 ₽</span> за каждого друга
                       </div>
-                      <div className="mt-1 text-xs text-zinc-600">
+                      <div className="mt-1 text-[11px] text-zinc-600">
                         Друг тоже получит 1 000 ₽ на первый заказ
                       </div>
                     </div>
@@ -411,12 +444,7 @@ export default function ShiftsClient() {
                     <button
                       type="button"
                       onClick={() => {/* открыть модалку с реферальной ссылкой */}}
-                      className="
-                        tap shrink-0 rounded-xl bg-white px-3 py-2 text-xs font-medium text-sky-700
-                        border border-sky-200
-                        transition-[box-shadow,transform] duration-200
-                        active:shadow-[0_10px_22px_rgba(56,189,248,0.20)]
-                      "
+                      className="tap shrink-0 self-start rounded-xl bg-white px-3 py-1.5 text-xs font-medium text-sky-700 border border-sky-200"
                       title="Получить реферальную ссылку"
                       aria-label="Получить реферальную ссылку"
                     >
@@ -427,22 +455,24 @@ export default function ShiftsClient() {
                     </button>
                   </div>
                   
-                  <div className="mt-3 flex items-center gap-3">
-                    <div className="text-xs">
-                      <div className="text-zinc-500">Приглашено друзей:</div>
-                      <div className="text-base font-semibold text-sky-700">2</div>
+                  <div className="mt-auto pt-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="text-xs">
+                        <div className="text-[11px] text-zinc-500">Приглашено друзей:</div>
+                        <div className="text-sm font-semibold text-sky-700">2</div>
+                      </div>
+                      <div className="text-xs">
+                        <div className="text-[11px] text-zinc-500">Заработано:</div>
+                        <div className="text-sm font-semibold text-green-600">6 000 ₽</div>
+                      </div>
                     </div>
-                    <div className="text-xs">
-                      <div className="text-zinc-500">Заработано:</div>
-                      <div className="text-base font-semibold text-green-600">6 000 ₽</div>
+                    
+                    <div className="mt-2 text-center">
+                      <div className="inline-block rounded-lg bg-white/80 backdrop-blur-sm border border-sky-200 px-2 py-1">
+                        <div className="text-[10px] font-mono text-sky-700">REF:USER789</div>
+                      </div>
                     </div>
                   </div>
-                </div>
-                
-                {/* Декоративные элементы */}
-                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-sky-200/30 to-indigo-200/20 rounded-full -translate-y-6 translate-x-6"></div>
-                <div className="absolute bottom-4 right-4 text-xs font-mono bg-white/80 backdrop-blur-sm rounded-lg px-2 py-1 border border-sky-200">
-                  REF:USER789
                 </div>
               </div>
             </div>
@@ -450,15 +480,15 @@ export default function ShiftsClient() {
         </div>
 
         {/* Точки навигации */}
-        <div className="mt-4 flex items-center justify-center gap-2">
+        <div className="mt-3 flex items-center justify-center gap-1.5">
           {[0, 1].map((index) => (
             <button
               key={index}
               onClick={() => setCurrentBanner(index)}
-              className={`h-2 rounded-full transition-all duration-200 ${
+              className={`h-1.5 rounded-full transition-all duration-200 ${
                 currentBanner === index 
-                  ? "w-8 bg-zinc-900" 
-                  : "w-2 bg-zinc-300 hover:bg-zinc-400"
+                  ? "w-6 bg-zinc-800" 
+                  : "w-1.5 bg-zinc-300 hover:bg-zinc-400"
               }`}
               aria-label={`Перейти к баннеру ${index + 1}`}
             />
