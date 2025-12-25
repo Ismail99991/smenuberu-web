@@ -1,0 +1,283 @@
+"use client";
+
+import { X, Flame, TrendingUp, Home, Bus, Utensils } from "lucide-react";
+import { cn } from "@/lib/cn";
+import { uiTransition } from "@/lib/ui";
+import { useState } from "react";
+
+export type TourSortKey = 
+  | "relevance" 
+  | "pay_desc" 
+  | "pay_asc" 
+  | "premium_first" 
+  | "duration_desc" 
+  | "duration_asc";
+
+export interface TourFilters {
+  onlyHot: boolean;
+  onlyPremium: boolean;
+  types: string[];
+  sort: TourSortKey;
+  accommodation: string[];
+  withMeals: boolean;
+  withTransfer: boolean;
+}
+
+interface Props {
+  open: boolean;
+  onClose: () => void;
+  value: TourFilters;
+  onChange: (filters: TourFilters) => void;
+}
+
+const TOUR_TYPES = [
+  { id: "construction", label: "Строительство", icon: "🏗️" },
+  { id: "agriculture", label: "Сельское хозяйство", icon: "🌾" },
+  { id: "factory", label: "Производство", icon: "🏭" },
+  { id: "service", label: "Обслуживание", icon: "🛠️" },
+  { id: "other", label: "Другое", icon: "📦" }
+];
+
+const ACCOMMODATION_TYPES = [
+  { id: "hostel", label: "Хостел", icon: "🛌" },
+  { id: "hotel", label: "Гостиница", icon: "🏨" },
+  { id: "apartment", label: "Квартира", icon: "🏢" },
+  { id: "camp", label: "Лагерь", icon: "⛺" },
+  { id: "dormitory", label: "Общежитие", icon: "🏘️" }
+];
+
+const SORT_OPTIONS = [
+  { id: "relevance" as TourSortKey, label: "По релевантности" },
+  { id: "pay_desc" as TourSortKey, label: "По убыванию зарплаты" },
+  { id: "pay_asc" as TourSortKey, label: "По возрастанию зарплаты" },
+  { id: "premium_first" as TourSortKey, label: "Сначала высокооплачиваемые" },
+  { id: "duration_desc" as TourSortKey, label: "Сначала длительные" },
+  { id: "duration_asc" as TourSortKey, label: "Сначала короткие" }
+];
+
+export default function SortFilterModalTours({
+  open,
+  onClose,
+  value,
+  onChange
+}: Props) {
+  const [localFilters, setLocalFilters] = useState<TourFilters>(value);
+
+  const handleApply = () => {
+    onChange(localFilters);
+    onClose();
+  };
+
+  const handleReset = () => {
+    const resetFilters: TourFilters = {
+      onlyHot: false,
+      onlyPremium: false,
+      types: [],
+      sort: "relevance",
+      accommodation: [],
+      withMeals: false,
+      withTransfer: false
+    };
+    setLocalFilters(resetFilters);
+    onChange(resetFilters);
+  };
+
+  const toggleType = (typeId: string) => {
+    setLocalFilters(prev => ({
+      ...prev,
+      types: prev.types.includes(typeId)
+        ? prev.types.filter(id => id !== typeId)
+        : [...prev.types, typeId]
+    }));
+  };
+
+  const toggleAccommodation = (accId: string) => {
+    setLocalFilters(prev => ({
+      ...prev,
+      accommodation: prev.accommodation.includes(accId)
+        ? prev.accommodation.filter(id => id !== accId)
+        : [...prev.accommodation, accId]
+    }));
+  };
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Overlay */}
+      <div 
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      
+      {/* Modal */}
+      <div className="relative z-10 w-full max-w-md rounded-2xl border border-zinc-200 bg-white shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-zinc-200 p-4">
+          <div className="text-base font-semibold">Фильтры и сортировка</div>
+          <button
+            onClick={onClose}
+            className="tap rounded-xl p-2 hover:bg-zinc-100"
+            aria-label="Закрыть"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="max-h-[70vh] overflow-y-auto p-4">
+          {/* Сортировка */}
+          <div className="mb-6">
+            <div className="mb-3 text-sm font-semibold">Сортировка</div>
+            <div className="space-y-2">
+              {SORT_OPTIONS.map((option) => (
+                <button
+                  key={option.id}
+                  onClick={() => setLocalFilters(prev => ({ ...prev, sort: option.id }))}
+                  className={cn(
+                    uiTransition,
+                    "flex w-full items-center justify-between rounded-xl border px-4 py-3 text-sm",
+                    localFilters.sort === option.id
+                      ? "border-zinc-900 bg-zinc-900 text-white"
+                      : "border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+                  )}
+                >
+                  <span>{option.label}</span>
+                  {localFilters.sort === option.id && (
+                    <div className="h-2 w-2 rounded-full bg-white" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Быстрые фильтры */}
+          <div className="mb-6">
+            <div className="mb-3 text-sm font-semibold">Быстрые фильтры</div>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setLocalFilters(prev => ({ ...prev, onlyHot: !prev.onlyHot }))}
+                className={cn(
+                  uiTransition,
+                  "flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm",
+                  localFilters.onlyHot
+                    ? "border-red-200 bg-red-50 text-red-700"
+                    : "border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+                )}
+              >
+                <Flame className="h-4 w-4" />
+                Горящие
+              </button>
+              
+              <button
+                onClick={() => setLocalFilters(prev => ({ ...prev, onlyPremium: !prev.onlyPremium }))}
+                className={cn(
+                  uiTransition,
+                  "flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm",
+                  localFilters.onlyPremium
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                    : "border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+                )}
+              >
+                <TrendingUp className="h-4 w-4" />
+                Высокий доход
+              </button>
+              
+              <button
+                onClick={() => setLocalFilters(prev => ({ ...prev, withMeals: !prev.withMeals }))}
+                className={cn(
+                  uiTransition,
+                  "flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm",
+                  localFilters.withMeals
+                    ? "border-green-200 bg-green-50 text-green-700"
+                    : "border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+                )}
+              >
+                <Utensils className="h-4 w-4" />
+                С питанием
+              </button>
+              
+              <button
+                onClick={() => setLocalFilters(prev => ({ ...prev, withTransfer: !prev.withTransfer }))}
+                className={cn(
+                  uiTransition,
+                  "flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm",
+                  localFilters.withTransfer
+                    ? "border-blue-200 bg-blue-50 text-blue-700"
+                    : "border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+                )}
+              >
+                <Bus className="h-4 w-4" />
+                С трансфером
+              </button>
+            </div>
+          </div>
+
+          {/* Типы туров */}
+          <div className="mb-6">
+            <div className="mb-3 text-sm font-semibold">Тип работы</div>
+            <div className="flex flex-wrap gap-2">
+              {TOUR_TYPES.map((type) => (
+                <button
+                  key={type.id}
+                  onClick={() => toggleType(type.id)}
+                  className={cn(
+                    uiTransition,
+                    "flex items-center gap-2 rounded-xl border px-3 py-2 text-sm",
+                    localFilters.types.includes(type.id)
+                      ? "border-zinc-900 bg-zinc-900 text-white"
+                      : "border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+                  )}
+                >
+                  <span>{type.icon}</span>
+                  {type.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Тип проживания */}
+          <div className="mb-6">
+            <div className="mb-3 text-sm font-semibold">Проживание</div>
+            <div className="flex flex-wrap gap-2">
+              {ACCOMMODATION_TYPES.map((acc) => (
+                <button
+                  key={acc.id}
+                  onClick={() => toggleAccommodation(acc.id)}
+                  className={cn(
+                    uiTransition,
+                    "flex items-center gap-2 rounded-xl border px-3 py-2 text-sm",
+                    localFilters.accommodation.includes(acc.id)
+                      ? "border-purple-200 bg-purple-50 text-purple-700"
+                      : "border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+                  )}
+                >
+                  <span>{acc.icon}</span>
+                  {acc.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="border-t border-zinc-200 p-4">
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={handleReset}
+              className="tap rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+            >
+              Сбросить всё
+            </button>
+            <button
+              onClick={handleApply}
+              className="tap rounded-xl bg-zinc-900 px-4 py-3 text-sm font-medium text-white hover:bg-zinc-800"
+            >
+              Применить
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
