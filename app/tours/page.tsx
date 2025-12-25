@@ -7,14 +7,26 @@ import BookingModal from "@/components/booking-modal";
 import SortFilterModalTours, { type TourFilters, type TourSortKey } from "@/components/sort-filter-modal-tours";
 import { addDays, toISODateLocal } from "@/lib/slots";
 import { cn } from "@/lib/cn";
-import type { Slot } from "@/lib/slots";
+import type { Slot as BaseSlot } from "@/lib/slots";
 
-// Тип для туров/вахт
-interface TourSlot extends Slot {
+// Тип для туров/вахт - НЕЗАВИСИМЫЙ тип
+interface TourSlot {
+  id: string;
+  title: string;
+  company: string;
+  city: string;
+  address: string;
+  date: string;
+  time: string;
+  pay: number;
+  type: "construction" | "agriculture" | "factory" | "service" | "other";
+  tags: string[];
+  hot: boolean;
+  
+  // Дополнительные поля для туров
   region: string;
   duration: string;
   totalPay: number;
-  type: "construction" | "agriculture" | "factory" | "service" | "other";
   accommodation: "hostel" | "hotel" | "apartment" | "camp" | "dormitory";
   accommodationName: string;
   durationDays: number;
@@ -23,6 +35,21 @@ interface TourSlot extends Slot {
   requirements?: string[];
   description?: string;
 }
+
+// Функция преобразования TourSlot в BaseSlot для BookingModal
+const convertTourToSlot = (tour: TourSlot): BaseSlot => ({
+  id: tour.id,
+  title: tour.title,
+  company: tour.company,
+  city: tour.city,
+  address: tour.address,
+  date: tour.date,
+  time: tour.time,
+  pay: tour.pay,
+  type: tour.type as any, // Приводим к TaskType
+  tags: tour.tags,
+  hot: tour.hot
+});
 
 // Мок-данные для туров
 const mockTourSlots: TourSlot[] = [
@@ -617,12 +644,12 @@ export default function ToursPage() {
         </div>
       </div>
 
-      {/* Модалка бронирования */}
+      {/* Модалка бронирования - ПРЕОБРАЗУЕМ slots */}
       <BookingModal
         open={modalOpen}
         onClose={onCloseBooking}
         days={days}
-        slots={slots}
+        slots={slots.map(convertTourToSlot)} // ← ВОТ ТУТ ПРЕОБРАЗОВАНИЕ
         hotDays={hotDays}
         premiumDays={premiumDays}
         initialDay={modalPreset?.day ?? selectedDay}
