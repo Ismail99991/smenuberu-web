@@ -87,25 +87,21 @@ export default function PayoutsPage() {
           </div>
         </div>
 
-        {/* Быстрые действия */}
-        <div className="mt-6 grid grid-cols-2 gap-3">
+        {/* Быстрые действия - ТОЛЬКО вывод */}
+        <div className="mt-6">
           <button className={cn(
             uiTransition,
-            "group flex items-center justify-center gap-2 rounded-xl bg-zinc-900 p-3 text-sm font-medium text-white",
-            "hover:bg-zinc-800 active:scale-[0.98]"
+            "group flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-900 p-3 text-sm font-medium text-white",
+            "hover:bg-zinc-800 active:scale-[0.98] shadow-md"
           )}>
             <ArrowUpRight className="h-4 w-4" />
             Вывести деньги
           </button>
           
-          <button className={cn(
-            uiTransition,
-            "flex items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white p-3 text-sm font-medium text-zinc-900",
-            "hover:bg-zinc-50 active:scale-[0.98]"
-          )}>
-            <ArrowDownLeft className="h-4 w-4" />
-            Пополнить
-          </button>
+          <div className="mt-2 flex items-center justify-center gap-1 text-xs text-zinc-500">
+            <Shield className="h-3 w-3" />
+            Минимальная сумма вывода: 500 ₽ • Без комиссии раз в сутки
+          </div>
         </div>
       </div>
 
