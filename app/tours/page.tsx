@@ -4,39 +4,17 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Search, SlidersHorizontal, MapPin, Home, Calendar, Users, Building, Briefcase, Bus, Utensils } from "lucide-react";
 import DayTabs from "@/components/day-tabs";
 import BookingModal from "@/components/booking-modal";
-import SortFilterModal, {
-  type TaskFilters,
-  type SortKey,
-} from "@/components/sort-filter-modal";
+import SortFilterModalTours, { type TourFilters, type TourSortKey } from "@/components/sort-filter-modal-tours";
 import { addDays, toISODateLocal } from "@/lib/slots";
 import { cn } from "@/lib/cn";
+import type { Slot } from "@/lib/slots";
 
-// Тип для туров/вахт - используем существующий TaskType или маппим
-type TourType = "construction" | "agriculture" | "factory" | "service" | "other";
-
-// Маппинг типов туров в TaskType (если нужно)
-const tourTypeToTaskType: Record<TourType, string> = {
-  construction: "construction",
-  agriculture: "agriculture", 
-  factory: "factory",
-  service: "service",
-  other: "other"
-};
-
-interface TourSlot {
-  id: string;
-  title: string;
-  company: string;
-  city: string;
+// Тип для туров/вахт
+interface TourSlot extends Slot {
   region: string;
-  address: string;
-  date: string;
   duration: string;
-  pay: number;
   totalPay: number;
-  type: TourType;
-  tags: string[];
-  hot: boolean;
+  type: "construction" | "agriculture" | "factory" | "service" | "other";
   accommodation: "hostel" | "hotel" | "apartment" | "camp" | "dormitory";
   accommodationName: string;
   durationDays: number;
@@ -56,6 +34,7 @@ const mockTourSlots: TourSlot[] = [
     region: "Краснодарский край",
     address: "с. Виноградное, ул. Винодельческая, 45",
     date: toISODateLocal(new Date()),
+    time: "8:00-17:00",
     duration: "3 месяца • 8ч/день",
     pay: 45000,
     totalPay: 135000,
@@ -77,6 +56,7 @@ const mockTourSlots: TourSlot[] = [
     region: "Краснодарский край",
     address: "ул. Олимпийская, 12",
     date: toISODateLocal(addDays(new Date(), 3)),
+    time: "7:00-18:00",
     duration: "2 месяца • 10ч/день",
     pay: 60000,
     totalPay: 120000,
@@ -98,6 +78,7 @@ const mockTourSlots: TourSlot[] = [
     region: "Приморский край",
     address: "порт 'Рыбацкий', терминал 3",
     date: toISODateLocal(addDays(new Date(), 7)),
+    time: "6:00-18:00",
     duration: "45 дней • 12ч/смена",
     pay: 80000,
     totalPay: 120000,
@@ -119,6 +100,7 @@ const mockTourSlots: TourSlot[] = [
     region: "Республика Карелия",
     address: "д. Ягодное, ул. Лесная, 8",
     date: toISODateLocal(addDays(new Date(), 14)),
+    time: "9:00-17:00",
     duration: "1 месяц • 8ч/день",
     pay: 35000,
     totalPay: 35000,
@@ -140,6 +122,7 @@ const mockTourSlots: TourSlot[] = [
     region: "Краснодарский край",
     address: "горнолыжный курорт 'Эльбрус'",
     date: toISODateLocal(addDays(new Date(), 21)),
+    time: "8:00-14:00",
     duration: "4 месяца • 6ч/день",
     pay: 40000,
     totalPay: 160000,
@@ -161,6 +144,7 @@ function getDaysWindow(from: Date, windowDays = 60) {
   return out;
 }
 
+// авто-обновление "сегодня" в полночь
 function useAutoTodayRollover(onRollover: (now: Date) => void) {
   useEffect(() => {
     const tick = () => onRollover(new Date());
@@ -185,17 +169,6 @@ function useAutoTodayRollover(onRollover: (now: Date) => void) {
   }, [onRollover]);
 }
 
-// Кастомные фильтры для туров
-interface TourFilters {
-  onlyHot: boolean;
-  onlyPremium: boolean;
-  types: TourType[];
-  sort: SortKey;
-  accommodation?: string[];
-  withMeals?: boolean;
-  withTransfer?: boolean;
-}
-
 export default function ToursPage() {
   const [showSearch, setShowSearch] = useState(false);
   const [q, setQ] = useState("");
@@ -204,8 +177,6 @@ export default function ToursPage() {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [month, setMonth] = useState<Date>(() => new Date());
   const [filterOpen, setFilterOpen] = useState(false);
-  
-  // Используем кастомные фильтры для туров
   const [filters, setFilters] = useState<TourFilters>({
     onlyHot: false,
     onlyPremium: false,
@@ -215,7 +186,6 @@ export default function ToursPage() {
     withMeals: false,
     withTransfer: false
   });
-  
   const [slots] = useState<TourSlot[]>(() => mockTourSlots);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalPreset, setModalPreset] = useState<{ day: string; title?: string } | null>(null);
@@ -287,7 +257,7 @@ export default function ToursPage() {
       list = list.filter((x) => filters.accommodation!.includes(x.accommodation));
     }
 
-    const sort: SortKey = filters.sort;
+    const sort = filters.sort;
     if (sort === "pay_desc") list = [...list].sort((a, b) => b.totalPay - a.totalPay);
     else if (sort === "pay_asc") list = [...list].sort((a, b) => a.totalPay - b.totalPay);
     else if (sort === "premium_first") {
@@ -297,6 +267,10 @@ export default function ToursPage() {
         if (bp !== ap) return bp - ap;
         return b.totalPay - a.totalPay;
       });
+    } else if (sort === "duration_desc") {
+      list = [...list].sort((a, b) => b.durationDays - a.durationDays);
+    } else if (sort === "duration_asc") {
+      list = [...list].sort((a, b) => a.durationDays - b.durationDays);
     }
 
     return list;
@@ -308,14 +282,6 @@ export default function ToursPage() {
     setModalPreset({ day: slot.date, title: slot.title });
     setModalOpen(true);
   }, []);
-
-  // Конвертируем TourFilters в TaskFilters для модалки (только основные поля)
-  const taskFiltersForModal: TaskFilters = {
-    onlyHot: filters.onlyHot,
-    onlyPremium: filters.onlyPremium,
-    types: filters.types.map(type => tourTypeToTaskType[type] as any).filter(Boolean),
-    sort: filters.sort
-  };
 
   const TourCard = ({ tour, onBook }: { tour: TourSlot; onBook: (slot: TourSlot) => void }) => {
     const accommodationIcons = {
@@ -462,23 +428,6 @@ export default function ToursPage() {
       </div>
     );
   };
-
-  // Обработчик изменения фильтров из модалки (только основные поля)
-  const handleFilterChange = useCallback((newFilters: TaskFilters) => {
-    setFilters(prev => ({
-      ...prev,
-      onlyHot: newFilters.onlyHot,
-      onlyPremium: newFilters.onlyPremium,
-      types: newFilters.types.map(type => {
-        // Обратная конвертация из TaskType в TourType
-        for (const [tourType, taskType] of Object.entries(tourTypeToTaskType)) {
-          if (taskType === type) return tourType as TourType;
-        }
-        return 'other' as TourType;
-      }),
-      sort: newFilters.sort
-    }));
-  }, []);
 
   return (
     <div className="space-y-6">
@@ -668,7 +617,7 @@ export default function ToursPage() {
         </div>
       </div>
 
-      {/* BookingModal и SortFilterModal */}
+      {/* Модалка бронирования */}
       <BookingModal
         open={modalOpen}
         onClose={onCloseBooking}
@@ -680,12 +629,12 @@ export default function ToursPage() {
         initialTitle={modalPreset?.title}
       />
 
-      {/* Используем конвертированные фильтры для модалки */}
-      <SortFilterModal
+      {/* Модалка фильтров для туров */}
+      <SortFilterModalTours
         open={filterOpen}
         onClose={() => setFilterOpen(false)}
-        value={taskFiltersForModal}
-        onChange={handleFilterChange}
+        value={filters}
+        onChange={setFilters}
       />
     </div>
   );
