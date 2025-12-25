@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { Search, SlidersHorizontal, ChevronRight, Users, Trophy, Sparkles, ChevronLeft } from "lucide-react";
 import DayTabs from "@/components/day-tabs";
 import SlotCard from "@/components/slot-card";
@@ -91,16 +92,16 @@ export default function ShiftsClient() {
   // Обработчик окончания свайпа
   const handleTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-    
+
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > 50; // Минимальное расстояние свайпа
     const isRightSwipe = distance < -50;
-    
+
     if (isLeftSwipe) {
       // Свайп влево → следующий баннер
       setCurrentBanner(prev => (prev === 1 ? 0 : prev + 1));
     }
-    
+
     if (isRightSwipe) {
       // Свайп вправо → предыдущий баннер
       setCurrentBanner(prev => (prev === 0 ? 1 : prev - 1));
@@ -364,7 +365,7 @@ export default function ShiftsClient() {
 
         {/* Карусель баннеров */}
         <div className="relative overflow-hidden rounded-xl">
-          <div 
+          <div
             className="flex transition-transform duration-300 ease-out"
             style={{ transform: `translateX(-${currentBanner * 100}%)` }}
             onTouchStart={handleTouchStart}
@@ -377,7 +378,7 @@ export default function ShiftsClient() {
                 {/* Декоративные элементы */}
                 <div className="absolute -top-6 -right-6 h-32 w-32 rounded-full bg-gradient-to-br from-amber-200/40 to-orange-200/20"></div>
                 <Sparkles className="absolute top-3 right-3 h-5 w-5 text-amber-400/50" />
-                
+
                 <div className="relative z-10 flex h-full flex-col">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
@@ -392,7 +393,7 @@ export default function ShiftsClient() {
                         До конца акции осталось: 7 дней
                       </div>
                     </div>
-                    
+
                     <button
                       type="button"
                       onClick={() => {/* навигация в раздел акций */}}
@@ -406,11 +407,11 @@ export default function ShiftsClient() {
                       </div>
                     </button>
                   </div>
-                  
+
                   <div className="mt-auto pt-3">
                     <div className="mb-1 text-[11px] text-zinc-500">Прогресс: 6/10 заданий</div>
                     <div className="h-1.5 w-full rounded-full bg-amber-100 overflow-hidden">
-                      <div 
+                      <div
                         className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500"
                         style={{ width: '60%' }}
                       />
@@ -425,7 +426,7 @@ export default function ShiftsClient() {
               <div className="relative h-full min-h-[156px] overflow-hidden rounded-xl bg-gradient-to-r from-sky-50 to-indigo-50 p-4">
                 {/* Декоративные элементы */}
                 <div className="absolute -top-6 -right-6 h-32 w-32 rounded-full bg-gradient-to-br from-sky-200/40 to-indigo-200/20"></div>
-                
+
                 <div className="relative z-10 flex h-full flex-col">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
@@ -440,7 +441,7 @@ export default function ShiftsClient() {
                         Друг тоже получит 1 000 ₽ на первый заказ
                       </div>
                     </div>
-                    
+
                     <button
                       type="button"
                       onClick={() => {/* открыть модалку с реферальной ссылкой */}}
@@ -454,7 +455,7 @@ export default function ShiftsClient() {
                       </div>
                     </button>
                   </div>
-                  
+
                   <div className="mt-auto pt-3">
                     <div className="grid grid-cols-2 gap-3">
                       <div className="text-xs">
@@ -466,7 +467,7 @@ export default function ShiftsClient() {
                         <div className="text-sm font-semibold text-green-600">6 000 ₽</div>
                       </div>
                     </div>
-                    
+
                     <div className="mt-2 text-center">
                       <div className="inline-block rounded-lg bg-white/80 backdrop-blur-sm border border-sky-200 px-2 py-1">
                         <div className="text-[10px] font-mono text-sky-700">REF:USER789</div>
@@ -486,8 +487,8 @@ export default function ShiftsClient() {
               key={index}
               onClick={() => setCurrentBanner(index)}
               className={`h-1.5 rounded-full transition-all duration-200 ${
-                currentBanner === index 
-                  ? "w-6 bg-zinc-800" 
+                currentBanner === index
+                  ? "w-6 bg-zinc-800"
                   : "w-1.5 bg-zinc-300 hover:bg-zinc-400"
               }`}
               aria-label={`Перейти к баннеру ${index + 1}`}
@@ -519,7 +520,25 @@ export default function ShiftsClient() {
       ) : (
         <div className="space-y-3">
           {filtered.map((slot) => (
-            <SlotCard key={slot.id} slot={slot} onBook={openBooking} />
+            <div key={slot.id} className="space-y-2">
+              <SlotCard slot={slot} onBook={openBooking} />
+
+              {/* ✅ КНОПКА "ПЕРЕЙТИ" (ничего не удаляем, добавляем рядом) */}
+              <div className="flex justify-end">
+                <Link
+                  href={`/shifts/${slot.id}`}
+                  className="
+                    inline-flex items-center gap-1 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm
+                    text-zinc-900 hover:bg-zinc-50 transition
+                  "
+                  title="Перейти к смене"
+                  aria-label="Перейти к смене"
+                >
+                  <span>Перейти</span>
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
           ))}
         </div>
       )}
