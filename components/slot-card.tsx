@@ -9,7 +9,7 @@ import { TaskTypeIcon } from "@/components/task-type-icon";
 import { cn } from "@/lib/cn";
 import { uiCard, uiTransition, uiButtonGhost, uiButtonPrimary } from "@/lib/ui";
 import { Flame } from "lucide-react";
-import { ChartNoAxesCombined } from "lucide-react";
+import { BanknoteArrowUp } from "lucide-react";
 
 export default function SlotCard({
   slot,
@@ -49,7 +49,7 @@ export default function SlotCard({
             ) : null}
 
             {isPremium ? (
-              <ChartNoAxesCombined className="h-4 w-4 text-sky-600" />
+              <BanknoteArrowUp className="h-4 w-4 text-sky-600" />
             ) : null}
 
             {status === "booked" ? (
