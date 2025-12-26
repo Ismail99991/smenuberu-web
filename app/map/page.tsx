@@ -30,7 +30,6 @@ type ObjectItem = {
   name: string;
   city: string;
   address: string | null;
-  // чтобы пины работали “по-настоящему”, объектам нужны координаты:
   lat?: number | null;
   lng?: number | null;
 };
@@ -44,7 +43,6 @@ function yandexMapsByCoords(lat: number, lng: number) {
   return `https://yandex.ru/maps/?pt=${encodeURIComponent(`${lng},${lat}`)}&z=16&l=map`;
 }
 
-// простая дистанция в км (для сортировки “ближайшие”)
 function haversineKm(aLat: number, aLng: number, bLat: number, bLng: number) {
   const R = 6371;
   const toRad = (x: number) => (x * Math.PI) / 180;
@@ -54,6 +52,62 @@ function haversineKm(aLat: number, aLng: number, bLat: number, bLng: number) {
   const s2 = Math.cos(toRad(aLat)) * Math.cos(toRad(bLat)) * Math.sin(dLng / 2) ** 2;
   const c = 2 * Math.atan2(Math.sqrt(s1 + s2), Math.sqrt(1 - (s1 + s2)));
   return R * c;
+}
+
+// фирменное “успокоение” dataviz под твой black/90 UI
+function applySmenuberuBrandStyle(map: any) {
+  const LABEL = "#6B7280";
+  const HALO = "#FFFFFF";
+
+  const layers = map.getStyle()?.layers ?? [];
+
+  for (const l of layers) {
+    const id: string = l.id || "";
+    const type: string = l.type || "";
+
+    // Убираем шум: POI / transit / иконки
+    if (
+      id.includes("poi") ||
+      id.includes("poi-label") ||
+      id.includes("poi_label") ||
+      id.includes("transit") ||
+      id.includes("rail") ||
+      id.includes("airport") ||
+      id.includes("aeroway")
+    ) {
+      try {
+        map.setLayoutProperty(id, "visibility", "none");
+      } catch {}
+      continue;
+    }
+
+    // Подписи — тише
+    if (type === "symbol" && (id.includes("label") || id.includes("place") || id.includes("road"))) {
+      try {
+        map.setPaintProperty(id, "text-color", LABEL);
+      } catch {}
+      try {
+        map.setPaintProperty(id, "text-halo-color", HALO);
+      } catch {}
+      try {
+        map.setPaintProperty(id, "text-halo-width", 1);
+      } catch {}
+      try {
+        map.setPaintProperty(id, "text-opacity", 0.85);
+      } catch {}
+      continue;
+    }
+
+    // Линии (дороги/границы) — чуть приглушаем
+    if (type === "line" && (id.includes("road") || id.includes("street") || id.includes("highway") || id.includes("boundary"))) {
+      try {
+        const cur = map.getPaintProperty(id, "line-opacity");
+        if (typeof cur === "number") map.setPaintProperty(id, "line-opacity", Math.min(cur, 0.9));
+        else map.setPaintProperty(id, "line-opacity", 0.9);
+      } catch {}
+      continue;
+    }
+  }
 }
 
 export default function MapPage() {
@@ -72,7 +126,7 @@ export default function MapPage() {
 
   const maptilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY ?? "";
 
-  // 1) загружаем объекты
+  // загрузка объектов
   useEffect(() => {
     let alive = true;
     setLoading(true);
@@ -97,7 +151,6 @@ export default function MapPage() {
     };
   }, []);
 
-  // 2) геолокация (опционально)
   function requestGeo() {
     setGeoErr(null);
     if (!("geolocation" in navigator)) {
@@ -106,35 +159,37 @@ export default function MapPage() {
     }
 
     navigator.geolocation.getCurrentPosition(
-      (p) => {
-        setPos({ lat: p.coords.latitude, lng: p.coords.longitude });
-      },
-      (e) => {
-        setGeoErr(e?.message || "Не удалось получить геолокацию. Разреши доступ.");
-      },
+      (p) => setPos({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      (e) => setGeoErr(e?.message || "Не удалось получить геолокацию. Разреши доступ."),
       { enableHighAccuracy: true, timeout: 10_000, maximumAge: 30_000 }
     );
   }
 
-  // 3) инициализация карты
+  // init map
   useEffect(() => {
     if (!containerRef.current) return;
-    if (mapRef.current) return; // уже создана
+    if (mapRef.current) return;
 
-    // если ключа нет — не падаем, покажем ошибку
     if (!maptilerKey) return;
 
-    // базовый стиль (можно заменить на свой style.json)
-    const styleUrl = `https://api.maptiler.com/maps/streets-v2/style.json?key=${encodeURIComponent(maptilerKey)}`;
+    // ✅ Dataviz стиль
+    const styleUrl = `https://api.maptiler.com/maps/dataviz/style.json?key=${encodeURIComponent(maptilerKey)}`;
 
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: styleUrl,
-      center: [37.6173, 55.7558], // Москва по умолчанию
+      center: [37.6173, 55.7558], // default Moscow
       zoom: 10,
+      // ВАЖНО: attributionControl НЕ true. По умолчанию он включен.
+      // Если хочешь компактно — можно так:
+      // attributionControl: { compact: true },
     });
 
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "bottom-right");
+
+    map.on("load", () => {
+      applySmenuberuBrandStyle(map);
+    });
 
     mapRef.current = map;
 
@@ -148,12 +203,11 @@ export default function MapPage() {
     };
   }, [maptilerKey]);
 
-  // 4) расставляем маркеры (только у кого есть координаты)
+  // markers
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
 
-    // чистим старые
     markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
 
@@ -164,17 +218,32 @@ export default function MapPage() {
     for (const o of withCoords) {
       const el = document.createElement("button");
       el.type = "button";
+      el.setAttribute("data-smenuberu-pin", "1");
+
+      // black/80 по умолчанию
       el.className =
-        "h-10 w-10 rounded-2xl bg-zinc-900 text-white shadow-[0_10px_22px_rgba(0,0,0,0.18)] flex items-center justify-center active:scale-[0.98] transition";
+        "h-10 w-10 rounded-2xl bg-black/80 text-white shadow-[0_10px_22px_rgba(0,0,0,0.18)] flex items-center justify-center active:scale-[0.98] transition";
       el.title = o.name;
 
-      // маленькая “капля”
+      // “капля” в твоём стиле
       el.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M12 22s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12z" fill="currentColor"></path>
         <circle cx="12" cy="10" r="2.5" fill="white"></circle>
       </svg>`;
 
       el.addEventListener("click", () => {
+        // снять active со всех
+        try {
+          document.querySelectorAll("[data-smenuberu-pin='1']").forEach((n) => {
+            n.classList.remove("bg-black/90");
+            n.classList.add("bg-black/80");
+          });
+        } catch {}
+
+        // выделить текущий
+        el.classList.remove("bg-black/80");
+        el.classList.add("bg-black/90");
+
         setActive(o);
         map.flyTo({ center: [o.lng, o.lat], zoom: Math.max(map.getZoom(), 14), essential: true });
       });
@@ -186,7 +255,7 @@ export default function MapPage() {
       markersRef.current.push(marker);
     }
 
-    // авто-fit если есть пины
+    // fit bounds
     if (withCoords.length > 0) {
       const b = new maplibregl.LngLatBounds();
       for (const o of withCoords) b.extend([o.lng, o.lat]);
@@ -194,36 +263,33 @@ export default function MapPage() {
     }
   }, [objects]);
 
-  // 5) центрируем по пользователю (если дал гео)
+  // fly to user
   useEffect(() => {
     const map = mapRef.current;
-    if (!map) return;
-    if (!pos) return;
+    if (!map || !pos) return;
     map.flyTo({ center: [pos.lng, pos.lat], zoom: 13, essential: true });
   }, [pos]);
-
-  // “ближайшие” (если есть координаты у объектов и у пользователя)
-  const nearest = useMemo(() => {
-    if (!pos) return [];
-    const withCoords = objects
-      .filter((o) => typeof o.lat === "number" && typeof o.lng === "number")
-      .map((o) => ({
-        ...o,
-        distKm: haversineKm(pos.lat, pos.lng, o.lat as number, o.lng as number),
-      }))
-      .sort((a, b) => a.distKm - b.distKm);
-
-    return withCoords.slice(0, 8);
-  }, [objects, pos]);
 
   const anyCoords = useMemo(
     () => objects.some((o) => typeof o.lat === "number" && typeof o.lng === "number"),
     [objects]
   );
 
+  const nearest = useMemo(() => {
+    if (!pos) return [];
+    return objects
+      .filter((o) => typeof o.lat === "number" && typeof o.lng === "number")
+      .map((o) => ({
+        ...o,
+        distKm: haversineKm(pos.lat, pos.lng, o.lat as number, o.lng as number),
+      }))
+      .sort((a, b) => a.distKm - b.distKm)
+      .slice(0, 8);
+  }, [objects, pos]);
+
   return (
     <div className="relative">
-      {/* top bar */}
+      {/* top */}
       <div className="mx-auto max-w-3xl px-4 pt-4 pb-3">
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -253,7 +319,7 @@ export default function MapPage() {
 
         {!maptilerKey ? (
           <div className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-            Нет ключа MapTiler. Добавь <span className="font-mono">NEXT_PUBLIC_MAPTILER_KEY</span> в окружение.
+            Нет ключа MapTiler. Добавь <span className="font-mono">NEXT_PUBLIC_MAPTILER_KEY</span>.
           </div>
         ) : null}
 
@@ -263,17 +329,16 @@ export default function MapPage() {
           </div>
         ) : null}
 
-        {!loading && maptilerKey && !anyCoords ? (
-          <div className="mt-3 rounded-2xl border border-zinc-200 bg-white p-3 text-sm text-zinc-600">
-            У объектов пока нет координат (<span className="font-mono">lat/lng</span>), поэтому пины не показать.
-            Следующий шаг — сохранять координаты при выборе адреса (геокодинг).
-            Пока можно открыть адреса в Яндекс.Картах из списка объектов.
-          </div>
-        ) : null}
-
         {geoErr ? (
           <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
             {geoErr}
+          </div>
+        ) : null}
+
+        {!loading && maptilerKey && !anyCoords ? (
+          <div className="mt-3 rounded-2xl border border-zinc-200 bg-white p-3 text-sm text-zinc-600">
+            У объектов пока нет координат (<span className="font-mono">lat/lng</span>), поэтому пины не показать.
+            Следующий шаг — сохранять координаты при выборе адреса.
           </div>
         ) : null}
 
@@ -350,7 +415,7 @@ export default function MapPage() {
                 }
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-4 py-3 text-sm font-medium text-white hover:bg-zinc-800 transition"
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-black/90 px-4 py-3 text-sm font-medium text-white hover:bg-black/80 transition"
               >
                 <MapPin className="h-5 w-5" />
                 Открыть в Яндекс
