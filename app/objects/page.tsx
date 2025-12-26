@@ -81,9 +81,196 @@ function TypeBadge({ type }: { type: string }) {
 ======================= */
 
 function ObjectCard({ obj }: { obj: ApiObject }) {
-  // ... (оставляем без изменений, тот же код что был)
+  const photos = obj.photos?.length ? obj.photos : [];
+  const slidesCount = Math.max(1, photos.length);
+
+  const [active, setActive] = useState(0);
+  const [isSwiping, setIsSwiping] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [currentX, setCurrentX] = useState(0);
+  const ref = useRef<HTMLDivElement | null>(null);
+  const rafRef = useRef<number | null>(null);
+
+  const onScroll = () => {
+    const el = ref.current;
+    if (!el) return;
+
+    if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(() => {
+      const w = el.clientWidth || 1;
+      const idx = Math.round(el.scrollLeft / w);
+      setActive(clamp(idx, 0, slidesCount - 1));
+    });
+  };
+
+  // Обработчик начала свайпа
+  const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
+    setIsSwiping(true);
+    setStartX(e.touches[0].clientX);
+    setCurrentX(e.touches[0].clientX);
+  };
+
+  // Обработчик движения свайпа
+  const handleTouchMove = (e: TouchEvent<HTMLDivElement>) => {
+    if (!isSwiping) return;
+    setCurrentX(e.touches[0].clientX);
+  };
+
+  // Обработчик окончания свайпа
+  const handleTouchEnd = () => {
+    if (!isSwiping) return;
+    setIsSwiping(false);
+
+    const diff = startX - currentX;
+    const threshold = 50;
+
+    if (Math.abs(diff) > threshold) {
+      const direction = diff > 0 ? 1 : -1;
+      const newIndex = clamp(active + direction, 0, slidesCount - 1);
+      
+      if (newIndex !== active) {
+        setActive(newIndex);
+        const el = ref.current;
+        if (el) {
+          const w = el.clientWidth;
+          el.scrollTo({
+            left: newIndex * w,
+            behavior: 'smooth'
+          });
+        }
+      }
+    }
+
+    setStartX(0);
+    setCurrentX(0);
+  };
+
+  const swipeOffset = isSwiping ? startX - currentX : 0;
+
+  useEffect(() => {
+    return () => {
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
+
   return (
-    // ... (оставляем без изменений)
+    <Link
+      href={`/objects/${obj.id}`}
+      className="
+        tap
+        block w-full overflow-hidden rounded-2xl border border-gray-200 bg-white
+        transition-[box-shadow,transform] duration-200 ease-out
+        active:shadow-[0_12px_24px_rgba(0,0,0,0.12)]
+      "
+    >
+      <div
+        className="relative h-40 bg-gray-100 overflow-hidden"
+        onClickCapture={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+        onPointerDownCapture={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+      >
+        <div
+          ref={ref}
+          onScroll={onScroll}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          className="
+            flex h-full w-full overflow-x-auto
+            snap-x snap-mandatory
+            overscroll-x-contain touch-pan-x
+            scroll-smooth
+            select-none
+          "
+          style={{ 
+            WebkitOverflowScrolling: "touch",
+            cursor: isSwiping ? 'grabbing' : 'grab'
+          }}
+        >
+          {photos.length ? (
+            photos.map((src, i) => (
+              <div 
+                key={i} 
+                className="min-w-full h-full snap-start relative"
+                style={{
+                  transform: i === active ? `translateX(${swipeOffset}px)` : 'none',
+                  transition: isSwiping ? 'none' : 'transform 0.3s ease'
+                }}
+              >
+                <img 
+                  src={src} 
+                  alt={`Фото ${i + 1} объекта ${obj.name}`} 
+                  className="h-full w-full object-cover" 
+                  draggable="false"
+                />
+                {isSwiping && i === active && (
+                  <div className={`
+                    absolute top-1/2 -translate-y-1/2
+                    ${swipeOffset > 0 ? 'left-2' : 'right-2'}
+                    bg-black/50 text-white text-xs px-2 py-1 rounded-full
+                    transition-opacity duration-200
+                  `}>
+                    {swipeOffset > 0 ? '←' : '→'}
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="min-w-full h-full snap-start flex items-center justify-center text-sm text-gray-500">
+              Фото объекта
+            </div>
+          )}
+        </div>
+
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 rounded-full bg-black/40 px-2 py-1">
+          {Array.from({ length: slidesCount }).map((_, i) => (
+            <span
+              key={i}
+              className={cn(
+                "h-1.5 rounded-full transition-all duration-200",
+                i === active ? "bg-white w-4" : "bg-white/50 w-1.5"
+              )}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="p-4 space-y-2">
+        <div className="flex items-start gap-3">
+          {obj.logoUrl ? (
+            <img
+              src={obj.logoUrl}
+              alt={`Логотип ${obj.name}`}
+              className="h-10 w-10 rounded-xl bg-gray-50 p-1 object-contain"
+              draggable="false"
+            />
+          ) : (
+            <div className="h-10 w-10 rounded-xl bg-gray-100 flex items-center justify-center font-semibold text-gray-700">
+              {firstLetter(obj.name)}
+            </div>
+          )}
+
+          <div className="min-w-0 flex-1">
+            <TypeBadge type={obj.type ?? "Объект"} />
+            <div className="font-semibold truncate">{obj.name}</div>
+            <div className="flex items-center gap-1 text-sm text-gray-500">
+              <MapPin size={14} className="shrink-0" />
+              <span className="truncate">
+                {obj.city}
+                {obj.address ? `, ${obj.address}` : ""}
+              </span>
+            </div>
+          </div>
+
+          <ChevronRight className="text-gray-400 shrink-0" />
+        </div>
+      </div>
+    </Link>
   );
 }
 
