@@ -46,8 +46,6 @@ export default function PullToRefresh({
 
   const baseElRef = useRef<HTMLElement | null>(null);
 
-  /* ================= helpers ================= */
-
   const commitPull = useCallback((v: number) => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     rafRef.current = requestAnimationFrame(() => setPullUI(v));
@@ -76,15 +74,12 @@ export default function PullToRefresh({
     return getScrollTop() <= 0;
   }, [getScrollTop]);
 
-  /** резиновое сопротивление */
   const rubber = (d: number) => {
     const dist = Math.max(0, d);
     const k = 0.55;
     const r = maxPull * (1 - Math.exp((-k * dist) / maxPull));
     return Math.min(maxPull, r);
   };
-
-  /* ================= touch handlers ================= */
 
   const handleTouchStart = useCallback(
     (e: TouchEvent) => {
@@ -122,7 +117,7 @@ export default function PullToRefresh({
       const dy = t.clientY - startYRef.current;
       const dx = t.clientX - startXRef.current;
 
-      // 👉 горизонтальный жест — не вмешиваемся
+      // горизонтальный жест — не вмешиваемся
       if (Math.abs(dx) > Math.abs(dy) * axisLockRatio) return;
 
       if (dy <= 0) {
@@ -181,8 +176,6 @@ export default function PullToRefresh({
     if (!refreshingRef.current) reset();
   }, [reset]);
 
-  /* ================= lifecycle ================= */
-
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -204,8 +197,6 @@ export default function PullToRefresh({
     };
   }, [scrollRef, handleTouchStart, handleTouchMove, handleTouchEnd, handleTouchCancel]);
 
-  /* ================= UI ================= */
-
   const progress = Math.min(pullUI / maxPull, 1);
   const translateY = Math.min(pullUI, maxPull) - maxPull;
   const visible = pullUI > 4 || refreshingUI;
@@ -213,10 +204,10 @@ export default function PullToRefresh({
 
   return (
     <>
-      {/* индикатор */}
       <div
         className="fixed left-0 right-0 z-50 flex items-center justify-center pointer-events-none"
         style={{
+          // ✅ ниже топбара. Если переменной нет — fallback на safe-area.
           top: "var(--topbar-offset, env(safe-area-inset-top))",
           transform: `translateY(${translateY}px)`,
           opacity: visible ? 1 : 0,
@@ -250,7 +241,6 @@ export default function PullToRefresh({
         </div>
       </div>
 
-      {/* контент */}
       <div className={refreshingUI ? "opacity-60 pointer-events-none" : ""}>
         {children}
       </div>
