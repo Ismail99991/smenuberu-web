@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { RefreshCw } from "lucide-react";
 
 type PullToRefreshProps = {
@@ -14,14 +14,8 @@ type PullToRefreshProps = {
   startThreshold?: number;
   settleMs?: number;
 
-  /** защита от горизонтальных свайпов: если |dx| > |dy|*ratio => PTR не вмешивается */
-  axisLockRatio?: number;
-
-  /**
-   * Если true — PTR НЕ стартует, когда touch начался внутри элемента
-   * помеченного data-ptr-skip (например, карусели фото).
-   */
-  respectSkipAttr?: boolean;
+  axisLockRatio?: number;     // защита от горизонтальных свайпов
+  respectSkipAttr?: boolean;  // игнорировать зоны с data-ptr-skip
 };
 
 export default function PullToRefresh({
@@ -46,14 +40,7 @@ export default function PullToRefresh({
   const rafRef = useRef<number | null>(null);
   const skipGestureRef = useRef(false);
 
-  const getScrollTop = useCallback(() => {
-    const el = scrollRef?.current;
-    if (el) return el.scrollTop;
-    const se = document.scrollingElement;
-    return se?.scrollTop ?? window.scrollY ?? 0;
-  }, [scrollRef]);
-
-  const atTop = useCallback(() => getScrollTop() <= 0, [getScrollTop]);
+  const baseElRef = useRef<HTMLElement | null>(null);
 
   const commitPull = useCallback((val: number) => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -69,8 +56,21 @@ export default function PullToRefresh({
     commitPull(0);
   }, [commitPull]);
 
-  const targetEl = useMemo(() => scrollRef?.current ?? document.documentElement, [scrollRef]);
+  const getScrollTop = useCallback(() => {
+    if (typeof window === "undefined") return 0;
 
+    const el = scrollRef?.current ?? baseElRef.current;
+    if (el && el !== document.documentElement) return el.scrollTop;
+
+    return document.scrollingElement?.scrollTop ?? window.scrollY ?? 0;
+  }, [scrollRef]);
+
+  const atTop = useCallback(() => {
+    if (typeof window === "undefined") return true;
+    return getScrollTop() <= 0;
+  }, [getScrollTop]);
+
+  // “резинка”: чем дальше тянешь — тем тяжелее
   const rubber = (d: number) => {
     const dist = Math.max(0, d);
     const k = 0.55;
@@ -84,7 +84,6 @@ export default function PullToRefresh({
       if (!atTop()) return;
       if (e.touches.length !== 1) return;
 
-      // ✅ если началось внутри "skip"-зоны — вообще не стартуем PTR
       if (respectSkipAttr) {
         const target = e.target as HTMLElement | null;
         if (target?.closest?.("[data-ptr-skip]")) {
@@ -115,7 +114,7 @@ export default function PullToRefresh({
       const dy = t.clientY - startYRef.current;
       const dx = t.clientX - startXRef.current;
 
-      // ✅ если это горизонтальный жест — не вмешиваемся (важно для каруселей)
+      // ✅ если жест явно горизонтальный — не вмешиваемся
       if (Math.abs(dx) > Math.abs(dy) * axisLockRatio) return;
 
       if (dy <= 0) {
@@ -132,7 +131,7 @@ export default function PullToRefresh({
       pullRef.current = eased;
       commitPull(eased);
     },
-    [atTop, axisLockRatio, reset, startThreshold, commitPull, maxPull]
+    [atTop, axisLockRatio, commitPull, maxPull, reset, startThreshold]
   );
 
   const finishRefresh = useCallback(async () => {
@@ -155,7 +154,6 @@ export default function PullToRefresh({
       reset();
       return;
     }
-
     if (refreshingRef.current) {
       reset();
       return;
@@ -175,7 +173,11 @@ export default function PullToRefresh({
   }, [reset]);
 
   useEffect(() => {
-    const el = targetEl;
+    // ✅ ВАЖНО: document используем только здесь
+    if (typeof window === "undefined") return;
+
+    baseElRef.current = scrollRef?.current ?? document.documentElement;
+    const el = baseElRef.current;
     if (!el) return;
 
     el.addEventListener("touchstart", handleTouchStart, { passive: true });
@@ -190,11 +192,12 @@ export default function PullToRefresh({
       el.removeEventListener("touchcancel", handleTouchCancel);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [targetEl, handleTouchStart, handleTouchMove, handleTouchEnd, handleTouchCancel]);
+  }, [scrollRef, handleTouchStart, handleTouchMove, handleTouchEnd, handleTouchCancel]);
 
   const progress = Math.min(pullUI / maxPull, 1);
   const translateY = Math.min(pullUI, maxPull) - maxPull;
   const visible = pullUI > 4 || refreshingUI;
+
   const rotateDeg = refreshingUI ? 0 : progress * 360 * 1.2;
 
   return (
