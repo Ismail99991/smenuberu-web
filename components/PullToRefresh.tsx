@@ -1,101 +1,236 @@
-// components/PullToRefresh.tsx
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RefreshCw } from "lucide-react";
 
-interface PullToRefreshProps {
-  onRefresh: () => Promise<void>;
+type PullToRefreshProps = {
+  onRefresh: () => Promise<void> | void;
   children: React.ReactNode;
-}
 
-export default function PullToRefresh({ onRefresh, children }: PullToRefreshProps) {
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [startY, setStartY] = useState(0);
-  const [pullDistance, setPullDistance] = useState(0);
-  const [showSpinner, setShowSpinner] = useState(false);
+  scrollRef?: React.RefObject<HTMLElement | null>;
 
-  const handleTouchStart = useCallback((e: TouchEvent) => {
-    if (window.scrollY === 0 && !isRefreshing) {
-      setStartY(e.touches[0].clientY);
-      setPullDistance(0);
-    }
-  }, [isRefreshing]);
+  maxPull?: number;
+  triggerPull?: number;
+  startThreshold?: number;
+  settleMs?: number;
 
-  const handleTouchMove = useCallback((e: TouchEvent) => {
-    if (startY && window.scrollY === 0 && !isRefreshing) {
-      const currentY = e.touches[0].clientY;
-      const distance = Math.max(0, currentY - startY);
-      
-      if (distance > 0) {
-        e.preventDefault();
-        setPullDistance(Math.min(distance, 80));
+  /** защита от горизонтальных свайпов: если |dx| > |dy|*ratio => PTR не вмешивается */
+  axisLockRatio?: number;
+
+  /**
+   * Если true — PTR НЕ стартует, когда touch начался внутри элемента
+   * помеченного data-ptr-skip (например, карусели фото).
+   */
+  respectSkipAttr?: boolean;
+};
+
+export default function PullToRefresh({
+  onRefresh,
+  children,
+  scrollRef,
+  maxPull = 88,
+  triggerPull = 56,
+  startThreshold = 6,
+  settleMs = 250,
+  axisLockRatio = 1.2,
+  respectSkipAttr = true,
+}: PullToRefreshProps) {
+  const [pullUI, setPullUI] = useState(0);
+  const [refreshingUI, setRefreshingUI] = useState(false);
+
+  const startYRef = useRef<number | null>(null);
+  const startXRef = useRef<number | null>(null);
+  const pullRef = useRef(0);
+  const pullingRef = useRef(false);
+  const refreshingRef = useRef(false);
+  const rafRef = useRef<number | null>(null);
+  const skipGestureRef = useRef(false);
+
+  const getScrollTop = useCallback(() => {
+    const el = scrollRef?.current;
+    if (el) return el.scrollTop;
+    const se = document.scrollingElement;
+    return se?.scrollTop ?? window.scrollY ?? 0;
+  }, [scrollRef]);
+
+  const atTop = useCallback(() => getScrollTop() <= 0, [getScrollTop]);
+
+  const commitPull = useCallback((val: number) => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(() => setPullUI(val));
+  }, []);
+
+  const reset = useCallback(() => {
+    startYRef.current = null;
+    startXRef.current = null;
+    pullRef.current = 0;
+    pullingRef.current = false;
+    skipGestureRef.current = false;
+    commitPull(0);
+  }, [commitPull]);
+
+  const targetEl = useMemo(() => scrollRef?.current ?? document.documentElement, [scrollRef]);
+
+  const rubber = (d: number) => {
+    const dist = Math.max(0, d);
+    const k = 0.55;
+    const r = maxPull * (1 - Math.exp((-k * dist) / maxPull));
+    return Math.min(maxPull, r);
+  };
+
+  const handleTouchStart = useCallback(
+    (e: TouchEvent) => {
+      if (refreshingRef.current) return;
+      if (!atTop()) return;
+      if (e.touches.length !== 1) return;
+
+      // ✅ если началось внутри "skip"-зоны — вообще не стартуем PTR
+      if (respectSkipAttr) {
+        const target = e.target as HTMLElement | null;
+        if (target?.closest?.("[data-ptr-skip]")) {
+          skipGestureRef.current = true;
+          return;
+        }
       }
-    }
-  }, [startY, isRefreshing]);
 
-  const handleTouchEnd = useCallback(async () => {
-    if (pullDistance > 50 && !isRefreshing) {
-      setIsRefreshing(true);
-      setShowSpinner(true);
-      
-      try {
-        await onRefresh();
-      } finally {
-        setTimeout(() => {
-          setIsRefreshing(false);
-          setShowSpinner(false);
-        }, 500);
+      const t = e.touches[0];
+      startYRef.current = t.clientY;
+      startXRef.current = t.clientX;
+      pullingRef.current = false;
+      pullRef.current = 0;
+      commitPull(0);
+    },
+    [atTop, commitPull, respectSkipAttr]
+  );
+
+  const handleTouchMove = useCallback(
+    (e: TouchEvent) => {
+      if (refreshingRef.current) return;
+      if (skipGestureRef.current) return;
+      if (!atTop()) return;
+      if (e.touches.length !== 1) return;
+      if (startYRef.current == null || startXRef.current == null) return;
+
+      const t = e.touches[0];
+      const dy = t.clientY - startYRef.current;
+      const dx = t.clientX - startXRef.current;
+
+      // ✅ если это горизонтальный жест — не вмешиваемся (важно для каруселей)
+      if (Math.abs(dx) > Math.abs(dy) * axisLockRatio) return;
+
+      if (dy <= 0) {
+        reset();
+        return;
       }
+
+      if (!pullingRef.current && dy < startThreshold) return;
+      pullingRef.current = true;
+
+      if (e.cancelable) e.preventDefault();
+
+      const eased = rubber(dy);
+      pullRef.current = eased;
+      commitPull(eased);
+    },
+    [atTop, axisLockRatio, reset, startThreshold, commitPull, maxPull]
+  );
+
+  const finishRefresh = useCallback(async () => {
+    refreshingRef.current = true;
+    setRefreshingUI(true);
+
+    try {
+      await onRefresh();
+    } finally {
+      window.setTimeout(() => {
+        refreshingRef.current = false;
+        setRefreshingUI(false);
+        reset();
+      }, settleMs);
     }
-    
-    setStartY(0);
-    setPullDistance(0);
-  }, [pullDistance, isRefreshing, onRefresh]);
+  }, [onRefresh, reset, settleMs]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (skipGestureRef.current) {
+      reset();
+      return;
+    }
+
+    if (refreshingRef.current) {
+      reset();
+      return;
+    }
+
+    if (pullRef.current >= triggerPull) {
+      commitPull(maxPull);
+      void finishRefresh();
+      return;
+    }
+
+    reset();
+  }, [commitPull, finishRefresh, maxPull, reset, triggerPull]);
+
+  const handleTouchCancel = useCallback(() => {
+    if (!refreshingRef.current) reset();
+  }, [reset]);
 
   useEffect(() => {
-    const container = document.documentElement;
-    
-    container.addEventListener("touchstart", handleTouchStart, { passive: true });
-    container.addEventListener("touchmove", handleTouchMove, { passive: false });
-    container.addEventListener("touchend", handleTouchEnd);
-    
-    return () => {
-      container.removeEventListener("touchstart", handleTouchStart);
-      container.removeEventListener("touchmove", handleTouchMove);
-      container.removeEventListener("touchend", handleTouchEnd);
-    };
-  }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
+    const el = targetEl;
+    if (!el) return;
 
-  const pullProgress = Math.min(pullDistance / 80, 1);
+    el.addEventListener("touchstart", handleTouchStart, { passive: true });
+    el.addEventListener("touchmove", handleTouchMove, { passive: false });
+    el.addEventListener("touchend", handleTouchEnd, { passive: true });
+    el.addEventListener("touchcancel", handleTouchCancel, { passive: true });
+
+    return () => {
+      el.removeEventListener("touchstart", handleTouchStart);
+      el.removeEventListener("touchmove", handleTouchMove);
+      el.removeEventListener("touchend", handleTouchEnd);
+      el.removeEventListener("touchcancel", handleTouchCancel);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [targetEl, handleTouchStart, handleTouchMove, handleTouchEnd, handleTouchCancel]);
+
+  const progress = Math.min(pullUI / maxPull, 1);
+  const translateY = Math.min(pullUI, maxPull) - maxPull;
+  const visible = pullUI > 4 || refreshingUI;
+  const rotateDeg = refreshingUI ? 0 : progress * 360 * 1.2;
 
   return (
     <>
-      {/* Индикатор pull-to-refresh */}
-      <div 
-        className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center transition-all duration-200 pointer-events-none"
+      <div
+        className="fixed left-0 right-0 top-0 z-50 flex items-center justify-center pointer-events-none"
         style={{
-          transform: `translateY(${Math.min(pullDistance, 80) - 80}px)`,
-          opacity: pullDistance > 10 ? 1 : 0,
+          transform: `translateY(${translateY}px)`,
+          opacity: visible ? 1 : 0,
+          transition: "opacity 160ms ease",
         }}
       >
-        <div className="bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg">
-          <RefreshCw 
-            size={24} 
-            className={`text-brand transition-transform duration-200 ${
-              isRefreshing ? "animate-spin" : ""
-            }`}
-            style={{
-              transform: `rotate(${pullProgress * 360}deg)`,
-            }}
-          />
+        <div className="mt-2 rounded-2xl bg-white/80 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.12)] ring-1 ring-black/5 px-4 py-3 flex items-center gap-3">
+          <div className="grid place-items-center rounded-xl h-11 w-11 bg-gradient-to-br from-black/5 to-black/0">
+            <RefreshCw
+              size={22}
+              className={`text-brand ${refreshingUI ? "animate-spin" : ""}`}
+              style={{
+                transform: `rotate(${rotateDeg}deg)`,
+                transition: refreshingUI ? "none" : "transform 80ms linear",
+              }}
+            />
+          </div>
+
+          <div className="flex flex-col leading-tight">
+            <div className="text-sm font-medium text-black/80">
+              {refreshingUI ? "Обновляю…" : progress >= 1 ? "Отпусти, чтобы обновить" : "Потяни вниз"}
+            </div>
+            <div className="text-xs text-black/45">
+              {refreshingUI ? "Секунду" : `${Math.round(progress * 100)}%`}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Содержимое страницы */}
-      <div className={isRefreshing ? "opacity-50 pointer-events-none" : ""}>
-        {children}
-      </div>
+      <div className={refreshingUI ? "opacity-60 pointer-events-none" : ""}>{children}</div>
     </>
   );
 }

@@ -2,7 +2,16 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Search, SlidersHorizontal, ChevronRight, Users, Trophy, Sparkles, ChevronLeft } from "lucide-react";
+import {
+  Search,
+  SlidersHorizontal,
+  ChevronRight,
+  Users,
+  Trophy,
+  Sparkles,
+  ChevronLeft,
+} from "lucide-react";
+import PullToRefresh from "@/components/PullToRefresh";
 import DayTabs from "@/components/day-tabs";
 import SlotCard from "@/components/slot-card";
 import BookingModal from "@/components/booking-modal";
@@ -10,7 +19,6 @@ import SortFilterModal, {
   type TaskFilters,
   type SortKey,
 } from "@/components/sort-filter-modal";
-import PullToRefresh from "@/components/PullToRefresh";
 import { addDays, getMockSlots, getSlotsFromApi, toISODateLocal } from "@/lib/slots";
 import type { Slot } from "@/lib/slots";
 
@@ -100,12 +108,12 @@ export default function ShiftsClient() {
 
     if (isLeftSwipe) {
       // Свайп влево → следующий баннер
-      setCurrentBanner(prev => (prev === 1 ? 0 : prev + 1));
+      setCurrentBanner((prev) => (prev === 1 ? 0 : prev + 1));
     }
 
     if (isRightSwipe) {
       // Свайп вправо → предыдущий баннер
-      setCurrentBanner(prev => (prev === 0 ? 1 : prev - 1));
+      setCurrentBanner((prev) => (prev === 0 ? 1 : prev - 1));
     }
   };
 
@@ -114,36 +122,40 @@ export default function ShiftsClient() {
 
   // мок-слоты на окно
   const [slots, setSlots] = useState<Slot[]>(() => getMockSlots(today, 14));
-  const [loading, setLoading] = useState(false);
 
-  // Функция загрузки слотов
-  const fetchSlots = useCallback(async () => {
-    setLoading(true);
-    try {
-      const apiSlots = await getSlotsFromApi();
-      if (apiSlots.length > 0) {
-        setSlots(apiSlots);
-      } else {
-        // Если API не вернул данные, используем моки
-        setSlots(getMockSlots(today, 14));
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const apiSlots = await getSlotsFromApi();
+        if (!cancelled && apiSlots.length > 0) {
+          setSlots(apiSlots);
+        }
+      } catch {
+        // тихо остаёмся на моках
       }
-    } catch {
-      // В случае ошибки остаемся на моках
-      setSlots(getMockSlots(today, 14));
-    } finally {
-      setLoading(false);
-    }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [today]);
 
-  // Загрузка данных при монтировании
-  useEffect(() => {
-    fetchSlots();
-  }, [fetchSlots]);
-
-  // Функция для PullToRefresh
-  const handleRefresh = useCallback(async () => {
-    await fetchSlots();
-  }, [fetchSlots]);
+  // ✅ NEW: pull-to-refresh (обновление слотов вручную)
+  const refreshSlots = useCallback(async () => {
+    try {
+      const apiSlots = await getSlotsFromApi();
+      if (apiSlots?.length) {
+        setSlots(apiSlots);
+        return;
+      }
+      // если API вернул пусто — не ломаем UX, оставим текущие данные
+    } catch {
+      // мягкий фоллбек: перегенерим моки на текущее окно
+      setSlots(getMockSlots(today, 14));
+    }
+  }, [today]);
 
   // дни с любыми слотами (чтобы в месяце можно приглушать пустые)
   const availableDays = useMemo(() => new Set(slots.map((s) => s.date)), [slots]);
@@ -266,15 +278,15 @@ export default function ShiftsClient() {
   }, []);
 
   return (
-    <PullToRefresh onRefresh={handleRefresh}>
-      <div className="space-y-4 pb-24 pt-4">
+    <PullToRefresh onRefresh={refreshSlots}>
+      <div className="space-y-4">
         {/* Верхняя панель: поиск (сворачиваемый) + фильтры */}
         <div
           className="
-            rounded-2xl border border-zinc-200 bg-white/90 p-3
-            shadow-[0_10px_28px_rgba(0,0,0,0.06)]
-            backdrop-blur
-          "
+          rounded-2xl border border-zinc-200 bg-white/90 p-3
+          shadow-[0_10px_28px_rgba(0,0,0,0.06)]
+          backdrop-blur
+        "
         >
           <div className="flex items-center justify-between gap-2">
             {!showSearch ? (
@@ -286,10 +298,10 @@ export default function ShiftsClient() {
                   onChange={(e) => setQ(e.target.value)}
                   placeholder="Поиск: профессия, компания, город…"
                   className="
-                    w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none
-                    transition-[border-color,box-shadow] duration-200
-                    focus:border-brand/30 focus:ring-2 focus:ring-brand/20
-                  "
+                  w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none
+                  transition-[border-color,box-shadow] duration-200
+                  focus:border-brand/30 focus:ring-2 focus:ring-brand/20
+                "
                   autoFocus
                 />
               </div>
@@ -302,10 +314,10 @@ export default function ShiftsClient() {
                   if (showSearch) setQ(""); // при сворачивании очищаем
                 }}
                 className="
-                  tap inline-flex items-center justify-center rounded-xl border border-zinc-200 bg-white p-2
-                  transition-[box-shadow,transform] duration-200
-                  active:shadow-[0_10px_22px_rgba(0,0,0,0.10)]
-                "
+                tap inline-flex items-center justify-center rounded-xl border border-zinc-200 bg-white p-2
+                transition-[box-shadow,transform] duration-200
+                active:shadow-[0_10px_22px_rgba(0,0,0,0.10)]
+              "
                 aria-label="Поиск"
                 title="Поиск"
               >
@@ -315,10 +327,10 @@ export default function ShiftsClient() {
               <button
                 onClick={() => setFilterOpen(true)}
                 className="
-                  tap inline-flex items-center justify-center rounded-xl border border-zinc-200 bg-white p-2
-                  transition-[box-shadow,transform] duration-200
-                  active:shadow-[0_10px_22px_rgba(0,0,0,0.10)]
-                "
+                tap inline-flex items-center justify-center rounded-xl border border-zinc-200 bg-white p-2
+                transition-[box-shadow,transform] duration-200
+                active:shadow-[0_10px_22px_rgba(0,0,0,0.10)]
+              "
                 aria-label="Сортировать и фильтровать"
                 title="Сортировать и фильтровать"
               >
@@ -400,7 +412,8 @@ export default function ShiftsClient() {
                           <div className="text-xs font-semibold text-zinc-900">Спецзадание</div>
                         </div>
                         <div className="mt-1.5 text-sm font-semibold text-zinc-900">
-                          Выполни 10 заданий и получи <span className="text-green-600">10 000 ₽</span>
+                          Выполни 10 заданий и получи{" "}
+                          <span className="text-green-600">10 000 ₽</span>
                         </div>
                         <div className="mt-1 text-[11px] text-zinc-600">
                           До конца акции осталось: 7 дней
@@ -409,7 +422,9 @@ export default function ShiftsClient() {
 
                       <button
                         type="button"
-                        onClick={() => {/* навигация в раздел акций */}}
+                        onClick={() => {
+                          /* навигация в раздел акций */
+                        }}
                         className="tap shrink-0 self-start rounded-xl bg-white px-3 py-1.5 text-xs font-medium text-amber-700 border border-amber-200"
                         title="Подробнее об акции"
                         aria-label="Подробнее об акции"
@@ -426,7 +441,7 @@ export default function ShiftsClient() {
                       <div className="h-1.5 w-full rounded-full bg-amber-100 overflow-hidden">
                         <div
                           className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500"
-                          style={{ width: '60%' }}
+                          style={{ width: "60%" }}
                         />
                       </div>
                     </div>
@@ -457,7 +472,9 @@ export default function ShiftsClient() {
 
                       <button
                         type="button"
-                        onClick={() => {/* открыть модалку с реферальной ссылкой */}}
+                        onClick={() => {
+                          /* открыть модалку с реферальной ссылкой */
+                        }}
                         className="tap shrink-0 self-start rounded-xl bg-white px-3 py-1.5 text-xs font-medium text-sky-700 border border-sky-200"
                         title="Получить реферальную ссылку"
                         aria-label="Получить реферальную ссылку"
@@ -500,9 +517,7 @@ export default function ShiftsClient() {
                 key={index}
                 onClick={() => setCurrentBanner(index)}
                 className={`h-1.5 rounded-full transition-all duration-200 ${
-                  currentBanner === index
-                    ? "w-6 bg-zinc-800"
-                    : "w-1.5 bg-zinc-300 hover:bg-zinc-400"
+                  currentBanner === index ? "w-6 bg-zinc-800" : "w-1.5 bg-zinc-300 hover:bg-zinc-400"
                 }`}
                 aria-label={`Перейти к баннеру ${index + 1}`}
               />
@@ -526,16 +541,7 @@ export default function ShiftsClient() {
         />
 
         {/* Список */}
-        {loading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="rounded-2xl border border-zinc-200 bg-white p-4 animate-pulse">
-                <div className="h-4 bg-zinc-200 rounded w-3/4 mb-2"></div>
-                <div className="h-3 bg-zinc-200 rounded w-1/2"></div>
-              </div>
-            ))}
-          </div>
-        ) : filtered.length === 0 ? (
+        {filtered.length === 0 ? (
           <div className="rounded-2xl border border-zinc-200 bg-white p-5 text-sm text-zinc-600">
             На выбранную дату слотов нет (или они отфильтрованы).
           </div>
@@ -545,14 +551,14 @@ export default function ShiftsClient() {
               <div key={slot.id} className="space-y-2">
                 <SlotCard slot={slot} onBook={openBooking} />
 
-                {/* ✅ КНОПКА "ПЕРЕЙТИ" */}
+                {/* ✅ КНОПКА "ПЕРЕЙТИ" (ничего не удаляем, добавляем рядом) */}
                 <div className="flex justify-end">
                   <Link
                     href={`/shifts/${slot.id}`}
                     className="
-                      inline-flex items-center gap-1 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm
-                      text-zinc-900 hover:bg-zinc-50 transition
-                    "
+                    inline-flex items-center gap-1 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm
+                    text-zinc-900 hover:bg-zinc-50 transition
+                  "
                     title="Перейти к смене"
                     aria-label="Перейти к смене"
                   >
@@ -582,35 +588,6 @@ export default function ShiftsClient() {
           value={filters}
           onChange={setFilters}
         />
-
-        {/* Плавающие кнопки */}
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2">
-          <button
-            onClick={() => setShowSearch(!showSearch)}
-            className="
-              tap flex items-center justify-center
-              h-12 w-12 rounded-xl bg-white border border-zinc-300
-              shadow-lg hover:shadow-xl active:scale-95
-              transition-all duration-200
-            "
-            aria-label="Поиск смен"
-          >
-            <Search size={20} className="text-zinc-700" />
-          </button>
-
-          <button
-            onClick={() => setFilterOpen(true)}
-            className="
-              tap flex items-center justify-center
-              h-12 w-12 rounded-xl bg-white border border-zinc-300
-              shadow-lg hover:shadow-xl active:scale-95
-              transition-all duration-200
-            "
-            aria-label="Фильтры и сортировка"
-          >
-            <SlidersHorizontal size={20} className="text-zinc-700" />
-          </button>
-        </div>
       </div>
     </PullToRefresh>
   );

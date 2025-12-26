@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState, TouchEvent, useCallback } from "react";
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import {
   ChevronRight,
   MapPin,
@@ -67,8 +67,7 @@ function TypeBadge({ type }: { type: string }) {
   else if (t.includes("сортиров")) Icon = Package;
   else if (t.includes("рц") || t.includes("распредел")) Icon = Truck;
   else if (t.includes("магаз")) Icon = Store;
-  else if (t.includes("фабрик") || t.includes("завод") || t.includes("производ"))
-    Icon = Factory;
+  else if (t.includes("фабрик") || t.includes("завод") || t.includes("производ")) Icon = Factory;
 
   return (
     <div className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500">
@@ -79,7 +78,7 @@ function TypeBadge({ type }: { type: string }) {
 }
 
 /* =======================
-   Карточка объекта
+   Карточка объекта (фикс свайпов)
 ======================= */
 
 function ObjectCard({ obj }: { obj: ApiObject }) {
@@ -87,11 +86,13 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
   const slidesCount = Math.max(1, photos.length);
 
   const [active, setActive] = useState(0);
-  const [isSwiping, setIsSwiping] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [currentX, setCurrentX] = useState(0);
+
   const ref = useRef<HTMLDivElement | null>(null);
   const rafRef = useRef<number | null>(null);
+
+  // ✅ чтобы после свайпа не происходил переход по Link
+  const downRef = useRef<{ x: number; y: number } | null>(null);
+  const draggedRef = useRef(false);
 
   const onScroll = () => {
     const el = ref.current;
@@ -105,49 +106,25 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
     });
   };
 
-  // Обработчик начала свайпа
-  const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
-    setIsSwiping(true);
-    setStartX(e.touches[0].clientX);
-    setCurrentX(e.touches[0].clientX);
+  const onPointerDownCapture = (e: React.PointerEvent) => {
+    if (e.pointerType === "mouse") return;
+    draggedRef.current = false;
+    downRef.current = { x: e.clientX, y: e.clientY };
   };
 
-  // Обработчик движения свайпа
-  const handleTouchMove = (e: TouchEvent<HTMLDivElement>) => {
-    if (!isSwiping) return;
-    setCurrentX(e.touches[0].clientX);
+  const onPointerMoveCapture = (e: React.PointerEvent) => {
+    if (!downRef.current) return;
+    const dx = e.clientX - downRef.current.x;
+    const dy = e.clientY - downRef.current.y;
+    if (Math.abs(dx) > 8 || Math.abs(dy) > 8) draggedRef.current = true;
   };
 
-  // Обработчик окончания свайпа
-  const handleTouchEnd = () => {
-    if (!isSwiping) return;
-    setIsSwiping(false);
-
-    const diff = startX - currentX;
-    const threshold = 50;
-
-    if (Math.abs(diff) > threshold) {
-      const direction = diff > 0 ? 1 : -1;
-      const newIndex = clamp(active + direction, 0, slidesCount - 1);
-      
-      if (newIndex !== active) {
-        setActive(newIndex);
-        const el = ref.current;
-        if (el) {
-          const w = el.clientWidth;
-          el.scrollTo({
-            left: newIndex * w,
-            behavior: 'smooth'
-          });
-        }
-      }
-    }
-
-    setStartX(0);
-    setCurrentX(0);
+  const onPointerUpCapture = () => {
+    downRef.current = null;
+    requestAnimationFrame(() => {
+      draggedRef.current = false;
+    });
   };
-
-  const swipeOffset = isSwiping ? startX - currentX : 0;
 
   useEffect(() => {
     return () => {
@@ -164,62 +141,45 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
         transition-[box-shadow,transform] duration-200 ease-out
         active:shadow-[0_12px_24px_rgba(0,0,0,0.12)]
       "
+      onClickCapture={(e) => {
+        if (draggedRef.current) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }}
     >
       <div
         className="relative h-40 bg-gray-100 overflow-hidden"
-        onClickCapture={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-        }}
-        onPointerDownCapture={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-        }}
+        data-ptr-skip
+        onPointerDownCapture={onPointerDownCapture}
+        onPointerMoveCapture={onPointerMoveCapture}
+        onPointerUpCapture={onPointerUpCapture}
+        onPointerCancelCapture={onPointerUpCapture}
       >
         <div
           ref={ref}
           onScroll={onScroll}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
           className="
             flex h-full w-full overflow-x-auto
             snap-x snap-mandatory
-            overscroll-x-contain touch-pan-x
+            overscroll-x-contain
             scroll-smooth
             select-none
           "
-          style={{ 
+          style={{
             WebkitOverflowScrolling: "touch",
-            cursor: isSwiping ? 'grabbing' : 'grab'
+            touchAction: "pan-y", // ✅ важно для совместимости с вертикальным скроллом
           }}
         >
           {photos.length ? (
             photos.map((src, i) => (
-              <div 
-                key={i} 
-                className="min-w-full h-full snap-start relative"
-                style={{
-                  transform: i === active ? `translateX(${swipeOffset}px)` : 'none',
-                  transition: isSwiping ? 'none' : 'transform 0.3s ease'
-                }}
-              >
-                <img 
-                  src={src} 
-                  alt={`Фото ${i + 1} объекта ${obj.name}`} 
-                  className="h-full w-full object-cover" 
+              <div key={i} className="min-w-full h-full snap-start relative">
+                <img
+                  src={src}
+                  alt={`Фото ${i + 1} объекта ${obj.name}`}
+                  className="h-full w-full object-cover"
                   draggable="false"
                 />
-                {isSwiping && i === active && (
-                  <div className={`
-                    absolute top-1/2 -translate-y-1/2
-                    ${swipeOffset > 0 ? 'left-2' : 'right-2'}
-                    bg-black/50 text-white text-xs px-2 py-1 rounded-full
-                    transition-opacity duration-200
-                  `}>
-                    {swipeOffset > 0 ? '←' : '→'}
-                  </div>
-                )}
               </div>
             ))
           ) : (
@@ -300,21 +260,20 @@ export default function ObjectsPage() {
       const data = await res.json().catch(() => null);
 
       if (Array.isArray(data) && data.length > 0) {
-        const objectsWithDefaults = data.map(obj => ({
+        const objectsWithDefaults = data.map((obj) => ({
           ...obj,
           hasBus: obj.hasBus ?? false,
           isPremium: obj.isPremium ?? false,
           hasFood: obj.hasFood ?? false,
           isFavorite: obj.isFavorite ?? false,
         }));
-        
+
         setItems(objectsWithDefaults);
         setFilteredItems(objectsWithDefaults);
-        
-        const types = [...new Set(data
-          .map(obj => obj.type)
-          .filter((type): type is string => !!type)
-        )];
+
+        const types = [
+          ...new Set(data.map((obj) => obj.type).filter((type): type is string => !!type)),
+        ];
         setAvailableTypes(types);
       } else {
         // Демо данные для теста
@@ -359,7 +318,7 @@ export default function ObjectsPage() {
             isFavorite: false,
           },
         ];
-        
+
         setItems(demoData);
         setFilteredItems(demoData);
         setAvailableTypes(["Склад", "Завод", "Распределительный центр", "Сортировочный центр"]);
@@ -388,32 +347,33 @@ export default function ObjectsPage() {
     // Поиск по тексту
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      result = result.filter(obj => 
-        obj.name.toLowerCase().includes(query) ||
-        obj.city.toLowerCase().includes(query) ||
-        (obj.address && obj.address.toLowerCase().includes(query)) ||
-        (obj.type && obj.type.toLowerCase().includes(query))
+      result = result.filter(
+        (obj) =>
+          obj.name.toLowerCase().includes(query) ||
+          obj.city.toLowerCase().includes(query) ||
+          (obj.address && obj.address.toLowerCase().includes(query)) ||
+          (obj.type && obj.type.toLowerCase().includes(query))
       );
     }
 
     // Фильтрация по типу объекта
     if (selectedType) {
-      result = result.filter(obj => obj.type === selectedType);
+      result = result.filter((obj) => obj.type === selectedType);
     }
 
     // Фильтрация по табам
     switch (activeTab) {
       case "bus":
-        result = result.filter(obj => obj.hasBus);
+        result = result.filter((obj) => obj.hasBus);
         break;
       case "premium":
-        result = result.filter(obj => obj.isPremium);
+        result = result.filter((obj) => obj.isPremium);
         break;
       case "food":
-        result = result.filter(obj => obj.hasFood);
+        result = result.filter((obj) => obj.hasFood);
         break;
       case "fav":
-        result = result.filter(obj => obj.isFavorite);
+        result = result.filter((obj) => obj.isFavorite);
         break;
       // "all" и "type" (уже обработан выше) не требуют дополнительной фильтрации
     }
@@ -445,8 +405,8 @@ export default function ObjectsPage() {
     <PullToRefresh onRefresh={handleRefresh}>
       <div className="pt-4 space-y-4 pb-24">
         {/* Рабочие табы фильтрации */}
-        <FilterTabs 
-          activeTab={activeTab} 
+        <FilterTabs
+          activeTab={activeTab}
           onTabChange={handleTabChange}
           availableTypes={availableTypes}
           selectedType={selectedType}
@@ -458,10 +418,7 @@ export default function ObjectsPage() {
             {loading ? (
               <div className="space-y-3">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="overflow-hidden rounded-2xl border border-gray-200 bg-white"
-                  >
+                  <div key={i} className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
                     <div className="h-40 bg-gray-100 animate-pulse" />
                     <div className="p-4 space-y-3">
                       <div className="flex items-start gap-3">
@@ -496,7 +453,7 @@ export default function ObjectsPage() {
                 <div className="text-sm text-gray-500 mb-2">
                   Найдено объектов: {filteredItems.length}
                 </div>
-                
+
                 {/* Список объектов */}
                 {filteredItems.map((o) => (
                   <ObjectCard key={o.id} obj={o} />
@@ -531,11 +488,14 @@ export default function ObjectsPage() {
             "
             aria-label="Карта объектов"
           >
-            <MapPinned size={20} className="text-gray-800 group-hover:scale-110 transition-transform" />
+            <MapPinned
+              size={20}
+              className="text-gray-800 group-hover:scale-110 transition-transform"
+            />
           </Link>
 
           <button
-            onClick={() => console.log('Открыть модалку сортировки')}
+            onClick={() => console.log("Открыть модалку сортировки")}
             className="
               tap flex items-center justify-center
               h-12 w-12 rounded-xl bg-white border border-gray-300
@@ -567,9 +527,9 @@ export default function ObjectsPage() {
                   autoFocus
                   onBlur={() => searchQuery === "" && setShowSearch(false)}
                 />
-                <Search 
-                  size={18} 
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" 
+                <Search
+                  size={18}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
                 />
                 {searchQuery && (
                   <button
