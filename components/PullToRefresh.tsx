@@ -7,7 +7,7 @@ type PullToRefreshProps = {
   onRefresh: () => Promise<void> | void;
   children: React.ReactNode;
 
-  /** Если скролл НЕ window/body, а внутренний контейнер: передай ref на него */
+  /** если скроллится не window, а контейнер overflow-auto — передай ref */
   scrollRef?: React.RefObject<HTMLElement | null>;
 
   maxPull?: number;
@@ -18,8 +18,15 @@ type PullToRefreshProps = {
   axisLockRatio?: number;
   respectSkipAttr?: boolean;
 
-  /** Допуск “мы вверху”: iOS иногда даёт 1-2px */
+  /** iOS иногда даёт 1–2px вместо 0 */
   topTolerance?: number;
+
+  /**
+   * Разрешать старт только если touch начался в верхней зоне экрана (px).
+   * Это убирает случайный PTR из “середины”, даже если scrollTop почти 0.
+   */
+  onlyFromTopZone?: boolean;
+  topZonePx?: number;
 };
 
 export default function PullToRefresh({
@@ -33,6 +40,8 @@ export default function PullToRefresh({
   axisLockRatio = 1.2,
   respectSkipAttr = true,
   topTolerance = 2,
+  onlyFromTopZone = true,
+  topZonePx = 120, // верхние 120px экрана
 }: PullToRefreshProps) {
   const [pullUI, setPullUI] = useState(0);
   const [refreshingUI, setRefreshingUI] = useState(false);
@@ -45,7 +54,7 @@ export default function PullToRefresh({
   const skipGestureRef = useRef(false);
   const rafRef = useRef<number | null>(null);
 
-  const baseElRef = useRef<HTMLElement | null>(null);
+  const listenerElRef = useRef<HTMLElement | null>(null);
 
   const commitPull = useCallback((v: number) => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -64,15 +73,14 @@ export default function PullToRefresh({
   const getScrollTop = useCallback(() => {
     if (typeof window === "undefined") return 0;
 
-    // ✅ ВАЖНО: если scrollRef задан — он источник истины
+    // ✅ если задан scrollRef — это истина (контейнерный скролл)
     const el = scrollRef?.current;
     if (el) return el.scrollTop;
 
-    // иначе — стандартный скролл документа
     return document.scrollingElement?.scrollTop ?? window.scrollY ?? 0;
   }, [scrollRef]);
 
-  const atTop = useCallback(() => {
+  const atTopStrict = useCallback(() => {
     if (typeof window === "undefined") return true;
     return getScrollTop() <= topTolerance;
   }, [getScrollTop, topTolerance]);
@@ -89,12 +97,21 @@ export default function PullToRefresh({
       if (refreshingRef.current) return;
       if (e.touches.length !== 1) return;
 
-      // ✅ Стартуем PTR ТОЛЬКО если реально наверху
-      if (!atTop()) {
+      // ✅ 1) строго только наверху
+      if (!atTopStrict()) {
         reset();
         return;
       }
 
+      const t = e.touches[0];
+
+      // ✅ 2) стартуем только из верхней зоны экрана
+      if (onlyFromTopZone && t.clientY > topZonePx) {
+        reset();
+        return;
+      }
+
+      // ✅ 3) skip-зоны (карусели/карточки и т.д.)
       if (respectSkipAttr) {
         const target = e.target as HTMLElement | null;
         if (target?.closest?.("[data-ptr-skip]")) {
@@ -103,14 +120,13 @@ export default function PullToRefresh({
         }
       }
 
-      const t = e.touches[0];
       startYRef.current = t.clientY;
       startXRef.current = t.clientX;
       pullingRef.current = false;
       pullRef.current = 0;
       commitPull(0);
     },
-    [atTop, commitPull, reset, respectSkipAttr]
+    [atTopStrict, commitPull, onlyFromTopZone, reset, respectSkipAttr, topZonePx]
   );
 
   const handleTouchMove = useCallback(
@@ -120,8 +136,8 @@ export default function PullToRefresh({
       if (e.touches.length !== 1) return;
       if (startYRef.current == null || startXRef.current == null) return;
 
-      // ✅ Если уже не наверху (пользователь прокрутил) — сброс
-      if (!atTop()) {
+      // ✅ если внезапно уже не наверху — сброс
+      if (!atTopStrict()) {
         reset();
         return;
       }
@@ -130,7 +146,7 @@ export default function PullToRefresh({
       const dy = t.clientY - startYRef.current;
       const dx = t.clientX - startXRef.current;
 
-      // ✅ Горизонтальный жест — не вмешиваемся
+      // горизонтальный жест — не вмешиваемся
       if (Math.abs(dx) > Math.abs(dy) * axisLockRatio) return;
 
       if (dy <= 0) {
@@ -147,7 +163,7 @@ export default function PullToRefresh({
       pullRef.current = eased;
       commitPull(eased);
     },
-    [atTop, axisLockRatio, commitPull, maxPull, reset, startThreshold]
+    [atTopStrict, axisLockRatio, commitPull, maxPull, reset, startThreshold]
   );
 
   const finishRefresh = useCallback(async () => {
@@ -170,7 +186,6 @@ export default function PullToRefresh({
       reset();
       return;
     }
-
     if (refreshingRef.current) {
       reset();
       return;
@@ -192,9 +207,9 @@ export default function PullToRefresh({
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // ✅ Слушатели вешаем на scroll-контейнер (если задан), иначе на documentElement
-    baseElRef.current = scrollRef?.current ?? document.documentElement;
-    const el = baseElRef.current;
+    // слушаем на контейнере, если он есть, иначе на documentElement
+    listenerElRef.current = scrollRef?.current ?? document.documentElement;
+    const el = listenerElRef.current;
     if (!el) return;
 
     el.addEventListener("touchstart", handleTouchStart, { passive: true });

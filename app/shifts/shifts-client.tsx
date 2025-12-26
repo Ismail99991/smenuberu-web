@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Search,
   SlidersHorizontal,
@@ -62,6 +63,8 @@ function pseudoNearScore(slot: Slot) {
 }
 
 export default function ShiftsClient() {
+  const router = useRouter();
+
   // поиск (сворачиваемый)
   const [showSearch, setShowSearch] = useState(false);
   const [q, setQ] = useState("");
@@ -142,7 +145,7 @@ export default function ShiftsClient() {
     };
   }, [today]);
 
-  // ✅ NEW: pull-to-refresh (обновление слотов вручную)
+  // ✅ pull-to-refresh (обновление слотов вручную)
   const refreshSlots = useCallback(async () => {
     try {
       const apiSlots = await getSlotsFromApi();
@@ -150,7 +153,7 @@ export default function ShiftsClient() {
         setSlots(apiSlots);
         return;
       }
-      // если API вернул пусто — не ломаем UX, оставим текущие данные
+      // если API вернул пусто — оставим текущие данные
     } catch {
       // мягкий фоллбек: перегенерим моки на текущее окно
       setSlots(getMockSlots(today, 14));
@@ -365,7 +368,10 @@ export default function ShiftsClient() {
         </div>
 
         {/* НОВЫЙ РАЗДЕЛ: АКЦИИ (карусель с свайпом) */}
-        <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-[0_10px_28px_rgba(0,0,0,0.06)]">
+        <div
+          className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-[0_10px_28px_rgba(0,0,0,0.06)]"
+          data-ptr-skip
+        >
           <div className="mb-4 flex items-center justify-between">
             <div className="text-sm font-semibold text-zinc-900">Акции</div>
             <div className="flex items-center gap-1.5">
@@ -397,10 +403,9 @@ export default function ShiftsClient() {
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
             >
-              {/* Баннер 1: Выполни 10 заданий */}
+              {/* Баннер 1 */}
               <div className="w-full flex-shrink-0">
                 <div className="relative h-full min-h-[156px] overflow-hidden rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 p-4">
-                  {/* Декоративные элементы */}
                   <div className="absolute -top-6 -right-6 h-32 w-32 rounded-full bg-gradient-to-br from-amber-200/40 to-orange-200/20"></div>
                   <Sparkles className="absolute top-3 right-3 h-5 w-5 text-amber-400/50" />
 
@@ -412,8 +417,7 @@ export default function ShiftsClient() {
                           <div className="text-xs font-semibold text-zinc-900">Спецзадание</div>
                         </div>
                         <div className="mt-1.5 text-sm font-semibold text-zinc-900">
-                          Выполни 10 заданий и получи{" "}
-                          <span className="text-green-600">10 000 ₽</span>
+                          Выполни 10 заданий и получи <span className="text-green-600">10 000 ₽</span>
                         </div>
                         <div className="mt-1 text-[11px] text-zinc-600">
                           До конца акции осталось: 7 дней
@@ -449,10 +453,9 @@ export default function ShiftsClient() {
                 </div>
               </div>
 
-              {/* Баннер 2: Реферальная программа */}
+              {/* Баннер 2 */}
               <div className="w-full flex-shrink-0">
                 <div className="relative h-full min-h-[156px] overflow-hidden rounded-xl bg-gradient-to-r from-sky-50 to-indigo-50 p-4">
-                  {/* Декоративные элементы */}
                   <div className="absolute -top-6 -right-6 h-32 w-32 rounded-full bg-gradient-to-br from-sky-200/40 to-indigo-200/20"></div>
 
                   <div className="relative z-10 flex h-full flex-col">
@@ -510,7 +513,7 @@ export default function ShiftsClient() {
             </div>
           </div>
 
-          {/* Точки навигации */}
+          {/* Точки */}
           <div className="mt-3 flex items-center justify-center gap-1.5">
             {[0, 1].map((index) => (
               <button
@@ -525,7 +528,7 @@ export default function ShiftsClient() {
           </div>
         </div>
 
-        {/* Табы + кнопка месяца (внутри DayTabs уже есть кнопка справа) */}
+        {/* Табы */}
         <DayTabs
           days={days}
           value={selectedDay}
@@ -534,38 +537,46 @@ export default function ShiftsClient() {
           premiumDays={premiumDays}
           calendarOpen={calendarOpen}
           onToggleCalendar={() => setCalendarOpen((v) => !v)}
-          month={month} // 👈 передаём месяц
+          month={month}
           availableDays={availableDays}
           onPrevMonth={handlePrevMonth}
           onNextMonth={handleNextMonth}
         />
 
-        {/* Список */}
+        {/* Список слотов */}
         {filtered.length === 0 ? (
           <div className="rounded-2xl border border-zinc-200 bg-white p-5 text-sm text-zinc-600">
             На выбранную дату слотов нет (или они отфильтрованы).
           </div>
         ) : (
-          <div className="space-y-3">
+          // ✅ ВАЖНО: PTR не стартует, если жест начался в списке слотов
+          <div className="space-y-3" data-ptr-skip>
             {filtered.map((slot) => (
-              <div key={slot.id} className="space-y-2">
+              <div
+                key={slot.id}
+                className="space-y-2"
+                role="link"
+                tabIndex={0}
+                onClick={(e) => {
+                  // не уходим со страницы, если кликнули по кнопке/ссылке внутри SlotCard
+                  const target = e.target as HTMLElement | null;
+                  if (
+                    target?.closest?.(
+                      'button, a, input, textarea, select, label, [role="button"], [data-no-card-nav]'
+                    )
+                  ) {
+                    return;
+                  }
+                  router.push(`/shifts/${slot.id}`);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    router.push(`/shifts/${slot.id}`);
+                  }
+                }}
+              >
                 <SlotCard slot={slot} onBook={openBooking} />
-
-                {/* ✅ КНОПКА "ПЕРЕЙТИ" (ничего не удаляем, добавляем рядом) */}
-                <div className="flex justify-end">
-                  <Link
-                    href={`/shifts/${slot.id}`}
-                    className="
-                    inline-flex items-center gap-1 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm
-                    text-zinc-900 hover:bg-zinc-50 transition
-                  "
-                    title="Перейти к смене"
-                    aria-label="Перейти к смене"
-                  >
-                    <span>Перейти</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </Link>
-                </div>
               </div>
             ))}
           </div>
