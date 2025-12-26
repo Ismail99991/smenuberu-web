@@ -161,7 +161,6 @@ export default function ObjectDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <TopBar title="Загрузка..." />
         
         <div className="h-64 bg-gray-200 animate-pulse" />
         
@@ -181,9 +180,8 @@ export default function ObjectDetailPage() {
   if (error || !object) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <TopBar title="Ошибка" />
         
-        <div className="p-8 text-center">
+        <div className="pt-16 p-8 text-center">
           <div className="text-gray-400 mb-4">
             <Building2 size={48} className="mx-auto" />
           </div>
@@ -210,8 +208,6 @@ export default function ObjectDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      {/* TopBar */}
-      <TopBar title={object.name} />
       
       {/* Галерея фотографий (как на главной) */}
       <div className="h-64 bg-gray-100">
