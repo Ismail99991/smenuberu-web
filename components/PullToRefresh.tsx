@@ -7,7 +7,7 @@ type PullToRefreshProps = {
   onRefresh: () => Promise<void> | void;
   children: React.ReactNode;
 
-  /** если скроллится не window, а контейнер overflow-auto — передай ref */
+  /** если скроллится контейнер overflow-auto — передай ref */
   scrollRef?: React.RefObject<HTMLElement | null>;
 
   maxPull?: number;
@@ -21,10 +21,7 @@ type PullToRefreshProps = {
   /** iOS иногда даёт 1–2px вместо 0 */
   topTolerance?: number;
 
-  /**
-   * Разрешать старт только если touch начался в верхней зоне экрана (px).
-   * Это убирает случайный PTR из “середины”, даже если scrollTop почти 0.
-   */
+  /** Если хочешь запуск только из верхней зоны — включи */
   onlyFromTopZone?: boolean;
   topZonePx?: number;
 };
@@ -40,8 +37,8 @@ export default function PullToRefresh({
   axisLockRatio = 1.2,
   respectSkipAttr = true,
   topTolerance = 2,
-  onlyFromTopZone = true,
-  topZonePx = 120, // верхние 120px экрана
+  onlyFromTopZone = false, // ✅ по умолчанию НЕ режем старт по Y (иначе легко “убить” PTR)
+  topZonePx = 180,
 }: PullToRefreshProps) {
   const [pullUI, setPullUI] = useState(0);
   const [refreshingUI, setRefreshingUI] = useState(false);
@@ -53,8 +50,6 @@ export default function PullToRefresh({
   const refreshingRef = useRef(false);
   const skipGestureRef = useRef(false);
   const rafRef = useRef<number | null>(null);
-
-  const listenerElRef = useRef<HTMLElement | null>(null);
 
   const commitPull = useCallback((v: number) => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -73,10 +68,11 @@ export default function PullToRefresh({
   const getScrollTop = useCallback(() => {
     if (typeof window === "undefined") return 0;
 
-    // ✅ если задан scrollRef — это истина (контейнерный скролл)
-    const el = scrollRef?.current;
-    if (el) return el.scrollTop;
+    // ✅ Если задан scrollRef — это истина
+    const container = scrollRef?.current;
+    if (container) return container.scrollTop;
 
+    // ✅ Иначе — стандартный скролл документа
     return document.scrollingElement?.scrollTop ?? window.scrollY ?? 0;
   }, [scrollRef]);
 
@@ -97,7 +93,7 @@ export default function PullToRefresh({
       if (refreshingRef.current) return;
       if (e.touches.length !== 1) return;
 
-      // ✅ 1) строго только наверху
+      // ✅ запуск строго только когда реально наверху
       if (!atTopStrict()) {
         reset();
         return;
@@ -105,13 +101,13 @@ export default function PullToRefresh({
 
       const t = e.touches[0];
 
-      // ✅ 2) стартуем только из верхней зоны экрана
+      // ✅ опционально: только из верхней зоны экрана
       if (onlyFromTopZone && t.clientY > topZonePx) {
         reset();
         return;
       }
 
-      // ✅ 3) skip-зоны (карусели/карточки и т.д.)
+      // ✅ skip-зоны (карусели/карточки)
       if (respectSkipAttr) {
         const target = e.target as HTMLElement | null;
         if (target?.closest?.("[data-ptr-skip]")) {
@@ -136,7 +132,7 @@ export default function PullToRefresh({
       if (e.touches.length !== 1) return;
       if (startYRef.current == null || startXRef.current == null) return;
 
-      // ✅ если внезапно уже не наверху — сброс
+      // ✅ если перестали быть наверху — сброс
       if (!atTopStrict()) {
         reset();
         return;
@@ -146,7 +142,7 @@ export default function PullToRefresh({
       const dy = t.clientY - startYRef.current;
       const dx = t.clientX - startXRef.current;
 
-      // горизонтальный жест — не вмешиваемся
+      // ✅ если жест горизонтальный — не вмешиваемся
       if (Math.abs(dx) > Math.abs(dy) * axisLockRatio) return;
 
       if (dy <= 0) {
@@ -207,24 +203,23 @@ export default function PullToRefresh({
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // слушаем на контейнере, если он есть, иначе на documentElement
-    listenerElRef.current = scrollRef?.current ?? document.documentElement;
-    const el = listenerElRef.current;
-    if (!el) return;
+    // ✅ ВАЖНО: вешаемся на document в capture,
+    // чтобы не “терять” touchstart/touchmove из-за вложенных элементов
+    const el = document;
 
-    el.addEventListener("touchstart", handleTouchStart, { passive: true });
-    el.addEventListener("touchmove", handleTouchMove, { passive: false });
-    el.addEventListener("touchend", handleTouchEnd, { passive: true });
-    el.addEventListener("touchcancel", handleTouchCancel, { passive: true });
+    el.addEventListener("touchstart", handleTouchStart, { passive: true, capture: true });
+    el.addEventListener("touchmove", handleTouchMove, { passive: false, capture: true });
+    el.addEventListener("touchend", handleTouchEnd, { passive: true, capture: true });
+    el.addEventListener("touchcancel", handleTouchCancel, { passive: true, capture: true });
 
     return () => {
-      el.removeEventListener("touchstart", handleTouchStart);
-      el.removeEventListener("touchmove", handleTouchMove);
-      el.removeEventListener("touchend", handleTouchEnd);
-      el.removeEventListener("touchcancel", handleTouchCancel);
+      el.removeEventListener("touchstart", handleTouchStart, { capture: true } as any);
+      el.removeEventListener("touchmove", handleTouchMove, { capture: true } as any);
+      el.removeEventListener("touchend", handleTouchEnd, { capture: true } as any);
+      el.removeEventListener("touchcancel", handleTouchCancel, { capture: true } as any);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [scrollRef, handleTouchStart, handleTouchMove, handleTouchEnd, handleTouchCancel]);
+  }, [handleTouchStart, handleTouchMove, handleTouchEnd, handleTouchCancel]);
 
   const progress = Math.min(pullUI / maxPull, 1);
   const translateY = Math.min(pullUI, maxPull) - maxPull;
