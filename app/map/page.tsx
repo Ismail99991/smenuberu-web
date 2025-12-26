@@ -132,7 +132,6 @@ export default function MapPage() {
       style: styleUrl,
       center: [37.6173, 55.7558], // Москва по умолчанию
       zoom: 10,
-      attributionControl: true,
     });
 
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "bottom-right");
