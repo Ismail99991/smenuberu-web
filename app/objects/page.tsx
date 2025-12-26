@@ -16,7 +16,8 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
-import FilterTabs, { FilterTabKey } from "@/components/FilterTabs";
+import FilterTabs from "@/components/FilterTabs";
+import type { FilterTabKey } from "@/components/FilterTabs";
 
 /* =======================
    Типы
