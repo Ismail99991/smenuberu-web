@@ -11,15 +11,12 @@ import {
   Store,
   Truck,
   Factory,
-  Star,
-  Bus,
-  Utensils,
-  BadgePercent,
   MapPinned,
   Search,
   SlidersHorizontal,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import FilterTabs, { FilterTabKey } from "@/components/FilterTabs"; // Импортируем компонент
 
 /* =======================
    Типы
@@ -88,18 +85,6 @@ function clamp(n: number, a: number, b: number) {
   return Math.max(a, Math.min(b, n));
 }
 
-/**
- * FullBleed: “вырваться” из max-w контейнера AppShell и занять 100vw.
- * Работает без правок AppShell, не трогает BottomNav.
- */
-function FullBleed({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen">
-      {children}
-    </div>
-  );
-}
-
 function TypeBadge({ type }: { type: string }) {
   const t = normalizeType(type);
   let Icon = Building2;
@@ -118,27 +103,6 @@ function TypeBadge({ type }: { type: string }) {
     </div>
   );
 }
-
-/* =======================
-   Tabs (UI-only)
-======================= */
-
-type TabIcon = React.ComponentType<{ size?: number; className?: string }>;
-
-type FilterTab = {
-  key: "all" | "type" | "bus" | "premium" | "food" | "fav";
-  label: string;
-  icon?: TabIcon;
-};
-
-const FILTER_TABS: readonly FilterTab[] = [
-  { key: "all", label: "Все" },
-  { key: "type", label: "Тип склада", icon: Warehouse },
-  { key: "bus", label: "Есть автобусы", icon: Bus },
-  { key: "premium", label: "Высокий тариф", icon: BadgePercent },
-  { key: "food", label: "Есть обеды", icon: Utensils },
-  { key: "fav", label: "Избранные", icon: Star },
-] as const;
 
 /* =======================
    Карточка объекта с улучшенным свайпом
@@ -186,10 +150,10 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
     setIsSwiping(false);
 
     const diff = startX - currentX;
-    const threshold = 50; // Минимальное расстояние для смены слайда
+    const threshold = 50;
 
     if (Math.abs(diff) > threshold) {
-      const direction = diff > 0 ? 1 : -1; // 1 = вправо, -1 = влево
+      const direction = diff > 0 ? 1 : -1;
       const newIndex = clamp(active + direction, 0, slidesCount - 1);
       
       if (newIndex !== active) {
@@ -209,7 +173,6 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
     setCurrentX(0);
   };
 
-  // Рассчитываем смещение для визуальной обратной связи при свайпе
   const swipeOffset = isSwiping ? startX - currentX : 0;
 
   useEffect(() => {
@@ -228,7 +191,6 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
         active:shadow-[0_12px_24px_rgba(0,0,0,0.12)]
       "
     >
-      {/* Фото с улучшенным свайпом */}
       <div
         className="relative h-40 bg-gray-100 overflow-hidden"
         onClickCapture={(e) => {
@@ -268,14 +230,12 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
                   transition: isSwiping ? 'none' : 'transform 0.3s ease'
                 }}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img 
                   src={src} 
                   alt={`Фото ${i + 1} объекта ${obj.name}`} 
                   className="h-full w-full object-cover" 
                   draggable="false"
                 />
-                {/* Индикатор свайпа */}
                 {isSwiping && i === active && (
                   <div className={`
                     absolute top-1/2 -translate-y-1/2
@@ -295,7 +255,6 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
           )}
         </div>
 
-        {/* Точки */}
         <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 rounded-full bg-black/40 px-2 py-1">
           {Array.from({ length: slidesCount }).map((_, i) => (
             <span
@@ -309,11 +268,9 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
         </div>
       </div>
 
-      {/* Контент */}
       <div className="p-4 space-y-2">
         <div className="flex items-start gap-3">
           {obj.logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={obj.logoUrl}
               alt={`Логотип ${obj.name}`}
@@ -352,7 +309,7 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
 export default function ObjectsPage() {
   const [items, setItems] = useState<ApiObject[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<FilterTab["key"]>("all");
+  const [activeTab, setActiveTab] = useState<FilterTabKey>("all");
   const [showSearch, setShowSearch] = useState(false);
 
   const url = useMemo(() => `${apiBase()}/objects`, []);
@@ -386,47 +343,15 @@ export default function ObjectsPage() {
     };
   }, [url]);
 
-  // пока UI-only: табы не фильтруют, только подсвечиваются
   const shown = items;
 
   return (
-    <div className="space-y-4 pb-24"> {/* Увеличил padding-bottom для трех кнопок */}
-      <div className="space-y-0.5">
-        <h1 className="text-xl font-semibold">Объекты</h1>
-        <div className="text-sm text-gray-500">Выберите место работы и условия</div>
-      </div>
-
-      {/* Tabs — full width */}
-      <FullBleed>
-        <div className="px-4">
-          <div className="flex gap-2 overflow-x-auto snap-x py-1">
-            {FILTER_TABS.map((t) => {
-              const active = activeTab === t.key;
-              const Icon = t.icon;
-
-              return (
-                <button
-                  key={t.key}
-                  onClick={() => setActiveTab(t.key)}
-                  className={[
-                    "snap-start shrink-0 flex items-center gap-2 rounded-full px-4 py-2 text-sm tap",
-                    "transition-[background-color,color,box-shadow,transform] duration-200 ease-out",
-                    active
-                      ? "bg-brand text-white shadow-[0_8px_18px_rgba(79,70,229,0.28)]"
-                      : "border border-gray-200 bg-white/80 text-gray-700 backdrop-blur",
-                  ].join(" ")}
-                >
-                  {Icon ? <Icon size={16} /> : null}
-                  {t.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </FullBleed>
+    <div className="pt-4 space-y-4 pb-24">
+      {/* Используем вынесенный компонент */}
+      <FilterTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
       {/* List — full width */}
-      <FullBleed>
+      <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen">
         <div className="px-4 space-y-3">
           {loading ? (
             <div className="space-y-3">
@@ -457,11 +382,10 @@ export default function ObjectsPage() {
             shown.map((o) => <ObjectCard key={o.id} obj={o} />)
           )}
         </div>
-      </FullBleed>
+      </div>
 
       {/* Плавающие кнопки над bottomnav */}
       <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2">
-        {/* Кнопка поиска (лупа) */}
         <button
           onClick={() => setShowSearch(!showSearch)}
           className="
@@ -482,7 +406,6 @@ export default function ObjectsPage() {
           <Search size={20} className="text-gray-700" />
         </button>
 
-        {/* Кнопка карты (по центру) */}
         <Link
           href="/map"
           className="
@@ -511,10 +434,8 @@ export default function ObjectsPage() {
           />
         </Link>
 
-        {/* Кнопка сортировки/фильтрации */}
         <button
           onClick={() => {
-            // TODO: открыть модалку сортировки/фильтрации
             console.log('Открыть модалку сортировки');
           }}
           className="
@@ -536,7 +457,7 @@ export default function ObjectsPage() {
         </button>
       </div>
 
-      {/* Поисковая строка (появляется при клике на лупу) */}
+      {/* Поисковая строка */}
       {showSearch && (
         <div className="fixed inset-x-0 bottom-32 z-50 px-4">
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-200">
