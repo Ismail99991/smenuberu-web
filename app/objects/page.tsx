@@ -16,6 +16,8 @@ import {
   Utensils,
   BadgePercent,
   MapPinned,
+  Search, // Добавил лупу
+  SlidersHorizontal, // Добавил иконку сортировки/фильтра
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
@@ -351,6 +353,7 @@ export default function ObjectsPage() {
   const [items, setItems] = useState<ApiObject[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<FilterTab["key"]>("all");
+  const [showSearch, setShowSearch] = useState(false); // Состояние для поиска
 
   const url = useMemo(() => `${apiBase()}/objects`, []);
 
@@ -387,11 +390,91 @@ export default function ObjectsPage() {
   const shown = items;
 
   return (
-    <div className="space-y-4 pb-20"> {/* Добавил padding-bottom для кнопки */}
-      <div className="space-y-0.5">
-        <h1 className="text-xl font-semibold">Объекты</h1>
-        <div className="text-sm text-gray-500">Выберите место работы и условия</div>
+    <div className="space-y-4 pb-20">
+      {/* Заголовок с кнопками поиска и фильтрации */}
+      <div className="flex items-center justify-between">
+        <div className="space-y-0.5 flex-1">
+          <h1 className="text-xl font-semibold">Объекты</h1>
+          <div className="text-sm text-gray-500">Выберите место работы и условия</div>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {/* Кнопка поиска (лупа) */}
+          <button
+            onClick={() => setShowSearch(!showSearch)}
+            className="
+              tap
+              flex items-center justify-center
+              h-10 w-10
+              rounded-xl
+              bg-white border border-gray-200
+              shadow-sm
+              hover:shadow-md
+              active:scale-95
+              transition-all duration-200
+            "
+            aria-label="Поиск объектов"
+            title="Поиск объектов"
+          >
+            <Search size={20} className="text-gray-700" />
+          </button>
+
+          {/* Кнопка сортировки/фильтрации */}
+          <button
+            onClick={() => {
+              // TODO: открыть модалку сортировки/фильтрации
+              console.log('Открыть модалку сортировки');
+            }}
+            className="
+              tap
+              flex items-center justify-center
+              h-10 w-10
+              rounded-xl
+              bg-white border border-gray-200
+              shadow-sm
+              hover:shadow-md
+              active:scale-95
+              transition-all duration-200
+            "
+            aria-label="Сортировка и фильтрация"
+            title="Сортировка и фильтрация"
+          >
+            <SlidersHorizontal size={20} className="text-gray-700" />
+          </button>
+        </div>
       </div>
+
+      {/* Поисковая строка (появляется при клике на лупу) */}
+      {showSearch && (
+        <div className="animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Поиск объектов по названию, городу, адресу..."
+              className="
+                w-full
+                rounded-xl
+                border border-gray-200
+                bg-white
+                px-4 py-3
+                text-sm
+                placeholder:text-gray-400
+                focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand
+                transition-all duration-200
+              "
+              autoFocus
+              onBlur={() => setShowSearch(false)}
+            />
+            <Search 
+              size={18} 
+              className="
+                absolute right-3 top-1/2 -translate-y-1/2
+                text-gray-400
+              " 
+            />
+          </div>
+        </div>
+      )}
 
       {/* Tabs — full width */}
       <FullBleed>
@@ -463,10 +546,10 @@ export default function ObjectsPage() {
           className="
             tap
             flex items-center justify-center
-            h-14 w-14
-            rounded-full
+            h-12 w-12
+            rounded-xl
             bg-white
-            border-2 border-gray-800
+            border border-gray-800
             shadow-lg
             hover:shadow-xl
             active:scale-95
@@ -477,7 +560,7 @@ export default function ObjectsPage() {
           title="Открыть карту объектов"
         >
           <MapPinned 
-            size={24} 
+            size={20} 
             className="
               text-gray-800 
               group-hover:scale-110 
@@ -485,18 +568,6 @@ export default function ObjectsPage() {
             " 
           />
         </Link>
-        
-        {/* Текст под кнопкой */}
-        <div className="
-          absolute -bottom-6 left-1/2 -translate-x-1/2
-          text-xs font-medium text-gray-700
-          whitespace-nowrap
-          opacity-0 group-hover:opacity-100
-          transition-opacity duration-200
-          pointer-events-none
-        ">
-          Карта объектов
-        </div>
       </div>
     </div>
   );
