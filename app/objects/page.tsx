@@ -15,6 +15,7 @@ import {
   Bus,
   Utensils,
   BadgePercent,
+  MapPinned, // Добавлена иконка карты
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
@@ -27,7 +28,6 @@ type ApiObject = {
   name: string;
   city: string;
   address?: string | null;
-
   type?: string | null;
   logoUrl?: string | null;
   photos?: string[] | null;
@@ -309,9 +309,32 @@ export default function ObjectsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="space-y-0.5">
-        <h1 className="text-xl font-semibold">Объекты</h1>
-        <div className="text-sm text-gray-500">Выберите место работы и условия</div>
+      {/* Заголовок с кнопкой карты */}
+      <div className="flex items-start justify-between">
+        <div className="space-y-0.5">
+          <h1 className="text-xl font-semibold">Объекты</h1>
+          <div className="text-sm text-gray-500">Выберите место работы и условия</div>
+        </div>
+        
+        {/* Кнопка перехода на карту */}
+        <Link
+          href="/map"
+          className="
+            tap
+            flex items-center justify-center
+            h-10 w-10
+            rounded-xl
+            bg-white border border-gray-200
+            shadow-sm
+            hover:shadow-md
+            active:scale-95
+            transition-all duration-200
+          "
+          aria-label="Открыть карту"
+          title="Открыть карту"
+        >
+          <MapPinned size={20} className="text-gray-700" />
+        </Link>
       </div>
 
       {/* Tabs — full width */}
