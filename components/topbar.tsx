@@ -1,20 +1,17 @@
-"use client";
+  "use client";
 
-import { Bell } from "lucide-react";
-import Link from "next/link";
+  import { Bell } from "lucide-react";
+  import Link from "next/link";
 
-export default function Topbar({ title }: { title: string }) {
+ export default function Topbar({ title }: { title: string }) {
   return (
     <header
       className="
-        sticky
-        top-0
-        z-10
-        border-b
-        border-zinc-200
-        bg-white/80
-        backdrop-blur
+        sticky top-0 z-10
+        border-b border-zinc-200
+        bg-white/80 backdrop-blur
         pt-[env(safe-area-inset-top)]
+        [--topbar-offset:calc(env(safe-area-inset-top)+64px)]
       "
     >
       <div className="mx-auto flex w-full max-w-xl items-center justify-between px-4 py-3">

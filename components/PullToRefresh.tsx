@@ -7,6 +7,7 @@ type PullToRefreshProps = {
   onRefresh: () => Promise<void> | void;
   children: React.ReactNode;
 
+  /** если scroll не window, можно передать ref */
   scrollRef?: React.RefObject<HTMLElement | null>;
 
   maxPull?: number;
@@ -14,8 +15,11 @@ type PullToRefreshProps = {
   startThreshold?: number;
   settleMs?: number;
 
-  axisLockRatio?: number;     // защита от горизонтальных свайпов
-  respectSkipAttr?: boolean;  // игнорировать зоны с data-ptr-skip
+  /** защита от горизонтальных свайпов */
+  axisLockRatio?: number;
+
+  /** игнорировать жесты внутри data-ptr-skip */
+  respectSkipAttr?: boolean;
 };
 
 export default function PullToRefresh({
@@ -37,14 +41,16 @@ export default function PullToRefresh({
   const pullRef = useRef(0);
   const pullingRef = useRef(false);
   const refreshingRef = useRef(false);
-  const rafRef = useRef<number | null>(null);
   const skipGestureRef = useRef(false);
+  const rafRef = useRef<number | null>(null);
 
   const baseElRef = useRef<HTMLElement | null>(null);
 
-  const commitPull = useCallback((val: number) => {
+  /* ================= helpers ================= */
+
+  const commitPull = useCallback((v: number) => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    rafRef.current = requestAnimationFrame(() => setPullUI(val));
+    rafRef.current = requestAnimationFrame(() => setPullUI(v));
   }, []);
 
   const reset = useCallback(() => {
@@ -70,13 +76,15 @@ export default function PullToRefresh({
     return getScrollTop() <= 0;
   }, [getScrollTop]);
 
-  // “резинка”: чем дальше тянешь — тем тяжелее
+  /** резиновое сопротивление */
   const rubber = (d: number) => {
     const dist = Math.max(0, d);
     const k = 0.55;
     const r = maxPull * (1 - Math.exp((-k * dist) / maxPull));
     return Math.min(maxPull, r);
   };
+
+  /* ================= touch handlers ================= */
 
   const handleTouchStart = useCallback(
     (e: TouchEvent) => {
@@ -114,7 +122,7 @@ export default function PullToRefresh({
       const dy = t.clientY - startYRef.current;
       const dx = t.clientX - startXRef.current;
 
-      // ✅ если жест явно горизонтальный — не вмешиваемся
+      // 👉 горизонтальный жест — не вмешиваемся
       if (Math.abs(dx) > Math.abs(dy) * axisLockRatio) return;
 
       if (dy <= 0) {
@@ -154,6 +162,7 @@ export default function PullToRefresh({
       reset();
       return;
     }
+
     if (refreshingRef.current) {
       reset();
       return;
@@ -172,8 +181,9 @@ export default function PullToRefresh({
     if (!refreshingRef.current) reset();
   }, [reset]);
 
+  /* ================= lifecycle ================= */
+
   useEffect(() => {
-    // ✅ ВАЖНО: document используем только здесь
     if (typeof window === "undefined") return;
 
     baseElRef.current = scrollRef?.current ?? document.documentElement;
@@ -194,17 +204,20 @@ export default function PullToRefresh({
     };
   }, [scrollRef, handleTouchStart, handleTouchMove, handleTouchEnd, handleTouchCancel]);
 
+  /* ================= UI ================= */
+
   const progress = Math.min(pullUI / maxPull, 1);
   const translateY = Math.min(pullUI, maxPull) - maxPull;
   const visible = pullUI > 4 || refreshingUI;
-
   const rotateDeg = refreshingUI ? 0 : progress * 360 * 1.2;
 
   return (
     <>
+      {/* индикатор */}
       <div
-        className="fixed left-0 right-0 top-0 z-50 flex items-center justify-center pointer-events-none"
+        className="fixed left-0 right-0 z-50 flex items-center justify-center pointer-events-none"
         style={{
+          top: "var(--topbar-offset, env(safe-area-inset-top))",
           transform: `translateY(${translateY}px)`,
           opacity: visible ? 1 : 0,
           transition: "opacity 160ms ease",
@@ -224,7 +237,11 @@ export default function PullToRefresh({
 
           <div className="flex flex-col leading-tight">
             <div className="text-sm font-medium text-black/80">
-              {refreshingUI ? "Обновляю…" : progress >= 1 ? "Отпусти, чтобы обновить" : "Потяни вниз"}
+              {refreshingUI
+                ? "Обновляю…"
+                : progress >= 1
+                ? "Отпусти, чтобы обновить"
+                : "Потяни вниз"}
             </div>
             <div className="text-xs text-black/45">
               {refreshingUI ? "Секунду" : `${Math.round(progress * 100)}%`}
@@ -233,7 +250,10 @@ export default function PullToRefresh({
         </div>
       </div>
 
-      <div className={refreshingUI ? "opacity-60 pointer-events-none" : ""}>{children}</div>
+      {/* контент */}
+      <div className={refreshingUI ? "opacity-60 pointer-events-none" : ""}>
+        {children}
+      </div>
     </>
   );
 }
