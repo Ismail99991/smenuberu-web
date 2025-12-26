@@ -1,0 +1,26 @@
+{
+  "name": "SMenuBeRu Dev",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:18",
+  
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  
+  "forwardPorts": [3000, 5555],
+  
+  "postCreateCommand": "npm install",
+  
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "prisma.prisma",
+        "bradlc.vscode-tailwindcss",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-typescript-next",
+        "github.copilot"
+      ]
+    }
+  }
+}
