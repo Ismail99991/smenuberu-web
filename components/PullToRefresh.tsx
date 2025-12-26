@@ -7,7 +7,7 @@ type PullToRefreshProps = {
   onRefresh: () => Promise<void> | void;
   children: React.ReactNode;
 
-  /** если scroll не window, можно передать ref */
+  /** Если скролл НЕ window/body, а внутренний контейнер: передай ref на него */
   scrollRef?: React.RefObject<HTMLElement | null>;
 
   maxPull?: number;
@@ -15,11 +15,11 @@ type PullToRefreshProps = {
   startThreshold?: number;
   settleMs?: number;
 
-  /** защита от горизонтальных свайпов */
   axisLockRatio?: number;
-
-  /** игнорировать жесты внутри data-ptr-skip */
   respectSkipAttr?: boolean;
+
+  /** Допуск “мы вверху”: iOS иногда даёт 1-2px */
+  topTolerance?: number;
 };
 
 export default function PullToRefresh({
@@ -32,6 +32,7 @@ export default function PullToRefresh({
   settleMs = 250,
   axisLockRatio = 1.2,
   respectSkipAttr = true,
+  topTolerance = 2,
 }: PullToRefreshProps) {
   const [pullUI, setPullUI] = useState(0);
   const [refreshingUI, setRefreshingUI] = useState(false);
@@ -63,16 +64,18 @@ export default function PullToRefresh({
   const getScrollTop = useCallback(() => {
     if (typeof window === "undefined") return 0;
 
-    const el = scrollRef?.current ?? baseElRef.current;
-    if (el && el !== document.documentElement) return el.scrollTop;
+    // ✅ ВАЖНО: если scrollRef задан — он источник истины
+    const el = scrollRef?.current;
+    if (el) return el.scrollTop;
 
+    // иначе — стандартный скролл документа
     return document.scrollingElement?.scrollTop ?? window.scrollY ?? 0;
   }, [scrollRef]);
 
   const atTop = useCallback(() => {
     if (typeof window === "undefined") return true;
-    return getScrollTop() <= 0;
-  }, [getScrollTop]);
+    return getScrollTop() <= topTolerance;
+  }, [getScrollTop, topTolerance]);
 
   const rubber = (d: number) => {
     const dist = Math.max(0, d);
@@ -84,8 +87,13 @@ export default function PullToRefresh({
   const handleTouchStart = useCallback(
     (e: TouchEvent) => {
       if (refreshingRef.current) return;
-      if (!atTop()) return;
       if (e.touches.length !== 1) return;
+
+      // ✅ Стартуем PTR ТОЛЬКО если реально наверху
+      if (!atTop()) {
+        reset();
+        return;
+      }
 
       if (respectSkipAttr) {
         const target = e.target as HTMLElement | null;
@@ -102,22 +110,27 @@ export default function PullToRefresh({
       pullRef.current = 0;
       commitPull(0);
     },
-    [atTop, commitPull, respectSkipAttr]
+    [atTop, commitPull, reset, respectSkipAttr]
   );
 
   const handleTouchMove = useCallback(
     (e: TouchEvent) => {
       if (refreshingRef.current) return;
       if (skipGestureRef.current) return;
-      if (!atTop()) return;
       if (e.touches.length !== 1) return;
       if (startYRef.current == null || startXRef.current == null) return;
+
+      // ✅ Если уже не наверху (пользователь прокрутил) — сброс
+      if (!atTop()) {
+        reset();
+        return;
+      }
 
       const t = e.touches[0];
       const dy = t.clientY - startYRef.current;
       const dx = t.clientX - startXRef.current;
 
-      // горизонтальный жест — не вмешиваемся
+      // ✅ Горизонтальный жест — не вмешиваемся
       if (Math.abs(dx) > Math.abs(dy) * axisLockRatio) return;
 
       if (dy <= 0) {
@@ -179,6 +192,7 @@ export default function PullToRefresh({
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    // ✅ Слушатели вешаем на scroll-контейнер (если задан), иначе на documentElement
     baseElRef.current = scrollRef?.current ?? document.documentElement;
     const el = baseElRef.current;
     if (!el) return;
@@ -207,7 +221,6 @@ export default function PullToRefresh({
       <div
         className="fixed left-0 right-0 z-50 flex items-center justify-center pointer-events-none"
         style={{
-          // ✅ ниже топбара. Если переменной нет — fallback на safe-area.
           top: "var(--topbar-offset, env(safe-area-inset-top))",
           transform: `translateY(${translateY}px)`,
           opacity: visible ? 1 : 0,
