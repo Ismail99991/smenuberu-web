@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import FilterTabs from "@/components/FilterTabs";
+import PullToRefresh from "@/components/PullToRefresh";
 import type { FilterTabKey } from "@/components/FilterTabs";
 
 /* =======================
@@ -31,10 +32,10 @@ type ApiObject = {
   type?: string | null;
   logoUrl?: string | null;
   photos?: string[] | null;
-  hasBus?: boolean;
-  isPremium?: boolean;
-  hasFood?: boolean;
-  isFavorite?: boolean;
+  hasBus: boolean;
+  isPremium: boolean;
+  hasFood: boolean;
+  isFavorite: boolean;
 };
 
 /* =======================
@@ -291,88 +292,94 @@ export default function ObjectsPage() {
 
   const url = useMemo(() => `${apiBase()}/objects`, []);
 
-  // Загрузка данных
-  useEffect(() => {
-    let cancelled = false;
+  // Функция загрузки данных
+  const fetchObjects = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(url, { credentials: "include", cache: "no-store" });
+      const data = await res.json().catch(() => null);
 
-    async function run() {
-      setLoading(true);
-      try {
-        const res = await fetch(url, { credentials: "include", cache: "no-store" });
-        const data = await res.json().catch(() => null);
-
-        if (cancelled) return;
-
-        if (Array.isArray(data) && data.length > 0) {
-          setItems(data);
-          setFilteredItems(data);
-          
-          // Извлекаем уникальные типы объектов
-          const types = [...new Set(data
-            .map(obj => obj.type)
-            .filter((type): type is string => !!type)
-          )];
-          setAvailableTypes(types);
-        } else {
-          // Демо данные для теста
-          const demoData: ApiObject[] = [
-            {
-              id: "1",
-              name: "Склад Амазон",
-              type: "Склад",
-              city: "Москва",
-              address: "ЮВАО",
-              logoUrl: "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg",
-              photos: ["https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d"],
-              hasBus: true,
-              isPremium: false,
-              hasFood: true,
-              isFavorite: false,
-            },
-            {
-              id: "2",
-              name: "Завод Adidas",
-              type: "Завод",
-              city: "Подольск",
-              address: "Промзона",
-              logoUrl: "https://upload.wikimedia.org/wikipedia/commons/2/20/Adidas_Logo.svg",
-              photos: ["https://images.unsplash.com/photo-1590490360182-c33d57733427"],
-              hasBus: false,
-              isPremium: true,
-              hasFood: false,
-              isFavorite: true,
-            },
-            {
-              id: "3",
-              name: "Распределительный центр OZON",
-              type: "Распределительный центр",
-              city: "Москва",
-              address: "СВАО",
-              logoUrl: "https://upload.wikimedia.org/wikipedia/commons/d/d1/Ozon_logo.png",
-              photos: ["https://images.unsplash.com/photo-1605902711622-cfb43c4437d1"],
-              hasBus: true,
-              isPremium: true,
-              hasFood: true,
-              isFavorite: false,
-            },
-          ];
-          
-          setItems(demoData);
-          setFilteredItems(demoData);
-          setAvailableTypes(["Склад", "Завод", "Распределительный центр", "Сортировочный центр"]);
-        }
-      } catch (error) {
-        console.error("Ошибка загрузки объектов:", error);
-      } finally {
-        if (!cancelled) setLoading(false);
+      if (Array.isArray(data) && data.length > 0) {
+        const objectsWithDefaults = data.map(obj => ({
+          ...obj,
+          hasBus: obj.hasBus ?? false,
+          isPremium: obj.isPremium ?? false,
+          hasFood: obj.hasFood ?? false,
+          isFavorite: obj.isFavorite ?? false,
+        }));
+        
+        setItems(objectsWithDefaults);
+        setFilteredItems(objectsWithDefaults);
+        
+        const types = [...new Set(data
+          .map(obj => obj.type)
+          .filter((type): type is string => !!type)
+        )];
+        setAvailableTypes(types);
+      } else {
+        // Демо данные для теста
+        const demoData: ApiObject[] = [
+          {
+            id: "1",
+            name: "Склад Амазон",
+            type: "Склад",
+            city: "Москва",
+            address: "ЮВАО",
+            logoUrl: "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg",
+            photos: ["https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d"],
+            hasBus: true,
+            isPremium: false,
+            hasFood: true,
+            isFavorite: false,
+          },
+          {
+            id: "2",
+            name: "Завод Adidas",
+            type: "Завод",
+            city: "Подольск",
+            address: "Промзона",
+            logoUrl: "https://upload.wikimedia.org/wikipedia/commons/2/20/Adidas_Logo.svg",
+            photos: ["https://images.unsplash.com/photo-1590490360182-c33d57733427"],
+            hasBus: false,
+            isPremium: true,
+            hasFood: false,
+            isFavorite: true,
+          },
+          {
+            id: "3",
+            name: "Распределительный центр OZON",
+            type: "Распределительный центр",
+            city: "Москва",
+            address: "СВАО",
+            logoUrl: "https://upload.wikimedia.org/wikipedia/commons/d/d1/Ozon_logo.png",
+            photos: ["https://images.unsplash.com/photo-1605902711622-cfb43c4437d1"],
+            hasBus: true,
+            isPremium: true,
+            hasFood: true,
+            isFavorite: false,
+          },
+        ];
+        
+        setItems(demoData);
+        setFilteredItems(demoData);
+        setAvailableTypes(["Склад", "Завод", "Распределительный центр", "Сортировочный центр"]);
       }
+    } catch (error) {
+      console.error("Ошибка загрузки объектов:", error);
+    } finally {
+      setLoading(false);
     }
-
-    run();
-    return () => {
-      cancelled = true;
-    };
   }, [url]);
+
+  // Загрузка данных при монтировании
+  useEffect(() => {
+    fetchObjects();
+  }, [fetchObjects]);
+
+  // Функция обновления для PullToRefresh
+  const handleRefresh = useCallback(async () => {
+    await fetchObjects();
+  }, [fetchObjects]);
 
   // Функция фильтрации
   const applyFilters = useCallback(() => {
@@ -435,146 +442,148 @@ export default function ObjectsPage() {
   };
 
   return (
-    <div className="pt-4 space-y-4 pb-24">
-      {/* Рабочие табы фильтрации */}
-      <FilterTabs 
-        activeTab={activeTab} 
-        onTabChange={handleTabChange}
-        availableTypes={availableTypes}
-        selectedType={selectedType}
-      />
+    <PullToRefresh onRefresh={handleRefresh}>
+      <div className="pt-4 space-y-4 pb-24">
+        {/* Рабочие табы фильтрации */}
+        <FilterTabs 
+          activeTab={activeTab} 
+          onTabChange={handleTabChange}
+          availableTypes={availableTypes}
+          selectedType={selectedType}
+        />
 
-      {/* Список объектов */}
-      <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen">
-        <div className="px-4 space-y-3">
-          {loading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="overflow-hidden rounded-2xl border border-gray-200 bg-white"
-                >
-                  <div className="h-40 bg-gray-100 animate-pulse" />
-                  <div className="p-4 space-y-3">
-                    <div className="flex items-start gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-gray-100 animate-pulse" />
-                      <div className="flex-1 space-y-2">
-                        <div className="h-3 w-24 rounded bg-gray-100 animate-pulse" />
-                        <div className="h-4 w-40 rounded bg-gray-100 animate-pulse" />
-                        <div className="h-3 w-56 rounded bg-gray-100 animate-pulse" />
+        {/* Список объектов */}
+        <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen">
+          <div className="px-4 space-y-3">
+            {loading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="overflow-hidden rounded-2xl border border-gray-200 bg-white"
+                  >
+                    <div className="h-40 bg-gray-100 animate-pulse" />
+                    <div className="p-4 space-y-3">
+                      <div className="flex items-start gap-3">
+                        <div className="h-10 w-10 rounded-xl bg-gray-100 animate-pulse" />
+                        <div className="flex-1 space-y-2">
+                          <div className="h-3 w-24 rounded bg-gray-100 animate-pulse" />
+                          <div className="h-4 w-40 rounded bg-gray-100 animate-pulse" />
+                          <div className="h-3 w-56 rounded bg-gray-100 animate-pulse" />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : filteredItems.length === 0 ? (
-            <div className="rounded-2xl border border-gray-200 bg-white p-6 text-center">
-              <div className="text-gray-500 mb-2">Объекты не найдены</div>
-              <button
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedType("");
-                  setActiveTab("all");
-                }}
-                className="text-sm text-brand hover:underline"
-              >
-                Сбросить фильтры
-              </button>
-            </div>
-          ) : (
-            <>
-              {/* Счетчик найденных объектов */}
-              <div className="text-sm text-gray-500 mb-2">
-                Найдено объектов: {filteredItems.length}
+                ))}
               </div>
-              
-              {/* Список объектов */}
-              {filteredItems.map((o) => (
-                <ObjectCard key={o.id} obj={o} />
-              ))}
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Плавающие кнопки */}
-      <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2">
-        <button
-          onClick={() => setShowSearch(!showSearch)}
-          className="
-            tap flex items-center justify-center
-            h-12 w-12 rounded-xl bg-white border border-gray-300
-            shadow-lg hover:shadow-xl active:scale-95
-            transition-all duration-200
-          "
-          aria-label="Поиск объектов"
-        >
-          <Search size={20} className="text-gray-700" />
-        </button>
-
-        <Link
-          href="/map"
-          className="
-            tap flex items-center justify-center
-            h-12 w-12 rounded-xl bg-white border border-gray-800
-            shadow-lg hover:shadow-xl active:scale-95
-            transition-all duration-200 group
-          "
-          aria-label="Карта объектов"
-        >
-          <MapPinned size={20} className="text-gray-800 group-hover:scale-110 transition-transform" />
-        </Link>
-
-        <button
-          onClick={() => console.log('Открыть модалку сортировки')}
-          className="
-            tap flex items-center justify-center
-            h-12 w-12 rounded-xl bg-white border border-gray-300
-            shadow-lg hover:shadow-xl active:scale-95
-            transition-all duration-200
-          "
-          aria-label="Сортировка"
-        >
-          <SlidersHorizontal size={20} className="text-gray-700" />
-        </button>
-      </div>
-
-      {/* Поисковая строка */}
-      {showSearch && (
-        <div className="fixed inset-x-0 bottom-32 z-50 px-4">
-          <div className="animate-in fade-in slide-in-from-bottom-2 duration-200">
-            <div className="relative">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={handleSearch}
-                placeholder="Поиск по названию, городу, адресу..."
-                className="
-                  w-full rounded-xl border border-gray-200 bg-white
-                  px-4 py-3 text-sm placeholder:text-gray-400
-                  focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand
-                  shadow-lg transition-all duration-200
-                "
-                autoFocus
-                onBlur={() => searchQuery === "" && setShowSearch(false)}
-              />
-              <Search 
-                size={18} 
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" 
-              />
-              {searchQuery && (
+            ) : filteredItems.length === 0 ? (
+              <div className="rounded-2xl border border-gray-200 bg-white p-6 text-center">
+                <div className="text-gray-500 mb-2">Объекты не найдены</div>
                 <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-10 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSelectedType("");
+                    setActiveTab("all");
+                  }}
+                  className="text-sm text-brand hover:underline"
                 >
-                  ✕
+                  Сбросить фильтры
                 </button>
-              )}
-            </div>
+              </div>
+            ) : (
+              <>
+                {/* Счетчик найденных объектов */}
+                <div className="text-sm text-gray-500 mb-2">
+                  Найдено объектов: {filteredItems.length}
+                </div>
+                
+                {/* Список объектов */}
+                {filteredItems.map((o) => (
+                  <ObjectCard key={o.id} obj={o} />
+                ))}
+              </>
+            )}
           </div>
         </div>
-      )}
-    </div>
+
+        {/* Плавающие кнопки */}
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2">
+          <button
+            onClick={() => setShowSearch(!showSearch)}
+            className="
+              tap flex items-center justify-center
+              h-12 w-12 rounded-xl bg-white border border-gray-300
+              shadow-lg hover:shadow-xl active:scale-95
+              transition-all duration-200
+            "
+            aria-label="Поиск объектов"
+          >
+            <Search size={20} className="text-gray-700" />
+          </button>
+
+          <Link
+            href="/map"
+            className="
+              tap flex items-center justify-center
+              h-12 w-12 rounded-xl bg-white border border-gray-800
+              shadow-lg hover:shadow-xl active:scale-95
+              transition-all duration-200 group
+            "
+            aria-label="Карта объектов"
+          >
+            <MapPinned size={20} className="text-gray-800 group-hover:scale-110 transition-transform" />
+          </Link>
+
+          <button
+            onClick={() => console.log('Открыть модалку сортировки')}
+            className="
+              tap flex items-center justify-center
+              h-12 w-12 rounded-xl bg-white border border-gray-300
+              shadow-lg hover:shadow-xl active:scale-95
+              transition-all duration-200
+            "
+            aria-label="Сортировка"
+          >
+            <SlidersHorizontal size={20} className="text-gray-700" />
+          </button>
+        </div>
+
+        {/* Поисковая строка */}
+        {showSearch && (
+          <div className="fixed inset-x-0 bottom-32 z-50 px-4">
+            <div className="animate-in fade-in slide-in-from-bottom-2 duration-200">
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={handleSearch}
+                  placeholder="Поиск по названию, городу, адресу..."
+                  className="
+                    w-full rounded-xl border border-gray-200 bg-white
+                    px-4 py-3 text-sm placeholder:text-gray-400
+                    focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand
+                    shadow-lg transition-all duration-200
+                  "
+                  autoFocus
+                  onBlur={() => searchQuery === "" && setShowSearch(false)}
+                />
+                <Search 
+                  size={18} 
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" 
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-10 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </PullToRefresh>
   );
 }
