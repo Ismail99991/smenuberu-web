@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, TouchEvent } from "react";
 import {
   ChevronRight,
   MapPin,
@@ -15,7 +15,7 @@ import {
   Bus,
   Utensils,
   BadgePercent,
-  MapPinned, // Добавлена иконка карты
+  MapPinned,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
@@ -139,7 +139,7 @@ const FILTER_TABS: readonly FilterTab[] = [
 ] as const;
 
 /* =======================
-   Карточка объекта
+   Карточка объекта с улучшенным свайпом
 ======================= */
 
 function ObjectCard({ obj }: { obj: ApiObject }) {
@@ -147,6 +147,9 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
   const slidesCount = Math.max(1, photos.length);
 
   const [active, setActive] = useState(0);
+  const [isSwiping, setIsSwiping] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [currentX, setCurrentX] = useState(0);
   const ref = useRef<HTMLDivElement | null>(null);
   const rafRef = useRef<number | null>(null);
 
@@ -161,6 +164,51 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
       setActive(clamp(idx, 0, slidesCount - 1));
     });
   };
+
+  // Обработчик начала свайпа
+  const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
+    setIsSwiping(true);
+    setStartX(e.touches[0].clientX);
+    setCurrentX(e.touches[0].clientX);
+  };
+
+  // Обработчик движения свайпа
+  const handleTouchMove = (e: TouchEvent<HTMLDivElement>) => {
+    if (!isSwiping) return;
+    setCurrentX(e.touches[0].clientX);
+  };
+
+  // Обработчик окончания свайпа
+  const handleTouchEnd = () => {
+    if (!isSwiping) return;
+    setIsSwiping(false);
+
+    const diff = startX - currentX;
+    const threshold = 50; // Минимальное расстояние для смены слайда
+
+    if (Math.abs(diff) > threshold) {
+      const direction = diff > 0 ? 1 : -1; // 1 = вправо, -1 = влево
+      const newIndex = clamp(active + direction, 0, slidesCount - 1);
+      
+      if (newIndex !== active) {
+        setActive(newIndex);
+        const el = ref.current;
+        if (el) {
+          const w = el.clientWidth;
+          el.scrollTo({
+            left: newIndex * w,
+            behavior: 'smooth'
+          });
+        }
+      }
+    }
+
+    setStartX(0);
+    setCurrentX(0);
+  };
+
+  // Рассчитываем смещение для визуальной обратной связи при свайпе
+  const swipeOffset = isSwiping ? startX - currentX : 0;
 
   useEffect(() => {
     return () => {
@@ -178,9 +226,9 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
         active:shadow-[0_12px_24px_rgba(0,0,0,0.12)]
       "
     >
-      {/* Фото */}
+      {/* Фото с улучшенным свайпом */}
       <div
-        className="relative h-40 bg-gray-100"
+        className="relative h-40 bg-gray-100 overflow-hidden"
         onClickCapture={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -193,19 +241,49 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
         <div
           ref={ref}
           onScroll={onScroll}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
           className="
             flex h-full w-full overflow-x-auto
             snap-x snap-mandatory
             overscroll-x-contain touch-pan-x
             scroll-smooth
+            select-none
           "
-          style={{ WebkitOverflowScrolling: "touch" }}
+          style={{ 
+            WebkitOverflowScrolling: "touch",
+            cursor: isSwiping ? 'grabbing' : 'grab'
+          }}
         >
           {photos.length ? (
             photos.map((src, i) => (
-              <div key={i} className="min-w-full h-full snap-start">
+              <div 
+                key={i} 
+                className="min-w-full h-full snap-start relative"
+                style={{
+                  transform: i === active ? `translateX(${swipeOffset}px)` : 'none',
+                  transition: isSwiping ? 'none' : 'transform 0.3s ease'
+                }}
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={src} alt="" className="h-full w-full object-cover" />
+                <img 
+                  src={src} 
+                  alt={`Фото ${i + 1} объекта ${obj.name}`} 
+                  className="h-full w-full object-cover" 
+                  draggable="false"
+                />
+                {/* Индикатор свайпа */}
+                {isSwiping && i === active && (
+                  <div className={`
+                    absolute top-1/2 -translate-y-1/2
+                    ${swipeOffset > 0 ? 'left-2' : 'right-2'}
+                    bg-black/50 text-white text-xs px-2 py-1 rounded-full
+                    transition-opacity duration-200
+                  `}>
+                    {swipeOffset > 0 ? '←' : '→'}
+                  </div>
+                )}
               </div>
             ))
           ) : (
@@ -236,8 +314,9 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={obj.logoUrl}
-              alt=""
+              alt={`Логотип ${obj.name}`}
               className="h-10 w-10 rounded-xl bg-gray-50 p-1 object-contain"
+              draggable="false"
             />
           ) : (
             <div className="h-10 w-10 rounded-xl bg-gray-100 flex items-center justify-center font-semibold text-gray-700">
@@ -308,33 +387,10 @@ export default function ObjectsPage() {
   const shown = items;
 
   return (
-    <div className="space-y-4">
-      {/* Заголовок с кнопкой карты */}
-      <div className="flex items-start justify-between">
-        <div className="space-y-0.5">
-          <h1 className="text-xl font-semibold">Объекты</h1>
-          <div className="text-sm text-gray-500">Выберите место работы и условия</div>
-        </div>
-        
-        {/* Кнопка перехода на карту */}
-        <Link
-          href="/map"
-          className="
-            tap
-            flex items-center justify-center
-            h-10 w-10
-            rounded-xl
-            bg-white border border-gray-200
-            shadow-sm
-            hover:shadow-md
-            active:scale-95
-            transition-all duration-200
-          "
-          aria-label="Открыть карту"
-          title="Открыть карту"
-        >
-          <MapPinned size={20} className="text-gray-700" />
-        </Link>
+    <div className="space-y-4 pb-20"> {/* Добавил padding-bottom для кнопки */}
+      <div className="space-y-0.5">
+        <h1 className="text-xl font-semibold">Объекты</h1>
+        <div className="text-sm text-gray-500">Выберите место работы и условия</div>
       </div>
 
       {/* Tabs — full width */}
@@ -399,6 +455,49 @@ export default function ObjectsPage() {
           )}
         </div>
       </FullBleed>
+
+      {/* Плавающая кнопка карты над bottomnav */}
+      <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40">
+        <Link
+          href="/map"
+          className="
+            tap
+            flex items-center justify-center
+            h-14 w-14
+            rounded-full
+            bg-white
+            border-2 border-gray-800
+            shadow-lg
+            hover:shadow-xl
+            active:scale-95
+            transition-all duration-200
+            group
+          "
+          aria-label="Открыть карту объектов"
+          title="Открыть карту объектов"
+        >
+          <MapPinned 
+            size={24} 
+            className="
+              text-gray-800 
+              group-hover:scale-110 
+              transition-transform duration-200
+            " 
+          />
+        </Link>
+        
+        {/* Текст под кнопкой */}
+        <div className="
+          absolute -bottom-6 left-1/2 -translate-x-1/2
+          text-xs font-medium text-gray-700
+          whitespace-nowrap
+          opacity-0 group-hover:opacity-100
+          transition-opacity duration-200
+          pointer-events-none
+        ">
+          Карта объектов
+        </div>
+      </div>
     </div>
   );
 }
