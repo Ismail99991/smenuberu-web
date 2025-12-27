@@ -2,38 +2,51 @@
 
 import { useEffect } from "react";
 
-type LiquidWebInstance = { destroy?: () => void };
+type Cleanup = (() => void) | undefined;
 
 export function useLiquidWeb(
   ref: React.RefObject<HTMLElement | null>,
   options?: Record<string, any>
 ) {
   useEffect(() => {
-    let instance: LiquidWebInstance | null = null;
+    let cleanup: Cleanup;
     let cancelled = false;
 
     (async () => {
       if (!ref.current) return;
 
-      // Важно: динамический импорт — чтобы не сломать SSR
       const mod = await import("liquid-web");
       if (cancelled) return;
 
-      const LiquidWeb = (mod as any).LiquidWeb;
-      instance = new LiquidWeb(ref.current, {
-        // хорошие “дефолты” под iOS-like glass
-        mode: "prominent",   // или "shader" если хочется сильнее
+      /**
+       * ВАЖНО:
+       * liquid-web экспортирует функцию, а не класс
+       * чаще всего это default export
+       */
+      const init =
+        (mod as any).default ??
+        (mod as any).init ??
+        (mod as any).create ??
+        mod;
+
+      if (typeof init !== "function") {
+        console.error("[LiquidWeb] Invalid export:", mod);
+        return;
+      }
+
+      cleanup = init(ref.current, {
+        mode: "prominent",
         blur: 2,
         saturation: 170,
-        scale: 18,
-        aberration: 25,
+        scale: 16,
+        aberration: 18,
         ...options,
       });
     })();
 
     return () => {
       cancelled = true;
-      instance?.destroy?.();
+      if (typeof cleanup === "function") cleanup();
     };
   }, [ref, options]);
 }
