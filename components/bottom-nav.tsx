@@ -34,10 +34,9 @@ export default function BottomNav() {
           ref={glassRef}
           className="
             grid grid-cols-5 gap-1 rounded-3xl
-            border border-white/30
-            bg-white/40
-            backdrop-blur-xl
-            shadow-[0_18px_45px_rgba(0,0,0,0.18)]
+            border border-white/35
+           bg-white/20
+           shadow-[0_18px_45px_rgba(0,0,0,0.18)]
           "
         >
           {items.map(({ href, label, icon: Icon }) => {
