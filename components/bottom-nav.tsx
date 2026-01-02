@@ -10,6 +10,8 @@ import {
   User,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import React, { useRef } from "react";
+import { useLiquidWeb } from "@/lib/useLiquidWeb";
 
 const items = [
   { href: "/shifts", label: "Смены", icon: Briefcase },
@@ -21,21 +23,29 @@ const items = [
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const glassRef = useRef<HTMLDivElement | null>(null);
+
+  useLiquidWeb(glassRef, {
+    mode: "prominent",
+    scale: 16,
+    blur: 2,
+    saturation: 170,
+    aberration: 18,
+  });
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 pb-[env(safe-area-inset-bottom)]">
-      <div className="mx-auto max-w-xl px-3 pb-3">
+    <nav className="fixed bottom-0 left-0 right-0 z-10 pb-[env(safe-area-inset-bottom)]">
+      <div className="mx-auto w-full max-w-xl px-3 pb-2">
         <div
+          ref={glassRef}
           className="
-            relative grid grid-cols-5 gap-1 rounded-[26px] px-1 py-1
-            bg-white/70
-            shadow-[0_10px_30px_rgba(0,0,0,0.12)]
+            grid grid-cols-5 gap-1 rounded-3xl
+            border border-white/35
+            bg-white/20
+            shadow-[0_18px_45px_rgba(0,0,0,0.18)]
           "
         >
-          {/* top light */}
-          <div className="pointer-events-none absolute inset-x-4 top-1 h-px bg-white/80" />
-
-          {items.map(({ href, label, icon: Icon }) => {
+          {items.map(({ href, icon: Icon }) => {
             const active =
               pathname === href || pathname.startsWith(href + "/");
 
@@ -44,32 +54,18 @@ export default function BottomNav() {
                 key={href}
                 href={href}
                 className={cn(
-                  "relative flex flex-col items-center justify-center gap-1 py-3 rounded-2xl transition-all",
+                  "relative flex items-center justify-center py-4 rounded-2xl transition-all duration-200",
                   active
                     ? "text-zinc-900"
                     : "text-zinc-500 active:scale-95"
                 )}
               >
-                {/* ACTIVE LIQUID PLATE */}
-                {active && (
-                  <span
-                    className="
-                      absolute inset-0 rounded-2xl
-                      bg-white
-                      shadow-[0_1px_0_rgba(255,255,255,0.9),0_6px_14px_rgba(0,0,0,0.18)]
-                    "
-                  />
-                )}
-
                 <Icon
                   className={cn(
-                    "relative h-5 w-5 transition-transform",
-                    active && "scale-[1.05]"
+                    "h-6 w-6 transition-transform",
+                    active && "scale-[1.08]"
                   )}
                 />
-                <span className="relative text-[11px] font-medium">
-                  {label}
-                </span>
               </Link>
             );
           })}
