@@ -54,7 +54,6 @@ function haversineKm(aLat: number, aLng: number, bLat: number, bLng: number) {
   return R * c;
 }
 
-// фирменное “успокоение” dataviz под твой black/90 UI
 function applySmenuberuBrandStyle(map: any) {
   const LABEL = "#6B7280";
   const HALO = "#FFFFFF";
@@ -65,7 +64,6 @@ function applySmenuberuBrandStyle(map: any) {
     const id: string = l.id || "";
     const type: string = l.type || "";
 
-    // Убираем шум: POI / transit / иконки
     if (
       id.includes("poi") ||
       id.includes("poi-label") ||
@@ -81,7 +79,6 @@ function applySmenuberuBrandStyle(map: any) {
       continue;
     }
 
-    // Подписи — тише
     if (type === "symbol" && (id.includes("label") || id.includes("place") || id.includes("road"))) {
       try {
         map.setPaintProperty(id, "text-color", LABEL);
@@ -98,7 +95,6 @@ function applySmenuberuBrandStyle(map: any) {
       continue;
     }
 
-    // Линии (дороги/границы) — чуть приглушаем
     if (type === "line" && (id.includes("road") || id.includes("street") || id.includes("highway") || id.includes("boundary"))) {
       try {
         const cur = map.getPaintProperty(id, "line-opacity");
@@ -126,7 +122,6 @@ export default function MapPage() {
 
   const maptilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY ?? "";
 
-  // загрузка объектов
   useEffect(() => {
     let alive = true;
     setLoading(true);
@@ -165,24 +160,18 @@ export default function MapPage() {
     );
   }
 
-  // init map
   useEffect(() => {
     if (!containerRef.current) return;
     if (mapRef.current) return;
-
     if (!maptilerKey) return;
 
-    // ✅ Dataviz стиль
     const styleUrl = `https://api.maptiler.com/maps/dataviz/style.json?key=${encodeURIComponent(maptilerKey)}`;
 
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: styleUrl,
-      center: [37.6173, 55.7558], // default Moscow
+      center: [37.6173, 55.7558],
       zoom: 10,
-      // ВАЖНО: attributionControl НЕ true. По умолчанию он включен.
-      // Если хочешь компактно — можно так:
-      // attributionControl: { compact: true },
     });
 
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "bottom-right");
@@ -203,7 +192,6 @@ export default function MapPage() {
     };
   }, [maptilerKey]);
 
-  // markers
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -220,19 +208,16 @@ export default function MapPage() {
       el.type = "button";
       el.setAttribute("data-smenuberu-pin", "1");
 
-      // black/80 по умолчанию
       el.className =
         "h-10 w-10 rounded-2xl bg-black/80 text-white shadow-[0_10px_22px_rgba(0,0,0,0.18)] flex items-center justify-center active:scale-[0.98] transition";
       el.title = o.name;
 
-      // “капля” в твоём стиле
       el.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M12 22s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12z" fill="currentColor"></path>
         <circle cx="12" cy="10" r="2.5" fill="white"></circle>
       </svg>`;
 
       el.addEventListener("click", () => {
-        // снять active со всех
         try {
           document.querySelectorAll("[data-smenuberu-pin='1']").forEach((n) => {
             n.classList.remove("bg-black/90");
@@ -240,7 +225,6 @@ export default function MapPage() {
           });
         } catch {}
 
-        // выделить текущий
         el.classList.remove("bg-black/80");
         el.classList.add("bg-black/90");
 
@@ -255,7 +239,6 @@ export default function MapPage() {
       markersRef.current.push(marker);
     }
 
-    // fit bounds
     if (withCoords.length > 0) {
       const b = new maplibregl.LngLatBounds();
       for (const o of withCoords) b.extend([o.lng, o.lat]);
@@ -263,7 +246,6 @@ export default function MapPage() {
     }
   }, [objects]);
 
-  // fly to user
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !pos) return;
@@ -288,146 +270,147 @@ export default function MapPage() {
   }, [objects, pos]);
 
   return (
-    <div className="relative">
-      {/* top */}
-      <div className="mx-auto max-w-3xl px-4 pt-4 pb-3">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <div className="text-xl font-semibold text-zinc-900">Карта</div>
-            <div className="text-sm text-zinc-500">Пины объектов</div>
-          </div>
+    <div className="relative h-screen w-full overflow-hidden">
+      <div ref={containerRef} className="absolute inset-0 h-full w-full" />
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={requestGeo}
-              className="inline-flex items-center gap-2 rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-sm hover:bg-zinc-50 transition"
-              title="Определить местоположение"
-            >
-              <LocateFixed className="h-4 w-4" />
-              Рядом
-            </button>
+      <div className="relative z-10 flex h-full flex-col pointer-events-none">
+        <div className="pointer-events-auto mx-auto w-full max-w-3xl px-4 pt-4">
+          <div className="rounded-2xl bg-white/95 backdrop-blur-md shadow-lg border border-white/20">
+            <div className="p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-xl font-semibold text-zinc-900">Карта</div>
+                  <div className="text-sm text-zinc-500">Пины объектов</div>
+                </div>
 
-            <Link
-              href="/objects"
-              className="inline-flex items-center justify-center rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-sm hover:bg-zinc-50 transition"
-            >
-              Объекты
-            </Link>
-          </div>
-        </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={requestGeo}
+                    className="inline-flex items-center gap-2 rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-sm hover:bg-zinc-50 transition"
+                    title="Определить местоположение"
+                  >
+                    <LocateFixed className="h-4 w-4" />
+                    Рядом
+                  </button>
 
-        {!maptilerKey ? (
-          <div className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-            Нет ключа MapTiler. Добавь <span className="font-mono">NEXT_PUBLIC_MAPTILER_KEY</span>.
-          </div>
-        ) : null}
-
-        {err ? (
-          <div className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-            {err}
-          </div>
-        ) : null}
-
-        {geoErr ? (
-          <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-            {geoErr}
-          </div>
-        ) : null}
-
-        {!loading && maptilerKey && !anyCoords ? (
-          <div className="mt-3 rounded-2xl border border-zinc-200 bg-white p-3 text-sm text-zinc-600">
-            У объектов пока нет координат (<span className="font-mono">lat/lng</span>), поэтому пины не показать.
-            Следующий шаг — сохранять координаты при выборе адреса.
-          </div>
-        ) : null}
-
-        {pos && nearest.length > 0 ? (
-          <div className="mt-3 rounded-2xl border border-zinc-200 bg-white p-3">
-            <div className="text-sm font-semibold text-zinc-900">Ближайшие</div>
-            <div className="mt-2 grid gap-2">
-              {nearest.map((o) => (
-                <button
-                  key={o.id}
-                  type="button"
-                  onClick={() => {
-                    setActive(o);
-                    mapRef.current?.flyTo({
-                      center: [Number(o.lng), Number(o.lat)],
-                      zoom: 14,
-                      essential: true,
-                    });
-                  }}
-                  className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-left hover:bg-zinc-50 transition"
-                >
-                  <div className="min-w-0">
-                    <div className="text-sm font-medium text-zinc-900 truncate">{o.name}</div>
-                    <div className="text-xs text-zinc-500 truncate">
-                      {o.city}{o.address ? `, ${o.address}` : ""}
-                    </div>
-                  </div>
-                  <div className="ml-3 text-xs text-zinc-600 whitespace-nowrap">
-                    ~ {Number((o as any).distKm).toFixed(1)} км
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : null}
-      </div>
-
-      {/* map */}
-      <div className="mx-auto max-w-3xl px-4">
-        <div
-          ref={containerRef}
-          className="h-[calc(100vh-210px)] w-full overflow-hidden rounded-3xl border border-zinc-200 bg-zinc-50"
-        />
-      </div>
-
-      {/* active card */}
-      {active ? (
-        <div className="fixed inset-x-0 bottom-[78px] z-40 px-4">
-          <div className="mx-auto max-w-3xl rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(0,0,0,0.18)]">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="text-sm font-semibold text-zinc-900">{active.name}</div>
-                <div className="mt-1 text-xs text-zinc-500">
-                  {active.city}{active.address ? `, ${active.address}` : ""}
+                  <Link
+                    href="/objects"
+                    className="inline-flex items-center justify-center rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-sm hover:bg-zinc-50 transition"
+                  >
+                    Объекты
+                  </Link>
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setActive(null)}
-                className="rounded-2xl p-2 hover:bg-zinc-50 transition"
-                title="Закрыть"
-              >
-                <X className="h-5 w-5 text-zinc-600" />
-              </button>
+              {!maptilerKey ? (
+                <div className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+                  Нет ключа MapTiler. Добавь <span className="font-mono">NEXT_PUBLIC_MAPTILER_KEY</span>.
+                </div>
+              ) : null}
+
+              {err ? (
+                <div className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+                  {err}
+                </div>
+              ) : null}
+
+              {geoErr ? (
+                <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                  {geoErr}
+                </div>
+              ) : null}
+
+              {!loading && maptilerKey && !anyCoords ? (
+                <div className="mt-3 rounded-2xl border border-zinc-200 bg-white p-3 text-sm text-zinc-600">
+                  У объектов пока нет координат (<span className="font-mono">lat/lng</span>), поэтому пины не показать.
+                </div>
+              ) : null}
             </div>
+          </div>
+        </div>
 
-            <div className="mt-3 flex items-center gap-2">
-              <a
-                href={
-                  typeof active.lat === "number" && typeof active.lng === "number"
-                    ? yandexMapsByCoords(active.lat, active.lng)
-                    : yandexMapsByAddress(active.city, active.address)
-                }
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-black/90 px-4 py-3 text-sm font-medium text-white hover:bg-black/80 transition"
-              >
-                <MapPin className="h-5 w-5" />
-                Открыть в Яндекс
-                <ExternalLink className="h-4 w-4 opacity-90" />
-              </a>
+        <div className="pointer-events-auto mx-auto mt-auto w-full max-w-3xl px-4 pb-4">
+          {pos && nearest.length > 0 ? (
+            <div className="rounded-2xl bg-white/95 backdrop-blur-md shadow-lg border border-white/20 p-4">
+              <div className="text-sm font-semibold text-zinc-900">Ближайшие</div>
+              <div className="mt-2 grid gap-2 max-h-[280px] overflow-y-auto">
+                {nearest.map((o) => (
+                  <button
+                    key={o.id}
+                    type="button"
+                    onClick={() => {
+                      setActive(o);
+                      mapRef.current?.flyTo({
+                        center: [Number(o.lng), Number(o.lat)],
+                        zoom: 14,
+                        essential: true,
+                      });
+                    }}
+                    className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-left hover:bg-zinc-50 transition"
+                  >
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium text-zinc-900 truncate">{o.name}</div>
+                      <div className="text-xs text-zinc-500 truncate">
+                        {o.city}{o.address ? `, ${o.address}` : ""}
+                      </div>
+                    </div>
+                    <div className="ml-3 text-xs text-zinc-600 whitespace-nowrap">
+                      ~ {Number((o as any).distKm).toFixed(1)} км
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </div>
 
-              <Link
-                href={`/dashboard/objects/${active.id}`}
-                className="inline-flex items-center justify-center rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm hover:bg-zinc-50 transition"
-              >
-                Детали
-              </Link>
+      {active ? (
+        <div className="fixed inset-x-0 bottom-[78px] z-20 pointer-events-none">
+          <div className="pointer-events-auto mx-auto max-w-3xl px-4">
+            <div className="rounded-3xl border border-zinc-200 bg-white/95 backdrop-blur-md shadow-[0_18px_44px_rgba(0,0,0,0.18)] p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold text-zinc-900">{active.name}</div>
+                  <div className="mt-1 text-xs text-zinc-500">
+                    {active.city}{active.address ? `, ${active.address}` : ""}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setActive(null)}
+                  className="rounded-2xl p-2 hover:bg-zinc-100 transition"
+                  title="Закрыть"
+                >
+                  <X className="h-5 w-5 text-zinc-600" />
+                </button>
+              </div>
+
+              <div className="mt-3 flex items-center gap-2">
+                <a
+                  href={
+                    typeof active.lat === "number" && typeof active.lng === "number"
+                      ? yandexMapsByCoords(active.lat, active.lng)
+                      : yandexMapsByAddress(active.city, active.address)
+                  }
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-black/90 px-4 py-3 text-sm font-medium text-white hover:bg-black/80 transition"
+                >
+                  <MapPin className="h-5 w-5" />
+                  Открыть в Яндекс
+                  <ExternalLink className="h-4 w-4 opacity-90" />
+                </a>
+
+                <Link
+                  href={`/dashboard/objects/${active.id}`}
+                  className="inline-flex items-center justify-center rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm hover:bg-zinc-50 transition"
+                >
+                  Детали
+                </Link>
+              </div>
             </div>
           </div>
         </div>
