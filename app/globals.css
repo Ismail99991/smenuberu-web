@@ -50,3 +50,15 @@ body {
 .tap:active {
   transform: scale(0.98);
 }
+
+/* Стабилизация пинов на карте */
+.maplibregl-marker {
+  will-change: transform;
+  transition: transform 0.05s linear;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.maplibregl-marker svg {
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
