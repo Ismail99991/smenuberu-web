@@ -1,9 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import maplibregl, { type Map as MapLibreMap, type Marker } from "maplibre-gl";
-import { MapPin, ExternalLink, LocateFixed, X } from "lucide-react";
+import { 
+  MapPin, 
+  ExternalLink, 
+  LocateFixed, 
+  X,
+  MapPinned,
+  List,
+  Search,
+  SlidersHorizontal,
+  ChevronRight
+} from "lucide-react";
 
 function apiBase() {
   return (process.env.NEXT_PUBLIC_API_URL ?? "https://api.smenube.ru").replace(/\/+$/, "");
@@ -54,6 +64,7 @@ function haversineKm(aLat: number, aLng: number, bLat: number, bLng: number) {
   return R * c;
 }
 
+// фирменное “успокоение” dataviz под твой black/90 UI
 function applySmenuberuBrandStyle(map: any) {
   const LABEL = "#6B7280";
   const HALO = "#FFFFFF";
@@ -64,6 +75,7 @@ function applySmenuberuBrandStyle(map: any) {
     const id: string = l.id || "";
     const type: string = l.type || "";
 
+    // Убираем шум: POI / transit / иконки
     if (
       id.includes("poi") ||
       id.includes("poi-label") ||
@@ -79,6 +91,7 @@ function applySmenuberuBrandStyle(map: any) {
       continue;
     }
 
+    // Подписи — тише
     if (type === "symbol" && (id.includes("label") || id.includes("place") || id.includes("road"))) {
       try {
         map.setPaintProperty(id, "text-color", LABEL);
@@ -95,6 +108,7 @@ function applySmenuberuBrandStyle(map: any) {
       continue;
     }
 
+    // Линии (дороги/границы) — чуть приглушаем
     if (type === "line" && (id.includes("road") || id.includes("street") || id.includes("highway") || id.includes("boundary"))) {
       try {
         const cur = map.getPaintProperty(id, "line-opacity");
@@ -119,9 +133,15 @@ export default function MapPage() {
   const [geoErr, setGeoErr] = useState<string | null>(null);
 
   const [active, setActive] = useState<ObjectItem | null>(null);
+  
+  // Новые состояния для UI
+  const [viewMode, setViewMode] = useState<"map" | "list">("map");
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const maptilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY ?? "";
 
+  // загрузка объектов
   useEffect(() => {
     let alive = true;
     setLoading(true);
@@ -160,6 +180,7 @@ export default function MapPage() {
     );
   }
 
+  // init map
   useEffect(() => {
     if (!containerRef.current) return;
     if (mapRef.current) return;
@@ -192,9 +213,11 @@ export default function MapPage() {
     };
   }, [maptilerKey]);
 
+  // markers - оптимизировано для предотвращения вибрации
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
+    if (viewMode !== "map") return; // Не обновляем маркеры если не в режиме карты
 
     markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
@@ -244,8 +267,9 @@ export default function MapPage() {
       for (const o of withCoords) b.extend([o.lng, o.lat]);
       map.fitBounds(b, { padding: 80, maxZoom: 14, duration: 0 });
     }
-  }, [objects]);
+  }, [objects, viewMode]);
 
+  // fly to user
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !pos) return;
@@ -257,9 +281,21 @@ export default function MapPage() {
     [objects]
   );
 
+  // Фильтрация объектов по поиску
+  const filteredObjects = useMemo(() => {
+    if (!searchQuery) return objects;
+    const query = searchQuery.toLowerCase();
+    return objects.filter(
+      (o) =>
+        o.name.toLowerCase().includes(query) ||
+        o.city.toLowerCase().includes(query) ||
+        (o.address && o.address.toLowerCase().includes(query))
+    );
+  }, [objects, searchQuery]);
+
   const nearest = useMemo(() => {
     if (!pos) return [];
-    return objects
+    return filteredObjects
       .filter((o) => typeof o.lat === "number" && typeof o.lng === "number")
       .map((o) => ({
         ...o,
@@ -267,20 +303,89 @@ export default function MapPage() {
       }))
       .sort((a, b) => a.distKm - b.distKm)
       .slice(0, 8);
-  }, [objects, pos]);
+  }, [filteredObjects, pos]);
 
   return (
     <div className="relative h-screen w-full overflow-hidden">
-      <div ref={containerRef} className="absolute inset-0 h-full w-full" />
+      {/* Карта (только в режиме карты) */}
+      {viewMode === "map" && (
+        <div ref={containerRef} className="absolute inset-0 h-full w-full" />
+      )}
 
+      {/* Режим списка */}
+      {viewMode === "list" && (
+        <div className="absolute inset-0 overflow-y-auto bg-gray-50 pt-20 pb-32">
+          <div className="max-w-3xl mx-auto px-4 space-y-3">
+            {loading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+                    <div className="h-32 bg-gray-100 animate-pulse" />
+                    <div className="p-4 space-y-3">
+                      <div className="flex items-start gap-3">
+                        <div className="h-10 w-10 rounded-xl bg-gray-100 animate-pulse" />
+                        <div className="flex-1 space-y-2">
+                          <div className="h-3 w-24 rounded bg-gray-100 animate-pulse" />
+                          <div className="h-4 w-40 rounded bg-gray-100 animate-pulse" />
+                          <div className="h-3 w-56 rounded bg-gray-100 animate-pulse" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredObjects.length === 0 ? (
+              <div className="rounded-2xl border border-gray-200 bg-white p-6 text-center">
+                <div className="text-gray-500 mb-2">Объекты не найдены</div>
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="text-sm text-blue-600 hover:underline"
+                >
+                  Сбросить фильтры
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="text-sm text-gray-500 mb-2">
+                  Найдено объектов: {filteredObjects.length}
+                </div>
+                {filteredObjects.map((obj) => (
+                  <Link
+                    key={obj.id}
+                    href={`/objects/${obj.id}`}
+                    className="block rounded-2xl border border-gray-200 bg-white p-4 hover:shadow-md transition"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-gray-900 truncate">{obj.name}</div>
+                        <div className="text-sm text-gray-500 mt-1 truncate">
+                          {obj.city}{obj.address ? `, ${obj.address}` : ""}
+                        </div>
+                      </div>
+                      <ChevronRight className="text-gray-400 shrink-0" />
+                    </div>
+                  </Link>
+                ))}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* UI компоненты поверх */}
       <div className="relative z-10 flex h-full flex-col pointer-events-none">
+        {/* Верхняя панель */}
         <div className="pointer-events-auto mx-auto w-full max-w-3xl px-4 pt-4">
           <div className="rounded-2xl bg-white/95 backdrop-blur-md shadow-lg border border-white/20">
             <div className="p-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <div className="text-xl font-semibold text-zinc-900">Карта</div>
-                  <div className="text-sm text-zinc-500">Пины объектов</div>
+                  <div className="text-xl font-semibold text-zinc-900">
+                    {viewMode === "map" ? "Карта" : "Список объектов"}
+                  </div>
+                  <div className="text-sm text-zinc-500">
+                    {viewMode === "map" ? "Пины объектов" : `${filteredObjects.length} объектов`}
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -298,7 +403,7 @@ export default function MapPage() {
                     href="/objects"
                     className="inline-flex items-center justify-center rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-sm hover:bg-zinc-50 transition"
                   >
-                    Объекты
+                    Все объекты
                   </Link>
                 </div>
               </div>
@@ -321,7 +426,7 @@ export default function MapPage() {
                 </div>
               ) : null}
 
-              {!loading && maptilerKey && !anyCoords ? (
+              {!loading && maptilerKey && viewMode === "map" && !anyCoords ? (
                 <div className="mt-3 rounded-2xl border border-zinc-200 bg-white p-3 text-sm text-zinc-600">
                   У объектов пока нет координат (<span className="font-mono">lat/lng</span>), поэтому пины не показать.
                 </div>
@@ -330,43 +435,134 @@ export default function MapPage() {
           </div>
         </div>
 
-        <div className="pointer-events-auto mx-auto mt-auto w-full max-w-3xl px-4 pb-4">
-          {pos && nearest.length > 0 ? (
-            <div className="rounded-2xl bg-white/95 backdrop-blur-md shadow-lg border border-white/20 p-4">
-              <div className="text-sm font-semibold text-zinc-900">Ближайшие</div>
-              <div className="mt-2 grid gap-2 max-h-[280px] overflow-y-auto">
-                {nearest.map((o) => (
-                  <button
-                    key={o.id}
-                    type="button"
-                    onClick={() => {
-                      setActive(o);
-                      mapRef.current?.flyTo({
-                        center: [Number(o.lng), Number(o.lat)],
-                        zoom: 14,
-                        essential: true,
-                      });
-                    }}
-                    className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-left hover:bg-zinc-50 transition"
-                  >
-                    <div className="min-w-0">
-                      <div className="text-sm font-medium text-zinc-900 truncate">{o.name}</div>
-                      <div className="text-xs text-zinc-500 truncate">
-                        {o.city}{o.address ? `, ${o.address}` : ""}
+        {/* Список ближайших (только в режиме карты) */}
+        {viewMode === "map" && (
+          <div className="pointer-events-auto mx-auto mt-auto w-full max-w-3xl px-4 pb-4">
+            {pos && nearest.length > 0 ? (
+              <div className="rounded-2xl bg-white/95 backdrop-blur-md shadow-lg border border-white/20 p-4">
+                <div className="text-sm font-semibold text-zinc-900">Ближайшие</div>
+                <div className="mt-2 grid gap-2 max-h-[280px] overflow-y-auto">
+                  {nearest.map((o) => (
+                    <button
+                      key={o.id}
+                      type="button"
+                      onClick={() => {
+                        setActive(o);
+                        if (viewMode === "map") {
+                          mapRef.current?.flyTo({
+                            center: [Number(o.lng), Number(o.lat)],
+                            zoom: 14,
+                            essential: true,
+                          });
+                        }
+                      }}
+                      className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-left hover:bg-zinc-50 transition"
+                    >
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium text-zinc-900 truncate">{o.name}</div>
+                        <div className="text-xs text-zinc-500 truncate">
+                          {o.city}{o.address ? `, ${o.address}` : ""}
+                        </div>
                       </div>
-                    </div>
-                    <div className="ml-3 text-xs text-zinc-600 whitespace-nowrap">
-                      ~ {Number((o as any).distKm).toFixed(1)} км
-                    </div>
-                  </button>
-                ))}
+                      <div className="ml-3 text-xs text-zinc-600 whitespace-nowrap">
+                        ~ {Number((o as any).distKm).toFixed(1)} км
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          ) : null}
-        </div>
+            ) : null}
+          </div>
+        )}
       </div>
 
-      {active ? (
+      {/* Плавающие кнопки (как в objects/page.tsx) */}
+      <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 pointer-events-auto">
+        {/* Кнопка поиска */}
+        <button
+          onClick={() => setShowSearch(!showSearch)}
+          className="
+            tap flex items-center justify-center
+            h-12 w-12 rounded-xl bg-white border border-gray-300
+            shadow-lg hover:shadow-xl active:scale-95
+            transition-all duration-200
+          "
+          aria-label="Поиск объектов"
+        >
+          <Search size={20} className="text-gray-700" />
+        </button>
+
+        {/* Кнопка переключения между картой и списком */}
+        <button
+          onClick={() => setViewMode(viewMode === "map" ? "list" : "map")}
+          className="
+            tap flex items-center justify-center
+            h-12 w-12 rounded-xl bg-white border border-gray-800
+            shadow-lg hover:shadow-xl active:scale-95
+            transition-all duration-200 group
+          "
+          aria-label={viewMode === "map" ? "Показать списком" : "Показать на карте"}
+        >
+          {viewMode === "map" ? (
+            <List size={20} className="text-gray-800 group-hover:scale-110 transition-transform" />
+          ) : (
+            <MapPinned size={20} className="text-gray-800 group-hover:scale-110 transition-transform" />
+          )}
+        </button>
+
+        {/* Кнопка фильтров */}
+        <button
+          onClick={() => console.log("Открыть фильтры")}
+          className="
+            tap flex items-center justify-center
+            h-12 w-12 rounded-xl bg-white border border-gray-300
+            shadow-lg hover:shadow-xl active:scale-95
+            transition-all duration-200
+          "
+          aria-label="Фильтры"
+        >
+          <SlidersHorizontal size={20} className="text-gray-700" />
+        </button>
+      </div>
+
+      {/* Поисковая строка */}
+      {showSearch && (
+        <div className="fixed inset-x-0 bottom-32 z-50 px-4 pointer-events-auto">
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-200">
+            <div className="relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Поиск по названию, городу, адресу..."
+                className="
+                  w-full rounded-xl border border-gray-200 bg-white
+                  px-4 py-3 text-sm placeholder:text-gray-400
+                  focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                  shadow-lg transition-all duration-200
+                "
+                autoFocus
+                onBlur={() => searchQuery === "" && setShowSearch(false)}
+              />
+              <Search
+                size={18}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-10 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Активная карточка объекта (только в режиме карты) */}
+      {viewMode === "map" && active ? (
         <div className="fixed inset-x-0 bottom-[78px] z-20 pointer-events-none">
           <div className="pointer-events-auto mx-auto max-w-3xl px-4">
             <div className="rounded-3xl border border-zinc-200 bg-white/95 backdrop-blur-md shadow-[0_18px_44px_rgba(0,0,0,0.18)] p-4">
