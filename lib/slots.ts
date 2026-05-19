@@ -12,6 +12,8 @@ export type Slot = {
   hot?: boolean;
   tags: string[];
   type: TaskType;
+  objectName?: string;
+  logoUrl?: string;
 };
 
 // ✅ ИСПРАВЛЕННЫЙ API_BASE
@@ -81,6 +83,8 @@ export async function getSlotsFromApi(): Promise<Slot[]> {
     hot: s.hot ?? false,
     tags: [],
     type: s.type,
+    objectName: s.object?.Name,
+    logoUrl: s.object?.logoUrl,
   }));
 }
 

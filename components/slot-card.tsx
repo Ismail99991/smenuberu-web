@@ -32,47 +32,49 @@ export default function SlotCard({
       className={cn(
         uiCard,
         "p-5",
-        // чуть более “живой” hover именно для карточек списка
         "hover:shadow-md hover:border-zinc-300"
       )}
     >
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-2">
-              <TaskTypeIcon type={slot.type} className="h-5 w-5 text-zinc-700" />
-              <div className="text-base font-semibold">{slot.title}</div>
+        <div className="flex gap-3">
+          {slot.logoUrl && (
+            <img 
+              src={slot.logoUrl} 
+              alt={slot.objectName || slot.company}
+              className="h-12 w-12 rounded-xl object-cover border border-zinc-100"
+            />
+          )}
+          
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-2">
+                <TaskTypeIcon type={slot.type} className="h-5 w-5 text-zinc-700" />
+                <div className="text-base font-semibold">{slot.title}</div>
+              </div>
+
+              {slot.hot ? <Flame className="h-4 w-4 text-red-500" /> : null}
+              {isPremium ? <BanknoteArrowUp className="h-4 w-4 text-sky-600" /> : null}
+
+              {status === "booked" && (
+                <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                  Записан
+                </span>
+              )}
+              {status === "cancelled" && (
+                <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
+                  Отменено
+                </span>
+              )}
+              {status === "completed" && (
+                <span className="inline-flex items-center rounded-full bg-zinc-900 px-2 py-0.5 text-xs font-medium text-white">
+                  Завершено
+                </span>
+              )}
             </div>
 
-            {slot.hot ? (
-              <Flame className="h-4 w-4 text-red-500" />
-            ) : null}
-
-            {isPremium ? (
-              <BanknoteArrowUp className="h-4 w-4 text-sky-600" />
-            ) : null}
-
-            {status === "booked" ? (
-              <span className={cn(uiTransition, "inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700")}>
-                Записан
-              </span>
-            ) : null}
-
-            {status === "cancelled" ? (
-              <span className={cn(uiTransition, "inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600")}>
-                Отменено
-              </span>
-            ) : null}
-
-            {status === "completed" ? (
-              <span className={cn(uiTransition, "inline-flex items-center rounded-full bg-zinc-900 px-2 py-0.5 text-xs font-medium text-white")}>
-                Завершено
-              </span>
-            ) : null}
-          </div>
-
-          <div className="mt-1 text-sm text-zinc-600">
-            {slot.company} · {slot.city}
+            <div className="mt-1 text-sm text-zinc-600">
+              {slot.objectName || slot.company} · {slot.city}
+            </div>
           </div>
         </div>
 
@@ -105,7 +107,6 @@ export default function SlotCard({
             Отменить запись
           </button>
 
-          {/* demo: завершено */}
           <button
             onClick={() => {
               setBooking(slot.id, "completed");
@@ -120,7 +121,7 @@ export default function SlotCard({
           </button>
         </div>
       ) : status === "completed" ? (
-        <div className={cn(uiTransition, "mt-4 rounded-xl border border-zinc-200 bg-zinc-50 p-3 text-sm text-zinc-700")}>
+        <div className="mt-4 rounded-xl border border-zinc-200 bg-zinc-50 p-3 text-sm text-zinc-700">
           Смена завершена. Оценка смены — в профиле.
         </div>
       ) : (
