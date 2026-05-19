@@ -77,11 +77,15 @@ export default function ShiftDetailsClient({ id }: { id: string }) {
     setErr(null);
 
     // ⚠️ если у тебя другой эндпоинт — поменяй здесь
-    api<SlotDetails>(`/slots/${encodeURIComponent(id)}`)
-      .then((d) => {
-        if (!alive) return;
-        setShift(d);
-      })
+    api<{ ok: boolean; slot: SlotDetails }>(`/slots/${encodeURIComponent(id)}`)
+  .then((response) => {
+    if (!alive) return;
+    if (response.ok && response.slot) {
+      setShift(response.slot);
+    } else {
+      throw new Error("Slot not found");
+    }
+  })
       .catch((e: any) => {
         if (!alive) return;
         setErr(e?.message ?? "Не удалось загрузить смену");
