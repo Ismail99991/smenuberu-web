@@ -2,20 +2,20 @@ import type { TaskType } from "@/lib/task-types";
 
 export type Slot = {
   id: string;
-  date: string; // YYYY-MM-DD (local)
+  date: string;
   title: string;
   company: string;
   city: string;
   address: string;
-  time: string; // "10:00–19:00"
+  time: string;
   pay: number;
-  hot?: boolean; // "горящий слот"
+  hot?: boolean;
   tags: string[];
   type: TaskType;
 };
 
-const API_BASE =
-  (import.meta as any).env?.VITE_API_BASE ?? "https://smenuberu-api.onrender.com";
+// ✅ ИСПРАВЛЕННЫЙ API_BASE
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "https://api.smenube.ru";
 
 export function toISODateLocal(d: Date) {
   const y = d.getFullYear();
@@ -47,25 +47,41 @@ export function formatMoneyRub(amount: number) {
 }
 
 /**
- * Берём слоты из API (формат уже совпадает с Slot)
+ * Получение слотов из API (публичные опубликованные слоты)
+ * Используется для исполнителей (web)
  */
 export async function getSlotsFromApi(): Promise<Slot[]> {
-  const res = await fetch(`${API_BASE}/slots/ui`, {
-    headers: { Accept: "application/json" }
+  const res = await fetch(`${API_BASE}/slots`, {
+    headers: { Accept: "application/json" },
+    credentials: "include", // ✅ важно для куки/сессии
   });
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    throw new Error(`GET /slots/ui failed: ${res.status} ${text}`);
+    throw new Error(`GET /slots failed: ${res.status} ${text}`);
   }
 
-  const data = (await res.json()) as unknown;
-
-  if (!Array.isArray(data)) {
-    throw new Error("GET /slots/ui returned non-array");
+  const data = (await res.json()) as any;
+  
+  // API возвращает { ok: true, slots: [...] }
+  if (!data.ok || !Array.isArray(data.slots)) {
+    throw new Error("Invalid API response format");
   }
 
-  return data.filter(Boolean) as Slot[];
+  // Преобразуем в нужный формат
+  return data.slots.map((s: any) => ({
+    id: s.id,
+    date: s.date,
+    title: s.title,
+    company: s.object?.name ?? s.company ?? "",
+    city: s.city,
+    address: s.address,
+    time: s.time,
+    pay: s.pay,
+    hot: s.hot ?? false,
+    tags: [],
+    type: s.type,
+  }));
 }
 
 /**
@@ -83,7 +99,7 @@ export async function getSlots(start: Date, days = 14): Promise<Slot[]> {
   return getMockSlots(start, days);
 }
 
-// Моки
+// Моки (оставляем как fallback)
 export function getMockSlots(start: Date, days = 14): Slot[] {
   const out: Slot[] = [];
 
