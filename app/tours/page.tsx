@@ -1,7 +1,32 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Search, SlidersHorizontal, MapPin, Home, Calendar, Users, Building, Briefcase, Bus, Utensils } from "lucide-react";
+import Link from "next/link";
+import { 
+  Search, 
+  SlidersHorizontal, 
+  MapPin, 
+  Home, 
+  Calendar, 
+  Users, 
+  Building, 
+  Briefcase, 
+  Bus, 
+  Utensils,
+  Flame,
+  TrendingUp,
+  Wifi,
+  Bath,
+  ParkingCircle,
+  Bed,
+  Coffee,
+  Star,
+  Clock,
+  Wallet,
+  Luggage,
+  Shield,
+  Heart
+} from "lucide-react";
 import DayTabs from "@/components/day-tabs";
 import BookingModal from "@/components/booking-modal";
 import SortFilterModalTours, { type TourFilters, type TourSortKey } from "@/components/sort-filter-modal-tours";
@@ -46,7 +71,7 @@ const convertTourToSlot = (tour: TourSlot): BaseSlot => ({
   date: tour.date,
   time: tour.time,
   pay: tour.pay,
-  type: tour.type as any, // Приводим к TaskType
+  type: tour.type as any,
   tags: tour.tags,
   hot: tour.hot
 });
@@ -135,7 +160,7 @@ const mockTourSlots: TourSlot[] = [
     tags: ["сбор ягод", "сезонная", "природа", "общежитие"],
     hot: false,
     accommodation: "dormitory",
-    accommodationName: "Общежитие 'Лесная'",
+    accommodationName: "Общежитие 'Лесное'",
     durationDays: 30,
     mealsIncluded: false,
     transferProvided: false,
@@ -274,7 +299,6 @@ export default function ToursPage() {
       );
     }
 
-    // Применяем фильтры
     if (filters.onlyHot) list = list.filter((x) => !!x.hot);
     if (filters.onlyPremium) list = list.filter((x) => x.totalPay >= 100000);
     if (filters.types.length) list = list.filter((x) => filters.types.includes(x.type));
@@ -338,13 +362,15 @@ export default function ToursPage() {
 
               {tour.hot && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-red-50 to-orange-50 px-3 py-1 text-xs font-semibold text-red-700 border border-red-200">
-                  🔥 Горящий тур
+                  <Flame className="h-3 w-3" />
+                  Горящий тур
                 </span>
               )}
 
               {tour.totalPay >= 100000 && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-emerald-50 to-green-50 px-3 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">
-                  💰 Высокий доход
+                  <TrendingUp className="h-3 w-3" />
+                  Высокий доход
                 </span>
               )}
             </div>
@@ -401,7 +427,7 @@ export default function ToursPage() {
               )}
               {tour.requirements && (
                 <div className="flex items-center gap-2 rounded-lg bg-amber-50 p-2">
-                  <Briefcase className="h-3.5 w-3.5 text-amber-600" />
+                  <Shield className="h-3.5 w-3.5 text-amber-600" />
                   <div className="text-xs font-medium text-amber-700">Требования</div>
                 </div>
               )}
@@ -450,6 +476,15 @@ export default function ToursPage() {
             >
               Забронировать тур
             </button>
+
+            {/* Кнопка жилья */}
+            <Link
+              href="/housing"
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-all"
+            >
+              <Home className="h-4 w-4" />
+              Найти жильё
+            </Link>
           </div>
         </div>
       </div>
@@ -457,7 +492,7 @@ export default function ToursPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-24">
       {/* Герой-секция */}
       <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 p-6 text-white">
         <div className="relative z-10">
@@ -470,14 +505,17 @@ export default function ToursPage() {
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <div className="rounded-full bg-white/20 px-3 py-1.5 text-xs backdrop-blur-sm">
-                🏔️ Горные курорты
+              <div className="rounded-full bg-white/20 px-3 py-1.5 text-xs backdrop-blur-sm flex items-center gap-1">
+                <MapPin className="h-3 w-3" />
+                Горные курорты
               </div>
-              <div className="rounded-full bg-white/20 px-3 py-1.5 text-xs backdrop-blur-sm">
-                🌾 Сельское хозяйство
+              <div className="rounded-full bg-white/20 px-3 py-1.5 text-xs backdrop-blur-sm flex items-center gap-1">
+                <Flame className="h-3 w-3" />
+                Сельское хозяйство
               </div>
-              <div className="rounded-full bg-white/20 px-3 py-1.5 text-xs backdrop-blur-sm">
-                🏗️ Строительство
+              <div className="rounded-full bg-white/20 px-3 py-1.5 text-xs backdrop-blur-sm flex items-center gap-1">
+                <Building className="h-3 w-3" />
+                Строительство
               </div>
             </div>
           </div>
@@ -533,29 +571,42 @@ export default function ToursPage() {
               <SlidersHorizontal className="h-4 w-4" />
               Фильтры
             </button>
+
+            {/* Кнопка Жильё */}
+            <Link
+              href="/housing"
+              className="tap flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-medium text-emerald-700 hover:bg-emerald-100 transition-all"
+            >
+              <Home className="h-4 w-4" />
+              Жильё
+            </Link>
           </div>
         </div>
 
         {/* Активные фильтры */}
         <div className="mt-3 flex flex-wrap gap-2">
           {filters.onlyHot && (
-            <span className="rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-medium text-red-700">
-              🔥 Только горящие
+            <span className="rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-medium text-red-700 flex items-center gap-1">
+              <Flame className="h-3 w-3" />
+              Только горящие
             </span>
           )}
           {filters.onlyPremium && (
-            <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
-              💰 Высокий доход
+            <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 flex items-center gap-1">
+              <TrendingUp className="h-3 w-3" />
+              Высокий доход
             </span>
           )}
           {filters.withMeals && (
-            <span className="rounded-full border border-green-200 bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
-              🍽️ С питанием
+            <span className="rounded-full border border-green-200 bg-green-50 px-3 py-1 text-xs font-medium text-green-700 flex items-center gap-1">
+              <Utensils className="h-3 w-3" />
+              С питанием
             </span>
           )}
           {filters.withTransfer && (
-            <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
-              🚌 С трансфером
+            <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 flex items-center gap-1">
+              <Bus className="h-3 w-3" />
+              С трансфером
             </span>
           )}
           {filters.types.length > 0 && (
@@ -603,53 +654,53 @@ export default function ToursPage() {
       )}
 
       {/* Преимущества */}
-      <div className="rounded-2xl border border-zinc-200 bg-white p-6">
+      <div className="rounded-2xl border border-zinc-200 bg-gradient-to-br from-zinc-50 to-white p-6">
         <h2 className="text-lg font-bold text-zinc-900">Почему рабочие туры?</h2>
         <div className="mt-4 grid gap-4 md:grid-cols-3">
-          <div className="rounded-xl border border-zinc-200 bg-gradient-to-br from-blue-50 to-white p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                <Home className="h-5 w-5 text-blue-600" />
-              </div>
-              <div className="text-sm font-semibold text-zinc-900">Всё включено</div>
+          <div className="flex items-start gap-3">
+            <div className="rounded-lg bg-emerald-100 p-2">
+              <Home className="h-5 w-5 text-emerald-600" />
             </div>
-            <p className="mt-2 text-sm text-zinc-600">
-              Проживание, питание, трансфер — всё организовано за вас. Берите только личные вещи.
-            </p>
+            <div>
+              <div className="font-semibold text-zinc-900">Всё включено</div>
+              <div className="text-sm text-zinc-500">
+                Проживание, питание, трансфер — всё организовано за вас
+              </div>
+            </div>
           </div>
           
-          <div className="rounded-xl border border-zinc-200 bg-gradient-to-br from-green-50 to-white p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-green-100 flex items-center justify-center">
-                <Briefcase className="h-5 w-5 text-green-600" />
-              </div>
-              <div className="text-sm font-semibold text-zinc-900">Стабильный доход</div>
+          <div className="flex items-start gap-3">
+            <div className="rounded-lg bg-emerald-100 p-2">
+              <Wallet className="h-5 w-5 text-emerald-600" />
             </div>
-            <p className="mt-2 text-sm text-zinc-600">
-              Контракт на 1-4 месяца с гарантированной оплатой. Идеально для накоплений.
-            </p>
+            <div>
+              <div className="font-semibold text-zinc-900">Стабильный доход</div>
+              <div className="text-sm text-zinc-500">
+                Контракт на 1-4 месяца с гарантированной оплатой
+              </div>
+            </div>
           </div>
           
-          <div className="rounded-xl border border-zinc-200 bg-gradient-to-br from-purple-50 to-white p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                <MapPin className="h-5 w-5 text-purple-600" />
-              </div>
-              <div className="text-sm font-semibold text-zinc-900">Путешествия</div>
+          <div className="flex items-start gap-3">
+            <div className="rounded-lg bg-emerald-100 p-2">
+              <MapPin className="h-5 w-5 text-emerald-600" />
             </div>
-            <p className="mt-2 text-sm text-zinc-600">
-              Работайте в самых красивых регионах России: от Карелии до Кавказа.
-            </p>
+            <div>
+              <div className="font-semibold text-zinc-900">Путешествия</div>
+              <div className="text-sm text-zinc-500">
+                Работайте в самых красивых регионах России
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Модалка бронирования - ПРЕОБРАЗУЕМ slots */}
+      {/* Модалка бронирования */}
       <BookingModal
         open={modalOpen}
         onClose={onCloseBooking}
         days={days}
-        slots={slots.map(convertTourToSlot)} // ← ВОТ ТУТ ПРЕОБРАЗОВАНИЕ
+        slots={slots.map(convertTourToSlot)}
         hotDays={hotDays}
         premiumDays={premiumDays}
         initialDay={modalPreset?.day ?? selectedDay}
