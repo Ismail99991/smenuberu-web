@@ -5,21 +5,16 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { 
   Building2, 
-  Bus, 
-  BadgePercent, 
-  Utensils, 
   MapPin, 
   Navigation,
   ChevronLeft,
   Calendar,
   Clock,
   Wallet,
-  Shield,
-  Shirt,
-  Info,
   Maximize2,
   X,
-  AlertCircle
+  Package,
+  Warehouse
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { formatMoneyRub } from "@/lib/slots";
@@ -32,10 +27,6 @@ type ApiObject = {
   type?: string | null;
   logoUrl?: string | null;
   photos?: string[] | null;
-  hasBus?: boolean;
-  isPremium?: boolean;
-  hasFood?: boolean;
-  description?: string | null;
   lat?: number | null;
   lng?: number | null;
   createdAt: string;
@@ -50,6 +41,20 @@ type NearbySlot = {
   title?: string;
 };
 
+const getTypeInfo = (type?: string | null) => {
+  const t = (type || "").toLowerCase();
+  if (t.includes("warehouse") || t.includes("склад")) {
+    return { icon: Warehouse, label: "Склад" };
+  }
+  if (t.includes("factory") || t.includes("завод")) {
+    return { icon: Building2, label: "Завод" };
+  }
+  if (t.includes("dc") || t.includes("рц")) {
+    return { icon: Package, label: "Распределительный центр" };
+  }
+  return { icon: Building2, label: type || "Объект" };
+};
+
 export default function ObjectDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -61,11 +66,9 @@ export default function ObjectDetailPage() {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Галерея на весь экран
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const [fullscreenIndex, setFullscreenIndex] = useState(0);
   
-  // Свайп фото
   const [activePhoto, setActivePhoto] = useState(0);
   const photosRef = useRef<HTMLDivElement | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -74,7 +77,6 @@ export default function ObjectDetailPage() {
     return (process.env.NEXT_PUBLIC_API_URL ?? "https://api.smenube.ru").replace(/\/+$/, "");
   };
 
-  // Загрузка объекта
   useEffect(() => {
     async function fetchObject() {
       if (!id) return;
@@ -104,7 +106,6 @@ export default function ObjectDetailPage() {
     fetchObject();
   }, [id]);
 
-  // Загрузка ближайших смен
   useEffect(() => {
     async function fetchNearbySlots() {
       if (!id) return;
@@ -116,16 +117,13 @@ export default function ObjectDetailPage() {
         const data = await response.json();
         if (data.ok && Array.isArray(data.slots)) {
           setNearbySlots(data.slots.slice(0, 5));
-        } else {
-          // Демо-данные для превью
-          setNearbySlots([
-            { id: "1", date: "Сегодня", time: "09:00–18:00", pay: 2500, hot: true, title: "Комплектовщик" },
-            { id: "2", date: "Завтра", time: "10:00–19:00", pay: 2800, hot: false, title: "Сортировщик" },
-            { id: "3", date: "12 мая", time: "08:00–17:00", pay: 3000, hot: true, title: "Грузчик" },
-          ]);
         }
       } catch (err) {
         console.error("Ошибка загрузки смен:", err);
+        setNearbySlots([
+          { id: "1", date: "Сегодня", time: "09:00–18:00", pay: 2500, hot: true, title: "Комплектовщик" },
+          { id: "2", date: "Завтра", time: "10:00–19:00", pay: 2800, hot: false, title: "Сортировщик" },
+        ]);
       } finally {
         setLoadingSlots(false);
       }
@@ -176,10 +174,6 @@ export default function ObjectDetailPage() {
         <div className="p-4 space-y-4">
           <div className="h-6 bg-zinc-200 animate-pulse rounded w-3/4" />
           <div className="h-4 bg-zinc-200 animate-pulse rounded w-1/2" />
-          <div className="space-y-2 mt-4">
-            <div className="h-4 bg-zinc-200 animate-pulse rounded w-full" />
-            <div className="h-4 bg-zinc-200 animate-pulse rounded w-5/6" />
-          </div>
         </div>
       </div>
     );
@@ -195,9 +189,6 @@ export default function ObjectDetailPage() {
           <h2 className="text-lg font-semibold text-zinc-900 mb-2">
             {error || "Объект не найден"}
           </h2>
-          <p className="text-zinc-600 mb-6">
-            Возможно, объект был удален или перемещен
-          </p>
           <button
             onClick={() => router.push("/objects")}
             className="px-6 py-2 bg-[#c29cf2] text-white rounded-xl font-medium hover:bg-[#b088e8] transition-colors"
@@ -211,15 +202,16 @@ export default function ObjectDetailPage() {
 
   const photos = object.photos || [];
   const hasPhotos = photos.length > 0;
+  const typeInfo = getTypeInfo(object.type);
+  const TypeIcon = typeInfo.icon;
   
-  // Статистика (заглушка)
   const stats = {
     activeSlots: nearbySlots.length,
     avgPay: nearbySlots.length ? Math.round(nearbySlots.reduce((s, slot) => s + slot.pay, 0) / nearbySlots.length) : 0
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 pb-28">
+    <div className="min-h-screen bg-zinc-50 pb-8">
       {/* Галерея */}
       <div className="relative h-80 bg-zinc-100">
         {hasPhotos ? (
@@ -238,7 +230,6 @@ export default function ObjectDetailPage() {
                   draggable="false"
                   loading="lazy"
                 />
-                {/* Кнопка полноэкранного режима */}
                 <button
                   onClick={() => openFullscreen(i)}
                   className="absolute bottom-4 right-4 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors opacity-0 group-hover:opacity-100"
@@ -278,17 +269,15 @@ export default function ObjectDetailPage() {
 
       {/* Основной контент */}
       <div className="p-4 space-y-5">
-        {/* Заголовок и логотип */}
+        {/* Заголовок + логотип + кнопка "Смены объекта" */}
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-2 flex-1">
             <h1 className="text-2xl font-bold text-zinc-900">{object.name}</h1>
             
-            {object.type && (
-              <div className="flex items-center gap-1.5 text-zinc-600">
-                <Building2 size={16} />
-                <span className="text-sm">{object.type}</span>
-              </div>
-            )}
+            <div className="flex items-center gap-1.5 text-zinc-600">
+              <TypeIcon size={16} />
+              <span className="text-sm">{typeInfo.label}</span>
+            </div>
             
             <div className="flex items-start gap-2">
               <MapPin size={18} className="text-zinc-400 mt-0.5 shrink-0" />
@@ -299,6 +288,15 @@ export default function ObjectDetailPage() {
                 )}
               </div>
             </div>
+
+            {/* Кнопка "Смены объекта" — перенесена под название */}
+            <button
+              onClick={() => router.push(`/objects/${id}/slots`)}
+              className="w-full mt-4 flex items-center justify-center gap-2 px-4 py-3 bg-[#c29cf2] text-white rounded-xl font-medium hover:bg-[#b088e8] transition-colors active:scale-[0.97]"
+            >
+              <Calendar size={18} />
+              <span>Смены объекта</span>
+            </button>
           </div>
           
           {object.logoUrl && (
@@ -312,7 +310,7 @@ export default function ObjectDetailPage() {
           )}
         </div>
 
-        {/* 1. СТАТИСТИКА */}
+        {/* Статистика */}
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-white rounded-xl border border-zinc-200 p-3 text-center">
             <div className="flex items-center justify-center gap-1 text-zinc-500 mb-1">
@@ -330,7 +328,7 @@ export default function ObjectDetailPage() {
           </div>
         </div>
 
-        {/* 2. БЛИЖАЙШИЕ СМЕНЫ */}
+        {/* Ближайшие смены */}
         {(nearbySlots.length > 0 || loadingSlots) && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -382,103 +380,36 @@ export default function ObjectDetailPage() {
           </div>
         )}
 
-        {/* Преимущества */}
-        {(object.hasBus || object.isPremium || object.hasFood) && (
-          <div className="space-y-3">
-            <h2 className="text-lg font-semibold text-zinc-900">Условия работы</h2>
-            <div className="grid grid-cols-2 gap-3">
-              {object.hasBus && (
-                <div className="flex items-center gap-2 p-3 bg-white rounded-xl border border-zinc-200">
-                  <Bus size={18} className="text-[#c29cf2]" />
-                  <span className="text-sm font-medium text-zinc-800">Трансфер</span>
-                </div>
-              )}
-              {object.isPremium && (
-                <div className="flex items-center gap-2 p-3 bg-white rounded-xl border border-zinc-200">
-                  <BadgePercent size={18} className="text-[#c29cf2]" />
-                  <span className="text-sm font-medium text-zinc-800">Высокий тариф</span>
-                </div>
-              )}
-              {object.hasFood && (
-                <div className="flex items-center gap-2 p-3 bg-white rounded-xl border border-zinc-200">
-                  <Utensils size={18} className="text-[#c29cf2]" />
-                  <span className="text-sm font-medium text-zinc-800">Питание</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* 5. ТРЕБОВАНИЯ */}
+        {/* Как добраться */}
         <div className="space-y-3">
-          <h2 className="text-lg font-semibold text-zinc-900">Требования</h2>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex items-center gap-2 p-3 bg-white rounded-xl border border-zinc-200">
-              <Shield size={18} className="text-zinc-500" />
-              <span className="text-sm text-zinc-700">Медкнижка</span>
-            </div>
-            <div className="flex items-center gap-2 p-3 bg-white rounded-xl border border-zinc-200">
-              <Shirt size={18} className="text-zinc-500" />
-              <span className="text-sm text-zinc-700">Спецодежда</span>
-            </div>
-            <div className="flex items-center gap-2 p-3 bg-white rounded-xl border border-zinc-200 col-span-2">
-              <AlertCircle size={18} className="text-zinc-500" />
-              <span className="text-sm text-zinc-700">Опыт работы от 1 года</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 6. СХЕМА ПРОХОДА */}
-        <div className="space-y-3">
-          <h2 className="text-lg font-semibold text-zinc-900">Схема прохода</h2>
-          <div className="bg-white rounded-xl border border-zinc-200 p-4 space-y-2">
+          <h2 className="text-lg font-semibold text-zinc-900">Как добраться</h2>
+          <div className="bg-white rounded-xl border border-zinc-200 p-4 space-y-3">
             <div className="flex items-start gap-2">
-              <Info size={16} className="text-zinc-400 mt-0.5" />
+              <MapPin size={16} className="text-zinc-400 mt-0.5 shrink-0" />
               <div className="text-sm text-zinc-700">
-                <p>1. Вход через центральную проходную (КПП №1)</p>
-                <p className="mt-1">2. При себе иметь паспорт</p>
-                <p className="mt-1">3. Оформить пропуск в бюро пропусков (1 этаж)</p>
-                <p className="mt-2 text-xs text-zinc-500">
-                  ⚠️ Время оформления пропуска: 10-15 минут, заложите время
-                </p>
+                <p><strong>Адрес:</strong> {object.city}, {object.address || "Не указан"}</p>
+                {object.lat && object.lng && (
+                  <p className="text-xs text-zinc-500 mt-1">
+                    📍 Координаты: {object.lat}, {object.lng}
+                  </p>
+                )}
               </div>
             </div>
             <button
               onClick={handleBuildRoute}
-              className="w-full flex items-center justify-center gap-2 mt-2 px-3 py-2 bg-zinc-100 rounded-xl text-sm font-medium text-zinc-700 hover:bg-zinc-200 transition-colors"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-zinc-100 rounded-xl text-sm font-medium text-zinc-700 hover:bg-zinc-200 transition-colors"
             >
               <Navigation size={16} />
-              Построить маршрут до КПП
+              Построить маршрут в Яндекс.Картах
             </button>
           </div>
         </div>
-
-        {/* Описание */}
-        {object.description && (
-          <div className="space-y-2">
-            <h2 className="text-lg font-semibold text-zinc-900">Описание</h2>
-            <p className="text-zinc-700 leading-relaxed whitespace-pre-line bg-white rounded-xl border border-zinc-200 p-4">
-              {object.description}
-            </p>
-          </div>
-        )}
       </div>
 
-      {/* Кнопка "Смены объекта" — исправлена, не перекрывает BottomNav */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-zinc-200 p-4 pb-6 z-40">
-        <button
-          onClick={() => router.push(`/objects/${id}/slots`)}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#c29cf2] text-white rounded-xl font-medium hover:bg-[#b088e8] transition-colors active:scale-[0.97]"
-        >
-          <Calendar size={18} />
-          <span>Смены объекта</span>
-        </button>
-      </div>
-
-      {/* 7. ФУЛЛСКРИН ГАЛЕРЕЯ */}
+      {/* Фуллскрин галерея */}
       {fullscreenOpen && (
         <div className="fixed inset-0 z-50 bg-black/95 flex flex-col">
-          <div className="flex justify-between items-center p-4 bg-black/50">
+          <div className="flex justify-between items-center p-4 bg-black/50 shrink-0">
             <button
               onClick={() => setFullscreenOpen(false)}
               className="p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
@@ -500,7 +431,7 @@ export default function ObjectDetailPage() {
           </div>
           
           {photos.length > 1 && (
-            <div className="flex justify-center gap-2 p-4 bg-black/50">
+            <div className="flex justify-center gap-2 p-4 bg-black/50 shrink-0">
               <button
                 onClick={() => setFullscreenIndex((prev) => (prev - 1 + photos.length) % photos.length)}
                 className="p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"

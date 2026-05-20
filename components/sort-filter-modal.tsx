@@ -1,6 +1,7 @@
+// components/SortFilterModal.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import type { TaskType } from "@/lib/task-types";
@@ -41,23 +42,31 @@ export default function SortFilterModal({
   onChange: (next: TaskFilters) => void;
 }) {
   const [mounted, setMounted] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => setMounted(true), []);
 
-  // lock scroll body
+  // Блокировка скролла body
   useEffect(() => {
     if (!open) return;
 
     const prevOverflow = document.body.style.overflow;
-    const prevTouchAction = (document.body.style as any).touchAction;
-
     document.body.style.overflow = "hidden";
-    (document.body.style as any).touchAction = "none";
 
     return () => {
       document.body.style.overflow = prevOverflow;
-      (document.body.style as any).touchAction = prevTouchAction;
     };
   }, [open]);
+
+  // Закрытие по Escape
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && open) onClose();
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [open, onClose]);
 
   const toggleType = (t: TaskType) => {
     const has = value.types.includes(t);
@@ -81,13 +90,11 @@ export default function SortFilterModal({
 
   const modal = (
     <div className="fixed inset-0 z-[9999]">
-      {/* overlay */}
       <div className={cn(uiOverlay, "touch-none")} onClick={onClose} />
 
-      {/* container */}
       <div className="absolute left-1/2 top-[10vh] w-[min(560px,calc(100%-32px))] -translate-x-1/2">
-        {/* panel */}
         <div
+          ref={modalRef}
           className={cn(
             uiCard,
             uiModal,
@@ -97,7 +104,7 @@ export default function SortFilterModal({
           data-open
           onClick={(e) => e.stopPropagation()}
         >
-          {/* header - не скроллится */}
+          {/* Header — не скроллится */}
           <div className="flex items-start justify-between gap-3 border-b border-zinc-200 p-4 shrink-0">
             <div>
               <div className="text-sm text-zinc-500">Задания</div>
@@ -118,8 +125,9 @@ export default function SortFilterModal({
             </button>
           </div>
 
-          {/* content - скроллится */}
+          {/* Content — скроллится */}
           <div
+            ref={contentRef}
             className="flex-1 overflow-y-auto overscroll-contain p-4"
             style={{ WebkitOverflowScrolling: "touch" }}
           >
@@ -134,7 +142,7 @@ export default function SortFilterModal({
                     { k: "pay_desc", label: "По цене: сначала дороже" },
                     { k: "pay_asc", label: "По цене: сначала дешевле" },
                     { k: "premium_first", label: "Сначала высокий тариф" },
-                    { k: "near", label: "По близости (пока заглушка)" },
+                    { k: "near", label: "По близости" },
                   ].map((x) => {
                     const active = value.sort === x.k;
                     return (
@@ -223,7 +231,7 @@ export default function SortFilterModal({
                 </div>
               </div>
 
-              {/* actions - кнопки */}
+              {/* Кнопки действий */}
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={reset}

@@ -15,6 +15,8 @@ import {
   SlidersHorizontal,
   ChevronRight
 } from "lucide-react";
+import { cn } from "@/lib/cn";
+import { uiTransition } from "@/lib/ui";
 
 function apiBase() {
   return (process.env.NEXT_PUBLIC_API_URL ?? "https://api.smenube.ru").replace(/\/+$/, "");
@@ -209,7 +211,7 @@ export default function MapPage() {
     };
   }, [maptilerKey]);
 
-  // markers - оптимизировано
+  // markers - с новой иконкой-булавкой
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -227,24 +229,25 @@ export default function MapPage() {
       el.setAttribute("data-smenuberu-pin", "1");
 
       el.className =
-        "h-10 w-10 rounded-2xl bg-black/80 text-white shadow-[0_10px_22px_rgba(0,0,0,0.18)] flex items-center justify-center active:scale-[0.98] transition";
+        "h-10 w-10 rounded-2xl bg-[#c29cf2] text-white shadow-[0_10px_22px_rgba(194,156,242,0.28)] flex items-center justify-center active:scale-[0.98] transition";
       el.title = o.name;
 
-      el.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M12 22s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12z" fill="currentColor"></path>
-        <circle cx="12" cy="10" r="2.5" fill="white"></circle>
+      // Новая иконка-булавка (кружок с полоской внизу)
+      el.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 22C12 22 18 15.5 18 10C18 5.5 14.5 2 12 2C9.5 2 6 5.5 6 10C6 15.5 12 22 12 22Z" fill="currentColor" stroke="white" stroke-width="1.2"/>
+        <circle cx="12" cy="10" r="3" fill="white"/>
       </svg>`;
 
       el.addEventListener("click", () => {
         try {
           document.querySelectorAll("[data-smenuberu-pin='1']").forEach((n) => {
-            n.classList.remove("bg-black/90");
-            n.classList.add("bg-black/80");
+            n.classList.remove("bg-[#b088e8]");
+            n.classList.add("bg-[#c29cf2]");
           });
         } catch {}
 
-        el.classList.remove("bg-black/80");
-        el.classList.add("bg-black/90");
+        el.classList.remove("bg-[#c29cf2]");
+        el.classList.add("bg-[#b088e8]");
 
         setActive(o);
         map.flyTo({ center: [o.lng, o.lat], zoom: Math.max(map.getZoom(), 14), essential: true });
@@ -301,8 +304,8 @@ export default function MapPage() {
   }, [filteredObjects, pos]);
 
   return (
-    <div className="relative h-screen w-full overflow-hidden">
-      {/* Карта */}
+    <div className="fixed inset-0 h-full w-full overflow-hidden">
+      {/* Карта на весь экран */}
       <div ref={containerRef} className="absolute inset-0 h-full w-full" />
 
       {/* UI компоненты поверх */}
@@ -321,7 +324,11 @@ export default function MapPage() {
                   <button
                     type="button"
                     onClick={requestGeo}
-                    className="inline-flex items-center gap-2 rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-sm hover:bg-zinc-50 transition"
+                    className={cn(
+                      uiTransition,
+                      "inline-flex items-center gap-2 rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-sm",
+                      "hover:bg-zinc-50 active:scale-[0.97]"
+                    )}
                     title="Определить местоположение"
                   >
                     <LocateFixed className="h-4 w-4" />
@@ -330,7 +337,11 @@ export default function MapPage() {
 
                   <Link
                     href="/objects"
-                    className="inline-flex items-center justify-center rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-sm hover:bg-zinc-50 transition"
+                    className={cn(
+                      uiTransition,
+                      "inline-flex items-center justify-center rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-sm",
+                      "hover:bg-zinc-50 active:scale-[0.97]"
+                    )}
                   >
                     Все объекты
                   </Link>
@@ -368,7 +379,7 @@ export default function MapPage() {
         <div className="pointer-events-auto mx-auto mt-auto w-full max-w-3xl px-4 pb-4">
           {pos && nearest.length > 0 ? (
             <div className="rounded-2xl bg-white/95 backdrop-blur-md shadow-lg border border-white/20 p-4">
-              <div className="text-sm font-semibold text-zinc-900">Ближайшие</div>
+              <div className="text-sm font-semibold text-zinc-900">Ближайшие объекты</div>
               <div className="mt-2 grid gap-2 max-h-[280px] overflow-y-auto">
                 {nearest.map((o) => (
                   <button
@@ -382,7 +393,11 @@ export default function MapPage() {
                         essential: true,
                       });
                     }}
-                    className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-left hover:bg-zinc-50 transition"
+                    className={cn(
+                      uiTransition,
+                      "flex items-center justify-between rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-left",
+                      "hover:bg-zinc-50 active:scale-[0.98]"
+                    )}
                   >
                     <div className="min-w-0">
                       <div className="text-sm font-medium text-zinc-900 truncate">{o.name}</div>
@@ -390,12 +405,16 @@ export default function MapPage() {
                         {o.city}{o.address ? `, ${o.address}` : ""}
                       </div>
                     </div>
-                    <div className="ml-3 text-xs text-zinc-600 whitespace-nowrap">
+                    <div className="ml-3 text-xs font-medium text-[#c29cf2] whitespace-nowrap">
                       ~ {Number((o as any).distKm).toFixed(1)} км
                     </div>
                   </button>
                 ))}
               </div>
+            </div>
+          ) : pos ? (
+            <div className="rounded-2xl bg-white/95 backdrop-blur-md shadow-lg border border-white/20 p-4 text-center text-sm text-zinc-500">
+              Поблизости нет объектов с координатами
             </div>
           ) : null}
         </div>
@@ -403,46 +422,43 @@ export default function MapPage() {
 
       {/* Плавающие кнопки */}
       <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 pointer-events-auto">
-        {/* Кнопка поиска */}
         <button
           onClick={() => setShowSearch(!showSearch)}
-          className="
-            tap flex items-center justify-center
-            h-12 w-12 rounded-xl bg-white border border-gray-300
-            shadow-lg hover:shadow-xl active:scale-95
-            transition-all duration-200
-          "
+          className={cn(
+            uiTransition,
+            "flex items-center justify-center h-12 w-12 rounded-xl bg-white border border-zinc-200",
+            "shadow-lg hover:shadow-xl active:scale-95",
+            "text-zinc-600 hover:text-[#c29cf2]"
+          )}
           aria-label="Поиск объектов"
         >
-          <Search size={20} className="text-gray-700" />
+          <Search size={20} />
         </button>
 
-        {/* Кнопка списка - ведет на /objects */}
         <button
           onClick={() => router.push("/objects")}
-          className="
-            tap flex items-center justify-center
-            h-12 w-12 rounded-xl bg-white border border-gray-800
-            shadow-lg hover:shadow-xl active:scale-95
-            transition-all duration-200 group
-          "
+          className={cn(
+            uiTransition,
+            "flex items-center justify-center h-12 w-12 rounded-xl bg-[#c29cf2] border border-[#c29cf2]",
+            "shadow-lg hover:shadow-xl active:scale-95",
+            "text-white"
+          )}
           aria-label="Список объектов"
         >
-          <List size={20} className="text-gray-800 group-hover:scale-110 transition-transform" />
+          <List size={20} />
         </button>
 
-        {/* Кнопка фильтров */}
         <button
           onClick={() => router.push("/objects")}
-          className="
-            tap flex items-center justify-center
-            h-12 w-12 rounded-xl bg-white border border-gray-300
-            shadow-lg hover:shadow-xl active:scale-95
-            transition-all duration-200
-          "
+          className={cn(
+            uiTransition,
+            "flex items-center justify-center h-12 w-12 rounded-xl bg-white border border-zinc-200",
+            "shadow-lg hover:shadow-xl active:scale-95",
+            "text-zinc-600 hover:text-[#c29cf2]"
+          )}
           aria-label="Фильтры"
         >
-          <SlidersHorizontal size={20} className="text-gray-700" />
+          <SlidersHorizontal size={20} />
         </button>
       </div>
 
@@ -456,23 +472,20 @@ export default function MapPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Поиск по названию, городу, адресу..."
-                className="
-                  w-full rounded-xl border border-gray-200 bg-white
-                  px-4 py-3 text-sm placeholder:text-gray-400
-                  focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
-                  shadow-lg transition-all duration-200
-                "
+                className={cn(
+                  "w-full rounded-xl border border-zinc-200 bg-white",
+                  "px-4 py-3 text-sm placeholder:text-zinc-400",
+                  "focus:outline-none focus:ring-2 focus:ring-[#c29cf2]/20 focus:border-[#c29cf2]",
+                  "shadow-lg transition-all duration-200"
+                )}
                 autoFocus
                 onBlur={() => searchQuery === "" && setShowSearch(false)}
               />
-              <Search
-                size={18}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-              />
+              <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400" />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-10 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-10 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
                 >
                   ✕
                 </button>
@@ -489,7 +502,7 @@ export default function MapPage() {
             <div className="rounded-3xl border border-zinc-200 bg-white/95 backdrop-blur-md shadow-[0_18px_44px_rgba(0,0,0,0.18)] p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="text-sm font-semibold text-zinc-900">{active.name}</div>
+                  <div className="text-base font-semibold text-zinc-900">{active.name}</div>
                   <div className="mt-1 text-xs text-zinc-500">
                     {active.city}{active.address ? `, ${active.address}` : ""}
                   </div>
@@ -498,14 +511,33 @@ export default function MapPage() {
                 <button
                   type="button"
                   onClick={() => setActive(null)}
-                  className="rounded-2xl p-2 hover:bg-zinc-100 transition"
+                  className={cn(
+                    uiTransition,
+                    "rounded-2xl p-2 hover:bg-zinc-100 active:scale-[0.95]"
+                  )}
                   title="Закрыть"
                 >
                   <X className="h-5 w-5 text-zinc-600" />
                 </button>
               </div>
 
-              <div className="mt-3 flex items-center gap-2">
+              {/* Кнопка "Детали" */}
+              <div className="mt-3">
+                <Link
+                  href={`/objects/${active.id}`}
+                  className={cn(
+                    uiTransition,
+                    "flex w-full items-center justify-center gap-2 rounded-2xl bg-[#c29cf2] px-4 py-3 text-sm font-medium text-white",
+                    "hover:bg-[#b088e8] active:scale-[0.97]"
+                  )}
+                >
+                  Подробнее об объекте
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              </div>
+
+              {/* Кнопка "Открыть в Яндекс" */}
+              <div className="mt-2">
                 <a
                   href={
                     typeof active.lat === "number" && typeof active.lng === "number"
@@ -514,19 +546,16 @@ export default function MapPage() {
                   }
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-black/90 px-4 py-3 text-sm font-medium text-white hover:bg-black/80 transition"
+                  className={cn(
+                    uiTransition,
+                    "flex w-full items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-700",
+                    "hover:bg-zinc-50 active:scale-[0.97]"
+                  )}
                 >
-                  <MapPin className="h-5 w-5" />
-                  Открыть в Яндекс
-                  <ExternalLink className="h-4 w-4 opacity-90" />
+                  <MapPin className="h-4 w-4" />
+                  Открыть маршрут в Яндекс.Картах
+                  <ExternalLink className="h-3 w-3 opacity-70" />
                 </a>
-
-                <Link
-                  href={`/dashboard/objects/${active.id}`}
-                  className="inline-flex items-center justify-center rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm hover:bg-zinc-50 transition"
-                >
-                  Детали
-                </Link>
               </div>
             </div>
           </div>

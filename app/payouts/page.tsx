@@ -59,7 +59,7 @@ export default function PayoutsPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-8">
       {/* Хедер с балансом */}
       <div className="rounded-2xl border border-zinc-200 bg-gradient-to-br from-white to-zinc-50 p-5 shadow-[0_10px_28px_rgba(0,0,0,0.06)]">
         <div className="flex items-center justify-between">
@@ -87,12 +87,12 @@ export default function PayoutsPage() {
           </div>
         </div>
 
-        {/* Быстрые действия - ТОЛЬКО вывод */}
+        {/* Быстрые действия */}
         <div className="mt-6">
           <button className={cn(
             uiTransition,
-            "group flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-900 p-3 text-sm font-medium text-white",
-            "hover:bg-zinc-800 active:scale-[0.98] shadow-md"
+            "group flex w-full items-center justify-center gap-2 rounded-xl bg-[#c29cf2] p-3 text-sm font-medium text-white",
+            "hover:bg-[#b088e8] active:scale-[0.98] shadow-md"
           )}>
             <ArrowUpRight className="h-4 w-4" />
             Вывести деньги
@@ -119,8 +119,9 @@ export default function PayoutsPage() {
               className={cn(
                 uiTransition,
                 "flex items-center justify-center gap-2 rounded-xl p-3 text-sm font-medium",
+                "active:scale-[0.97]",
                 activeTab === tab.id
-                  ? "bg-zinc-900 text-white"
+                  ? "bg-[#c29cf2] text-white"
                   : "text-zinc-700 hover:bg-zinc-50"
               )}
             >
@@ -145,10 +146,10 @@ export default function PayoutsPage() {
                     onClick={() => setSelectedPeriod(period as any)}
                     className={cn(
                       uiTransition,
-                      "rounded-lg px-3 py-1.5 text-xs",
+                      "rounded-lg px-3 py-1.5 text-xs active:scale-[0.97]",
                       selectedPeriod === period
-                        ? "bg-white text-zinc-900 shadow-sm"
-                        : "text-zinc-600 hover:text-zinc-900"
+                        ? "bg-[#c29cf2] text-white"
+                        : "text-zinc-600 hover:bg-zinc-100"
                     )}
                   >
                     {period === "week" ? "Неделя" : period === "month" ? "Месяц" : "Квартал"}
@@ -163,7 +164,7 @@ export default function PayoutsPage() {
                 {[40, 65, 85, 60, 90, 75, 100].map((height, i) => (
                   <div key={i} className="flex flex-col items-center">
                     <div 
-                      className="w-8 rounded-t-lg bg-gradient-to-t from-brand to-brand/70"
+                      className="w-8 rounded-t-lg bg-gradient-to-t from-[#c29cf2] to-[#c29cf2]/70"
                       style={{ height: `${height}%` }}
                     />
                     <div className="mt-2 text-[10px] text-zinc-500">
@@ -182,7 +183,7 @@ export default function PayoutsPage() {
                 </div>
                 <div className="rounded-xl border border-zinc-200 p-4">
                   <div className="text-xs text-zinc-500">С рефералов</div>
-                  <div className="mt-1 text-xl font-semibold text-green-600">
+                  <div className="mt-1 text-xl font-semibold text-[#c29cf2]">
                     {balanceData.referralsEarned.toLocaleString("ru-RU")} ₽
                   </div>
                 </div>
@@ -210,11 +211,11 @@ export default function PayoutsPage() {
                   <div className="flex items-center gap-3">
                     <div className={cn(
                       "rounded-lg p-2",
-                      method.connected ? "bg-brand/10" : "bg-zinc-100"
+                      method.connected ? "bg-[#c29cf2]/10" : "bg-zinc-100"
                     )}>
                       <method.icon className={cn(
                         "h-5 w-5",
-                        method.connected ? "text-brand" : "text-zinc-400"
+                        method.connected ? "text-[#c29cf2]" : "text-zinc-400"
                       )} />
                     </div>
                     <div>
@@ -236,7 +237,7 @@ export default function PayoutsPage() {
         <div className="rounded-2xl border border-zinc-200 bg-white p-5">
           <div className="flex items-center justify-between">
             <div className="text-sm font-semibold">История операций</div>
-            <button className="flex items-center gap-1 rounded-xl border border-zinc-200 bg-white p-2 text-xs">
+            <button className="flex items-center gap-1 rounded-xl border border-zinc-200 bg-white p-2 text-xs active:scale-[0.97]">
               <Filter className="h-3 w-3" />
               Фильтр
             </button>
@@ -287,7 +288,7 @@ export default function PayoutsPage() {
       {activeTab === "referrals" && (
         <>
           {/* Реферальная статистика */}
-          <div className="rounded-2xl border border-zinc-200 bg-gradient-to-br from-sky-50 to-indigo-50 p-5">
+          <div className="rounded-2xl border border-zinc-200 bg-gradient-to-br from-[#c29cf2]/5 to-[#c29cf2]/10 p-5">
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-sm font-semibold text-zinc-900">Реферальная программа</div>
@@ -296,14 +297,14 @@ export default function PayoutsPage() {
                 </div>
               </div>
               <div className="rounded-full bg-white/80 p-2">
-                <Users className="h-5 w-5 text-sky-600" />
+                <Users className="h-5 w-5 text-[#c29cf2]" />
               </div>
             </div>
 
             <div className="mt-6 grid grid-cols-3 gap-3">
               <div className="rounded-xl bg-white/80 p-3 text-center backdrop-blur-sm">
                 <div className="text-xs text-zinc-500">Приглашено</div>
-                <div className="mt-1 text-xl font-semibold text-sky-700">
+                <div className="mt-1 text-xl font-semibold text-[#c29cf2]">
                   {referralData.totalReferrals}
                 </div>
               </div>
@@ -325,7 +326,7 @@ export default function PayoutsPage() {
             <div className="mt-6">
               <div className="text-xs text-zinc-600 mb-2">Ваша реферальная ссылка</div>
               <div className="flex gap-2">
-                <div className="flex-1 rounded-xl bg-white/80 p-3 text-sm font-mono backdrop-blur-sm">
+                <div className="flex-1 rounded-xl bg-white/80 p-3 text-sm font-mono backdrop-blur-sm truncate">
                   {referralData.link}
                 </div>
                 <button
@@ -333,7 +334,8 @@ export default function PayoutsPage() {
                   className={cn(
                     uiTransition,
                     "flex items-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-medium",
-                    copied ? "bg-green-50 text-green-700" : "text-sky-700 hover:bg-white/90"
+                    "active:scale-[0.97]",
+                    copied ? "bg-green-50 text-green-700" : "text-[#c29cf2] hover:bg-white/90"
                   )}
                 >
                   {copied ? (
@@ -363,7 +365,7 @@ export default function PayoutsPage() {
                 "Друг получает 1 000 ₽ бонусом"
               ].map((step, i) => (
                 <div key={i} className="flex items-start gap-3">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-brand/10 text-xs font-semibold text-brand">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#c29cf2]/10 text-xs font-semibold text-[#c29cf2]">
                     {i + 1}
                   </div>
                   <div className="text-sm text-zinc-700">{step}</div>
