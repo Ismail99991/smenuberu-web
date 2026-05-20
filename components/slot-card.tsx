@@ -5,11 +5,10 @@ import Badge from "@/components/badge";
 import type { Slot } from "@/lib/slots";
 import { formatMoneyRub } from "@/lib/slots";
 import { getBooking, setBooking, type BookingStatus } from "@/lib/booking-state";
-import { TaskTypeIcon } from "@/components/task-type-icon";
 import { cn } from "@/lib/cn";
-import { uiCard, uiTransition, uiButtonGhost, uiButtonPrimary } from "@/lib/ui";
+import { uiCard, uiButtonGhost, uiButtonPrimary } from "@/lib/ui";
+import { getIllustrationUrl } from "@/lib/illustrations";
 import { Flame } from "lucide-react";
-import { BanknoteArrowUp } from "lucide-react";
 
 export default function SlotCard({
   slot,
@@ -26,72 +25,71 @@ export default function SlotCard({
   }, [slot.id]);
 
   const isPremium = slot.pay >= 3500;
+  const illustrationUrl = getIllustrationUrl(slot.type);
 
   return (
-    <div
-      className={cn(
-        uiCard,
-        "p-5",
-        "hover:shadow-md hover:border-zinc-300"
-      )}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex gap-3">
-          {slot.logoUrl && (
-            <img 
-              src={slot.logoUrl} 
-              alt={slot.objectName || slot.company}
-              className="h-12 w-12 rounded-xl object-cover border border-zinc-100"
-            />
-          )}
-          
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="flex items-center gap-2">
-                <TaskTypeIcon type={slot.type} className="h-5 w-5 text-zinc-700" />
-                <div className="text-base font-semibold">{slot.title}</div>
-              </div>
+    <div className={cn(uiCard, "p-5 hover:shadow-md hover:border-zinc-300")}>
+      {/* Верхняя часть: логотип + текстовая информация */}
+      <div className="flex gap-3">
+        {slot.logoUrl && (
+          <img
+            src={slot.logoUrl}
+            alt={slot.objectName || slot.company}
+            className="h-12 w-12 rounded-xl object-cover border border-zinc-100"
+          />
+        )}
 
-              {slot.hot ? <Flame className="h-4 w-4 text-red-500" /> : null}
-              {isPremium ? <BanknoteArrowUp className="h-4 w-4 text-sky-600" /> : null}
+        <div className="flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="text-base font-semibold">{slot.title}</div>
+            {slot.hot && <Flame className="h-4 w-4 text-red-500" />}
+            {isPremium && (
+              <span className="inline-flex items-center rounded-full bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-700">
+                Премиум
+              </span>
+            )}
 
-              {status === "booked" && (
-                <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
-                  Записан
-                </span>
-              )}
-              {status === "cancelled" && (
-                <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
-                  Отменено
-                </span>
-              )}
-              {status === "completed" && (
-                <span className="inline-flex items-center rounded-full bg-zinc-900 px-2 py-0.5 text-xs font-medium text-white">
-                  Завершено
-                </span>
-              )}
-            </div>
+            {status === "booked" && (
+              <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                Записан
+              </span>
+            )}
+            {status === "cancelled" && (
+              <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
+                Отменено
+              </span>
+            )}
+            {status === "completed" && (
+              <span className="inline-flex items-center rounded-full bg-zinc-900 px-2 py-0.5 text-xs font-medium text-white">
+                Завершено
+              </span>
+            )}
+          </div>
 
-            <div className="mt-1 text-sm text-zinc-600">
-              {slot.objectName || slot.company} · {slot.city}
-            </div>
+          <div className="mt-1 text-sm text-zinc-600">
+            {slot.objectName || slot.company} · {slot.city}
           </div>
         </div>
 
-        <div className="text-right">
-          <div className="text-base font-semibold">{formatMoneyRub(slot.pay)}</div>
-          <div className="mt-1 text-xs text-zinc-500">{slot.time}</div>
-        </div>
+        {/* Иллюстрация справа */}
+        <img
+          src={illustrationUrl}
+          alt={slot.type}
+          className="h-14 w-14 object-contain"
+        />
       </div>
 
+      {/* Теги */}
       <div className="mt-3 flex flex-wrap gap-2">
         {slot.tags.map((t) => (
           <Badge key={t}>{t}</Badge>
         ))}
       </div>
 
+      {/* Адрес */}
       <div className="mt-3 text-sm text-zinc-600">{slot.address}</div>
 
+      {/* Нижняя часть: кнопка + цена/время */}
       {status === "booked" ? (
         <div className="mt-4 grid gap-2">
           <button
@@ -125,15 +123,22 @@ export default function SlotCard({
           Смена завершена. Оценка смены — в профиле.
         </div>
       ) : (
-        <button
-          onClick={() => onBook(slot)}
-          className={cn(
-            uiButtonPrimary,
-            "mt-4 w-full rounded-xl px-4 py-3 text-sm font-medium"
-          )}
-        >
-          Записаться
-        </button>
+        <div className="mt-4 flex items-center gap-3">
+          <button
+            onClick={() => onBook(slot)}
+            className={cn(
+              uiButtonPrimary,
+              "w-[70%] rounded-xl px-4 py-3 text-sm font-medium"
+            )}
+          >
+            Записаться
+          </button>
+
+          <div className="flex flex-1 items-center justify-between gap-2">
+            <div className="text-base font-semibold">{formatMoneyRub(slot.pay)}</div>
+            <div className="text-xs text-zinc-500">{slot.time}</div>
+          </div>
+        </div>
       )}
     </div>
   );

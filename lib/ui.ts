@@ -41,12 +41,23 @@ export const uiButtonBase = cn(
 );
 
 /**
- * Primary button
+ * Primary button — обновлён на #c29cf2
  */
 export const uiButtonPrimary = cn(
   uiButtonBase,
-  "bg-black text-white",
-  "hover:bg-black/90"
+  "bg-[#c29cf2] text-white",
+  "hover:bg-[#b088e8]",
+  "focus:ring-2 focus:ring-[#c29cf2] focus:ring-offset-2"
+);
+
+/**
+ * Secondary button — новый, на основе вторичного цвета #d2e04f
+ */
+export const uiButtonSecondary = cn(
+  uiButtonBase,
+  "bg-[#d2e04f] text-zinc-900",
+  "hover:bg-[#c5d43f]",
+  "focus:ring-2 focus:ring-[#d2e04f] focus:ring-offset-2"
 );
 
 /**
@@ -56,6 +67,14 @@ export const uiButtonGhost = cn(
   uiButtonBase,
   "bg-transparent text-black",
   "hover:bg-gray-100"
+);
+
+/**
+ * Badge с вторичным цветом (для акцентов)
+ */
+export const uiBadgeSecondary = cn(
+  "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
+  "bg-[#d2e04f] text-zinc-900"
 );
 
 /**
