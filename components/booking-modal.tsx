@@ -55,11 +55,9 @@ export default function BookingModal({
   const [onlyConsecutive, setOnlyConsecutive] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ чтобы портал работал только на клиенте
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  // ✅ lock scroll body на время открытой модалки (особенно важно на iOS)
   useEffect(() => {
     if (!open) return;
 
@@ -189,29 +187,23 @@ export default function BookingModal({
 
   if (!open) return null;
 
-  // ✅ Портал в body гарантирует, что модалка всегда поверх,
-  // независимо от transform/stacking contexts выше по дереву.
   if (!mounted) return null;
 
   const modal = (
     <div className="fixed inset-0 z-[9999]">
-      {/* overlay: перехватывает тачи/клики и закрывает модалку */}
       <div
         className={cn(uiOverlay, "touch-none")}
         onClick={onClose}
       />
 
-      {/* контейнер модалки */}
       <div className="absolute left-1/2 top-4 w-[min(560px,calc(100%-16px))] -translate-x-1/2">
         <div
           className={cn(
             uiCard,
             uiModal,
-            // ✅ чтобы модалка могла скроллиться и не “упиралась” в высоту экрана
             "max-h-[calc(100dvh-32px)] overflow-hidden"
           )}
           data-open
-          // ✅ чтобы клики/свайпы внутри не уходили на overlay
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-start justify-between gap-3 border-b border-zinc-200 p-4">
@@ -230,7 +222,6 @@ export default function BookingModal({
             </button>
           </div>
 
-          {/* ✅ вот тут делаем нормальный вертикальный скролл */}
           <div
             className={cn(
               "space-y-3 p-4",
@@ -240,7 +231,7 @@ export default function BookingModal({
             )}
             style={{
               WebkitOverflowScrolling: "touch",
-              maxHeight: "calc(100dvh - 32px - 72px)", // экран - отступы - хедер (прибл.)
+              maxHeight: "calc(100dvh - 32px - 72px)",
             }}
           >
             <DayTabs
@@ -309,11 +300,11 @@ export default function BookingModal({
                       title={booked ? "Уже записан на этот слот" : undefined}
                       className={cn(
                         uiTransition,
-                        "w-full rounded-2xl border p-4 text-left",
+                        "w-full rounded-2xl border p-4 text-left active:scale-[0.99]",
                         checked
-                          ? "border-zinc-900 bg-zinc-50"
+                          ? "border-[#c29cf2] bg-[#c29cf2]/5"  // ← фиолетовая граница и лёгкий фон
                           : "border-zinc-200 bg-white hover:bg-zinc-50",
-                        disabled && "opacity-50 cursor-not-allowed"
+                        disabled && "opacity-50 cursor-not-allowed active:scale-100"
                       )}
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -324,7 +315,7 @@ export default function BookingModal({
                                 uiTransition,
                                 "inline-flex h-5 w-5 items-center justify-center rounded-md border text-xs",
                                 checked
-                                  ? "border-zinc-900 bg-zinc-900 text-white"
+                                  ? "border-[#c29cf2] bg-[#c29cf2] text-white"
                                   : "border-zinc-300 bg-white"
                               )}
                             >

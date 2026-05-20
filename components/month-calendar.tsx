@@ -91,7 +91,7 @@ export default function MonthCalendar({
             className={cn(
               uiTransition,
               "rounded-xl border border-zinc-200 p-2",
-              "hover:bg-zinc-50 active:shadow-inner",
+              "hover:bg-zinc-50 active:scale-[0.97]",
               !onPrevMonth && "invisible"
             )}
             aria-label="Предыдущий месяц"
@@ -108,7 +108,7 @@ export default function MonthCalendar({
             className={cn(
               uiTransition,
               "rounded-xl border border-zinc-200 p-2",
-              "hover:bg-zinc-50 active:shadow-inner",
+              "hover:bg-zinc-50 active:scale-[0.97]",
               !onNextMonth && "invisible"
             )}
             aria-label="Следующий месяц"
@@ -122,7 +122,7 @@ export default function MonthCalendar({
           className={cn(
             uiTransition,
             "rounded-xl border border-zinc-200 px-3 py-1.5 text-xs font-medium",
-            "hover:bg-zinc-50 active:shadow-inner"
+            "hover:bg-zinc-50 active:scale-[0.97]"
           )}
         >
           Сегодня
@@ -161,11 +161,11 @@ export default function MonthCalendar({
               className={cn(
                 uiTransition,
                 "relative flex h-12 flex-col items-center justify-center rounded-xl text-sm",
-                "border-2",
+                "border-2 active:scale-[0.97]",
                 active
-                  ? "border-brand bg-brand text-white"
+                  ? "border-[#c29cf2] bg-[#c29cf2] text-white"  // ← фиолетовый для активного дня
                   : isToday
-                  ? "border-brand/30 bg-brand/5 text-brand"
+                  ? "border-[#c29cf2]/30 bg-[#c29cf2]/5 text-[#c29cf2]"  // ← фиолетовый для сегодня
                   : "border-transparent bg-white text-zinc-900 hover:bg-zinc-50",
                 !inMonth && "opacity-30",
                 disabled && "opacity-50 cursor-not-allowed hover:bg-white"
@@ -176,7 +176,7 @@ export default function MonthCalendar({
               <span
                 className={cn(
                   "text-sm font-medium",
-                  active ? "text-white" : isToday ? "text-brand" : "text-zinc-900",
+                  active ? "text-white" : isToday ? "text-[#c29cf2]" : "text-zinc-900",
                   !inMonth && "text-zinc-500"
                 )}
               >
@@ -189,7 +189,7 @@ export default function MonthCalendar({
                   <span
                     className={cn(
                       "h-1.5 w-1.5 rounded-full",
-                      active ? "bg-sky-300" : isToday ? "bg-sky-500" : "bg-sky-500"
+                      active ? "bg-sky-200" : "bg-sky-500"
                     )}
                   />
                 ) : null}
@@ -197,7 +197,7 @@ export default function MonthCalendar({
                   <span
                     className={cn(
                       "h-1.5 w-1.5 rounded-full",
-                      active ? "bg-red-300" : isToday ? "bg-red-500" : "bg-red-500"
+                      active ? "bg-red-300" : "bg-red-500"
                     )}
                   />
                 ) : null}
@@ -205,7 +205,7 @@ export default function MonthCalendar({
               
               {/* Бейдж "Сегодня" */}
               {isToday && !active && (
-                <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-brand"></div>
+                <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-[#c29cf2]"></div>
               )}
             </button>
           );
@@ -215,7 +215,7 @@ export default function MonthCalendar({
       {/* Легенда */}
       <div className="mt-4 flex items-center justify-center gap-4 text-xs text-zinc-600">
         <div className="flex items-center gap-1.5">
-          <div className="h-3 w-3 rounded-full bg-brand/20 border border-brand/30"></div>
+          <div className="h-3 w-3 rounded-full bg-[#c29cf2]/20 border border-[#c29cf2]/30"></div>
           <span>Сегодня</span>
         </div>
         <div className="flex items-center gap-1.5">

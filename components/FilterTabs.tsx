@@ -60,7 +60,6 @@ export default function FilterTabs({
     setShowTypeModal(false);
   };
 
-  // Закрываем модалку при клике вне ее
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") setShowTypeModal(false);
@@ -88,11 +87,11 @@ export default function FilterTabs({
                     onClick={() => handleTabClick(t.key)}
                     className={cn(
                       "flex items-center gap-2 rounded-full px-4 py-2 text-sm tap",
-                      "transition-[background-color,color,box-shadow,transform] duration-200 ease-out",
+                      "transition-all duration-200 ease-out active:scale-[0.96]",
                       active
-                        ? "bg-brand text-white shadow-[0_8px_18px_rgba(79,70,229,0.28)]"
-                        : "border border-gray-200 bg-white/80 text-gray-700 backdrop-blur",
-                      isTypeTab && selectedType && !showTypeModal && "bg-blue-50 border-blue-200 text-blue-700"
+                        ? "bg-[#c29cf2] text-white shadow-[0_8px_18px_rgba(194,156,242,0.28)]"  // ← фиолетовый для активного
+                        : "border border-zinc-200 bg-white/80 text-zinc-700 backdrop-blur hover:bg-zinc-50",
+                      isTypeTab && selectedType && !showTypeModal && "bg-[#c29cf2]/10 border-[#c29cf2]/30 text-[#c29cf2]"  // ← фиолетовый для выбранного типа
                     )}
                   >
                     {Icon ? <Icon size={16} /> : null}
@@ -103,7 +102,7 @@ export default function FilterTabs({
                       <ChevronDown 
                         size={14} 
                         className={cn(
-                          "transition-transform",
+                          "transition-transform duration-200",
                           showTypeModal && "rotate-180"
                         )} 
                       />
@@ -124,17 +123,17 @@ export default function FilterTabs({
             onClick={(e) => e.stopPropagation()}
           >
             {/* Шапка модалки */}
-            <div className="flex items-center justify-between p-4 border-b">
+            <div className="flex items-center justify-between p-4 border-b border-zinc-200">
               <div>
-                <h3 className="font-semibold text-gray-900">Тип объекта</h3>
-                <p className="text-sm text-gray-500">Выберите тип</p>
+                <h3 className="font-semibold text-zinc-900">Тип объекта</h3>
+                <p className="text-sm text-zinc-500">Выберите тип</p>
               </div>
               <button
                 onClick={() => setShowTypeModal(false)}
-                className="p-1 rounded-full hover:bg-gray-100 tap"
+                className="p-1 rounded-full hover:bg-zinc-100 tap transition-colors active:scale-[0.95]"
                 aria-label="Закрыть"
               >
-                <X size={20} className="text-gray-500" />
+                <X size={20} className="text-zinc-500" />
               </button>
             </div>
 
@@ -145,9 +144,9 @@ export default function FilterTabs({
                   key={type}
                   onClick={() => handleTypeSelect(type)}
                   className={cn(
-                    "w-full text-left px-4 py-3 rounded-lg mb-1 tap transition-colors",
-                    "hover:bg-gray-50 active:bg-gray-100",
-                    selectedType === type && "bg-blue-50 text-blue-700 font-medium"
+                    "w-full text-left px-4 py-3 rounded-lg mb-1 tap transition-all duration-150",
+                    "hover:bg-zinc-50 active:scale-[0.98]",
+                    selectedType === type && "bg-[#c29cf2]/10 text-[#c29cf2] font-medium"
                   )}
                 >
                   {type}
@@ -157,20 +156,20 @@ export default function FilterTabs({
 
             {/* Футер модалки */}
             {selectedType && (
-              <div className="border-t p-4">
+              <div className="border-t border-zinc-200 p-4">
                 <button
                   onClick={clearTypeFilter}
-                  className="w-full py-3 text-center text-red-600 font-medium hover:bg-red-50 rounded-lg tap transition-colors"
+                  className="w-full py-3 text-center text-rose-600 font-medium hover:bg-rose-50 rounded-lg tap transition-colors active:scale-[0.98]"
                 >
                   Сбросить фильтр
                 </button>
               </div>
             )}
 
-            <div className="p-4 border-t">
+            <div className="p-4 border-t border-zinc-200">
               <button
                 onClick={() => setShowTypeModal(false)}
-                className="w-full py-3 text-center text-gray-600 font-medium hover:bg-gray-50 rounded-lg tap transition-colors"
+                className="w-full py-3 text-center text-zinc-600 font-medium hover:bg-zinc-50 rounded-lg tap transition-colors active:scale-[0.98]"
               >
                 Закрыть
               </button>

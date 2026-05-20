@@ -27,10 +27,10 @@ export default function BottomNav() {
 
   useLiquidWeb(glassRef, {
     mode: "prominent",
-    scale: 16,
-    blur: 2,
-    saturation: 170,
-    aberration: 18,
+    scale: 24,           // ↑ увеличено с 16 → сильнее искажение
+    blur: 8,             // ↑ увеличено с 2 → сильнее размытие
+    saturation: 200,     // ↑ увеличено с 170 → ярче цвета
+    aberration: 12,      // ↓ уменьшено с 18 → меньше цветных артефактов
   });
 
   return (
@@ -40,9 +40,10 @@ export default function BottomNav() {
           ref={glassRef}
           className="
             grid grid-cols-5 gap-1 rounded-3xl
-            border border-white/35
-            bg-white/20
-            shadow-[0_18px_45px_rgba(0,0,0,0.18)]
+            border border-white/50      // ↑ увеличена видимость границы
+            bg-white/30                 // ↑ увеличена плотность фона
+            shadow-[0_8px_32px_rgba(0,0,0,0.2)]  // ← более выраженная тень
+            backdrop-blur-xl            // ← дополнительное размытие (fallback)
           "
         >
           {items.map(({ href, icon: Icon }) => {
@@ -56,8 +57,8 @@ export default function BottomNav() {
                 className={cn(
                   "relative flex items-center justify-center py-4 rounded-2xl transition-all duration-200",
                   active
-                    ? "text-zinc-900"
-                    : "text-zinc-500 active:scale-95"
+                    ? "text-[#c29cf2]"  // ← фиолетовый для активной иконки
+                    : "text-zinc-400 active:scale-95"  // ← светлее неактивные
                 )}
               >
                 <Icon

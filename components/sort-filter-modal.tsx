@@ -40,11 +40,10 @@ export default function SortFilterModal({
   value: TaskFilters;
   onChange: (next: TaskFilters) => void;
 }) {
-  // ✅ чтобы портал работал только на клиенте
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  // ✅ lock scroll body на время открытой модалки (особенно важно на iOS)
+  // lock scroll body
   useEffect(() => {
     if (!open) return;
 
@@ -86,23 +85,20 @@ export default function SortFilterModal({
       <div className={cn(uiOverlay, "touch-none")} onClick={onClose} />
 
       {/* container */}
-      <div className="absolute left-1/2 top-6 w-[min(560px,calc(100%-16px))] -translate-x-1/2">
+      <div className="absolute left-1/2 top-[10vh] w-[min(560px,calc(100%-32px))] -translate-x-1/2">
         {/* panel */}
         <div
           className={cn(
             uiCard,
             uiModal,
-            // ✅ added: делаем колонку, чтобы body мог занять остаток высоты и скроллиться
-            "flex flex-col", // ✅ added
-            // ✅ чтобы модалка нормально скроллилась на мобиле
-            "max-h-[calc(100dvh-48px)] overflow-hidden"
+            "flex flex-col",
+            "max-h-[80vh] overflow-hidden"
           )}
           data-open
-          // ✅ чтобы клики/свайпы внутри не уходили на overlay
           onClick={(e) => e.stopPropagation()}
         >
-          {/* header (не скроллится) */}
-          <div className="flex items-start justify-between gap-3 border-b border-zinc-200 p-4">
+          {/* header - не скроллится */}
+          <div className="flex items-start justify-between gap-3 border-b border-zinc-200 p-4 shrink-0">
             <div>
               <div className="text-sm text-zinc-500">Задания</div>
               <div className="text-base font-semibold">
@@ -110,12 +106,11 @@ export default function SortFilterModal({
               </div>
             </div>
 
-            {/* ❗фикс “лупы” — без scale/transform */}
             <button
               onClick={onClose}
               className={cn(
                 uiButtonGhost,
-                "p-2 border border-zinc-200 rounded-xl transform-none active:scale-100"
+                "p-2 border border-zinc-200 rounded-xl hover:bg-zinc-50 active:scale-[0.96]"
               )}
               aria-label="Закрыть"
             >
@@ -123,16 +118,10 @@ export default function SortFilterModal({
             </button>
           </div>
 
-          {/* content (СКРОЛЛИТСЯ) */}
+          {/* content - скроллится */}
           <div
-            className={cn(
-              // ✅ added: flex-1 + min-h-0 критично для overflow внутри flex-колонки
-              "p-4 overflow-y-auto overscroll-contain touch-pan-y flex-1 min-h-0" // ✅ added
-            )}
+            className="flex-1 overflow-y-auto overscroll-contain p-4"
             style={{ WebkitOverflowScrolling: "touch" }}
-            // ✅ чтобы тачи/скролл не “проваливались” в фон
-            onPointerDown={(e) => e.stopPropagation()}
-            onPointerMove={(e) => e.stopPropagation()}
           >
             <div className="space-y-4">
               {/* Сортировка */}
@@ -156,10 +145,10 @@ export default function SortFilterModal({
                         }
                         className={cn(
                           uiTransition,
-                          "w-full rounded-xl border px-3 py-2 text-left text-sm",
+                          "w-full rounded-xl border px-3 py-2 text-left text-sm active:scale-[0.98]",
                           active
-                            ? "border-zinc-900 bg-zinc-900 text-white"
-                            : "border-zinc-200 bg-white hover:bg-zinc-50"
+                            ? "border-[#c29cf2] bg-[#c29cf2] text-white"
+                            : "border-zinc-200 bg-white text-zinc-900 hover:bg-zinc-50"
                         )}
                       >
                         {x.label}
@@ -192,7 +181,8 @@ export default function SortFilterModal({
                       key={f.label}
                       className={cn(
                         uiTransition,
-                        "flex items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm"
+                        "flex items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm",
+                        "cursor-pointer"
                       )}
                     >
                       <span>{f.label}</span>
@@ -200,7 +190,7 @@ export default function SortFilterModal({
                         type="checkbox"
                         checked={f.checked}
                         onChange={(e) => f.onChange(e.target.checked)}
-                        className="h-4 w-4"
+                        className="h-4 w-4 rounded border-zinc-300 accent-[#c29cf2]"
                       />
                     </label>
                   ))}
@@ -216,10 +206,10 @@ export default function SortFilterModal({
                         onClick={() => toggleType(t.value)}
                         className={cn(
                           uiTransition,
-                          "rounded-full border px-3 py-1 text-sm",
+                          "rounded-full border px-3 py-1 text-sm active:scale-[0.96]",
                           active
-                            ? "border-zinc-900 bg-zinc-900 text-white"
-                            : "border-zinc-200 bg-white hover:bg-zinc-50"
+                            ? "border-[#c29cf2] bg-[#c29cf2] text-white"
+                            : "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50"
                         )}
                       >
                         {t.label}
@@ -233,26 +223,31 @@ export default function SortFilterModal({
                 </div>
               </div>
 
-              {/* actions */}
-              <div className="grid grid-cols-2 gap-2">
+              {/* actions - кнопки */}
+              <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={reset}
                   className={cn(
                     uiButtonGhost,
-                    "border border-zinc-200 px-4 py-3 text-sm font-medium"
+                    "rounded-xl border border-zinc-200 px-4 py-3 text-sm font-medium",
+                    "hover:bg-zinc-50 active:scale-[0.97]"
                   )}
                 >
                   Сбросить
                 </button>
                 <button
                   onClick={onClose}
-                  className={cn(uiButtonPrimary, "px-4 py-3 text-sm font-medium")}
+                  className={cn(
+                    uiButtonPrimary,
+                    "rounded-xl px-4 py-3 text-sm font-medium",
+                    "active:scale-[0.97]"
+                  )}
                 >
                   Применить
                 </button>
               </div>
 
-              <div className="text-xs text-zinc-500">
+              <div className="text-xs text-zinc-500 text-center">
                 UI-only: “близость” сейчас считается условно.
               </div>
             </div>

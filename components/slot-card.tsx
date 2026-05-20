@@ -75,7 +75,7 @@ export default function SlotCard({
         <img
           src={illustrationUrl}
           alt={slot.type}
-          className="h-14 w-14 object-contain"
+          className="h-14 w-14 rounded-2xl object-cover"
         />
       </div>
 

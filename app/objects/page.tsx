@@ -55,9 +55,9 @@ function normalizeType(t?: string | null) {
   return (t ?? "").toLowerCase();
 }
 
-function clamp(n: number, a: number, b: number) {
-  return Math.max(a, Math.min(b, n));
-}
+/* =======================
+   TypeBadge с новыми цветами
+======================= */
 
 function TypeBadge({ type }: { type: string }) {
   const t = normalizeType(type);
@@ -70,7 +70,7 @@ function TypeBadge({ type }: { type: string }) {
   else if (t.includes("фабрик") || t.includes("завод") || t.includes("производ")) Icon = Factory;
 
   return (
-    <div className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500">
+    <div className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-500">
       <Icon size={14} className="shrink-0" />
       <span>{type}</span>
     </div>
@@ -78,7 +78,7 @@ function TypeBadge({ type }: { type: string }) {
 }
 
 /* =======================
-   Карточка объекта (фикс свайпов)
+   Карточка объекта (оптимизированный свайп)
 ======================= */
 
 function ObjectCard({ obj }: { obj: ApiObject }) {
@@ -86,89 +86,60 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
   const slidesCount = Math.max(1, photos.length);
 
   const [active, setActive] = useState(0);
-
-  const ref = useRef<HTMLDivElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
   const rafRef = useRef<number | null>(null);
+  const isDraggingRef = useRef(false);
 
-  // ✅ чтобы после свайпа не происходил переход по Link
-  const downRef = useRef<{ x: number; y: number } | null>(null);
-  const draggedRef = useRef(false);
-
-  const onScroll = () => {
-    const el = ref.current;
-    if (!el) return;
-
-    if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+  // Оптимизированный обработчик скролла с RAF
+  const handleScroll = useCallback(() => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
     rafRef.current = requestAnimationFrame(() => {
+      const el = scrollRef.current;
+      if (!el) return;
       const w = el.clientWidth || 1;
       const idx = Math.round(el.scrollLeft / w);
-      setActive(clamp(idx, 0, slidesCount - 1));
+      const newActive = Math.min(Math.max(0, idx), slidesCount - 1);
+      if (newActive !== active) setActive(newActive);
     });
-  };
+  }, [active, slidesCount]);
 
-  const onPointerDownCapture = (e: React.PointerEvent) => {
-    if (e.pointerType === "mouse") return;
-    draggedRef.current = false;
-    downRef.current = { x: e.clientX, y: e.clientY };
-  };
-
-  const onPointerMoveCapture = (e: React.PointerEvent) => {
-    if (!downRef.current) return;
-    const dx = e.clientX - downRef.current.x;
-    const dy = e.clientY - downRef.current.y;
-    if (Math.abs(dx) > 8 || Math.abs(dy) > 8) draggedRef.current = true;
-  };
-
-  const onPointerUpCapture = () => {
-    downRef.current = null;
-    requestAnimationFrame(() => {
-      draggedRef.current = false;
-    });
-  };
-
+  // Очистка RAF
   useEffect(() => {
     return () => {
-      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
   }, []);
 
   return (
     <Link
       href={`/objects/${obj.id}`}
-      className="
-        tap
-        block w-full overflow-hidden rounded-2xl border border-gray-200 bg-white
-        transition-[box-shadow,transform] duration-200 ease-out
-        active:shadow-[0_12px_24px_rgba(0,0,0,0.12)]
-      "
+      className={cn(
+        "tap block w-full overflow-hidden rounded-2xl border border-zinc-200 bg-white",
+        "transition-shadow duration-200 ease-out",
+        "active:shadow-[0_12px_24px_rgba(0,0,0,0.12)]"
+      )}
       onClickCapture={(e) => {
-        if (draggedRef.current) {
+        if (isDraggingRef.current) {
           e.preventDefault();
           e.stopPropagation();
         }
       }}
     >
+      {/* Фото с оптимизированным свайпом */}
       <div
-        className="relative h-40 bg-gray-100 overflow-hidden"
+        className="relative h-40 bg-zinc-100 overflow-hidden"
         data-ptr-skip
-        onPointerDownCapture={onPointerDownCapture}
-        onPointerMoveCapture={onPointerMoveCapture}
-        onPointerUpCapture={onPointerUpCapture}
-        onPointerCancelCapture={onPointerUpCapture}
+        onTouchStart={() => { isDraggingRef.current = false; }}
+        onTouchMove={() => { isDraggingRef.current = true; }}
       >
         <div
-          ref={ref}
-          onScroll={onScroll}
-          className="
-            flex h-full w-full overflow-x-auto
-            snap-x snap-mandatory
-            overscroll-x-contain
-            scroll-smooth
-            select-none
-          "
+          ref={scrollRef}
+          onScroll={handleScroll}
+          className="flex h-full w-full overflow-x-auto snap-x snap-mandatory overscroll-x-contain scroll-smooth"
           style={{
             WebkitOverflowScrolling: "touch",
-            touchAction: "pan-y", // ✅ важно для совместимости с вертикальным скроллом
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
           }}
         >
           {photos.length ? (
@@ -176,51 +147,57 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
               <div key={i} className="min-w-full h-full snap-start relative">
                 <img
                   src={src}
-                  alt={`Фото ${i + 1} объекта ${obj.name}`}
-                  className="h-full w-full object-cover"
+                  alt={`Фото ${i + 1}`}
+                  className="h-full w-full object-cover pointer-events-none"
                   draggable="false"
+                  loading="lazy"
                 />
               </div>
             ))
           ) : (
-            <div className="min-w-full h-full snap-start flex items-center justify-center text-sm text-gray-500">
+            <div className="min-w-full h-full snap-start flex items-center justify-center text-sm text-zinc-500 bg-zinc-100">
               Фото объекта
             </div>
           )}
         </div>
 
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 rounded-full bg-black/40 px-2 py-1">
-          {Array.from({ length: slidesCount }).map((_, i) => (
-            <span
-              key={i}
-              className={cn(
-                "h-1.5 rounded-full transition-all duration-200",
-                i === active ? "bg-white w-4" : "bg-white/50 w-1.5"
-              )}
-            />
-          ))}
-        </div>
+        {/* Индикаторы */}
+        {slidesCount > 1 && (
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 rounded-full bg-black/40 px-2 py-1">
+            {Array.from({ length: slidesCount }).map((_, i) => (
+              <span
+                key={i}
+                className={cn(
+                  "h-1.5 rounded-full transition-all duration-200",
+                  i === active ? "bg-white w-4" : "bg-white/50 w-1.5"
+                )}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
+      {/* Информация */}
       <div className="p-4 space-y-2">
         <div className="flex items-start gap-3">
           {obj.logoUrl ? (
             <img
               src={obj.logoUrl}
-              alt={`Логотип ${obj.name}`}
-              className="h-10 w-10 rounded-xl bg-gray-50 p-1 object-contain"
+              alt=""
+              className="h-10 w-10 rounded-xl bg-zinc-50 p-1 object-contain"
               draggable="false"
+              loading="lazy"
             />
           ) : (
-            <div className="h-10 w-10 rounded-xl bg-gray-100 flex items-center justify-center font-semibold text-gray-700">
+            <div className="h-10 w-10 rounded-xl bg-zinc-100 flex items-center justify-center font-semibold text-zinc-600">
               {firstLetter(obj.name)}
             </div>
           )}
 
           <div className="min-w-0 flex-1">
             <TypeBadge type={obj.type ?? "Объект"} />
-            <div className="font-semibold truncate">{obj.name}</div>
-            <div className="flex items-center gap-1 text-sm text-gray-500">
+            <div className="font-semibold truncate text-zinc-900">{obj.name}</div>
+            <div className="flex items-center gap-1 text-sm text-zinc-500">
               <MapPin size={14} className="shrink-0" />
               <span className="truncate">
                 {obj.city}
@@ -229,7 +206,7 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
             </div>
           </div>
 
-          <ChevronRight className="text-gray-400 shrink-0" />
+          <ChevronRight className="text-zinc-400 shrink-0" />
         </div>
       </div>
     </Link>
@@ -237,7 +214,7 @@ function ObjectCard({ obj }: { obj: ApiObject }) {
 }
 
 /* =======================
-   Страница с рабочей фильтрацией
+   Страница объектов
 ======================= */
 
 export default function ObjectsPage() {
@@ -252,7 +229,6 @@ export default function ObjectsPage() {
 
   const url = useMemo(() => `${apiBase()}/objects`, []);
 
-  // Функция загрузки данных
   const fetchObjects = useCallback(async () => {
     setLoading(true);
     try {
@@ -271,80 +247,34 @@ export default function ObjectsPage() {
         setItems(objectsWithDefaults);
         setFilteredItems(objectsWithDefaults);
 
-        const types = [
-          ...new Set(data.map((obj) => obj.type).filter((type): type is string => !!type)),
-        ];
+        const types = [...new Set(data.map((obj) => obj.type).filter((type): type is string => !!type))];
         setAvailableTypes(types);
       } else {
-        // Демо данные для теста
-        const demoData: ApiObject[] = [
-          {
-            id: "1",
-            name: "Склад Амазон",
-            type: "Склад",
-            city: "Москва",
-            address: "ЮВАО",
-            logoUrl: "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg",
-            photos: ["https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d"],
-            hasBus: true,
-            isPremium: false,
-            hasFood: true,
-            isFavorite: false,
-          },
-          {
-            id: "2",
-            name: "Завод Adidas",
-            type: "Завод",
-            city: "Подольск",
-            address: "Промзона",
-            logoUrl: "https://upload.wikimedia.org/wikipedia/commons/2/20/Adidas_Logo.svg",
-            photos: ["https://images.unsplash.com/photo-1590490360182-c33d57733427"],
-            hasBus: false,
-            isPremium: true,
-            hasFood: false,
-            isFavorite: true,
-          },
-          {
-            id: "3",
-            name: "Распределительный центр OZON",
-            type: "Распределительный центр",
-            city: "Москва",
-            address: "СВАО",
-            logoUrl: "https://upload.wikimedia.org/wikipedia/commons/d/d1/Ozon_logo.png",
-            photos: ["https://images.unsplash.com/photo-1605902711622-cfb43c4437d1"],
-            hasBus: true,
-            isPremium: true,
-            hasFood: true,
-            isFavorite: false,
-          },
-        ];
-
-        setItems(demoData);
-        setFilteredItems(demoData);
-        setAvailableTypes(["Склад", "Завод", "Распределительный центр", "Сортировочный центр"]);
+        // ✅ Моки удалены, просто показываем пустой список
+        setItems([]);
+        setFilteredItems([]);
+        setAvailableTypes([]);
       }
     } catch (error) {
       console.error("Ошибка загрузки объектов:", error);
+      setItems([]);
+      setFilteredItems([]);
     } finally {
       setLoading(false);
     }
   }, [url]);
 
-  // Загрузка данных при монтировании
   useEffect(() => {
     fetchObjects();
   }, [fetchObjects]);
 
-  // Функция обновления для PullToRefresh
   const handleRefresh = useCallback(async () => {
     await fetchObjects();
   }, [fetchObjects]);
 
-  // Функция фильтрации
   const applyFilters = useCallback(() => {
     let result = [...items];
 
-    // Поиск по тексту
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
@@ -356,12 +286,10 @@ export default function ObjectsPage() {
       );
     }
 
-    // Фильтрация по типу объекта
     if (selectedType) {
       result = result.filter((obj) => obj.type === selectedType);
     }
 
-    // Фильтрация по табам
     switch (activeTab) {
       case "bus":
         result = result.filter((obj) => obj.hasBus);
@@ -375,18 +303,15 @@ export default function ObjectsPage() {
       case "fav":
         result = result.filter((obj) => obj.isFavorite);
         break;
-      // "all" и "type" (уже обработан выше) не требуют дополнительной фильтрации
     }
 
     setFilteredItems(result);
   }, [items, searchQuery, selectedType, activeTab]);
 
-  // Применяем фильтры при изменении условий
   useEffect(() => {
     applyFilters();
   }, [applyFilters]);
 
-  // Обработчик изменения таба
   const handleTabChange = (tab: FilterTabKey, filterValue?: string) => {
     setActiveTab(tab);
     if (tab === "type" && filterValue) {
@@ -396,15 +321,20 @@ export default function ObjectsPage() {
     }
   };
 
-  // Обработчик поиска
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
 
+  const clearFilters = () => {
+    setSearchQuery("");
+    setSelectedType("");
+    setActiveTab("all");
+  };
+
   return (
     <PullToRefresh onRefresh={handleRefresh}>
-      <div className="pt-4 space-y-4 pb-24">
-        {/* Рабочие табы фильтрации */}
+      <div className="pt-4 space-y-4 pb-32">
+        {/* FilterTabs с обновлёнными цветами */}
         <FilterTabs
           activeTab={activeTab}
           onTabChange={handleTabChange}
@@ -416,17 +346,18 @@ export default function ObjectsPage() {
         <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen">
           <div className="px-4 space-y-3">
             {loading ? (
+              // Скелетоны
               <div className="space-y-3">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
-                    <div className="h-40 bg-gray-100 animate-pulse" />
+                  <div key={i} className="overflow-hidden rounded-2xl border border-zinc-200 bg-white">
+                    <div className="h-40 bg-zinc-100 animate-pulse" />
                     <div className="p-4 space-y-3">
                       <div className="flex items-start gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-gray-100 animate-pulse" />
+                        <div className="h-10 w-10 rounded-xl bg-zinc-100 animate-pulse" />
                         <div className="flex-1 space-y-2">
-                          <div className="h-3 w-24 rounded bg-gray-100 animate-pulse" />
-                          <div className="h-4 w-40 rounded bg-gray-100 animate-pulse" />
-                          <div className="h-3 w-56 rounded bg-gray-100 animate-pulse" />
+                          <div className="h-3 w-24 rounded bg-zinc-100 animate-pulse" />
+                          <div className="h-4 w-40 rounded bg-zinc-100 animate-pulse" />
+                          <div className="h-3 w-56 rounded bg-zinc-100 animate-pulse" />
                         </div>
                       </div>
                     </div>
@@ -434,27 +365,20 @@ export default function ObjectsPage() {
                 ))}
               </div>
             ) : filteredItems.length === 0 ? (
-              <div className="rounded-2xl border border-gray-200 bg-white p-6 text-center">
-                <div className="text-gray-500 mb-2">Объекты не найдены</div>
+              <div className="rounded-2xl border border-zinc-200 bg-white p-6 text-center">
+                <div className="text-zinc-500 mb-2">Объекты не найдены</div>
                 <button
-                  onClick={() => {
-                    setSearchQuery("");
-                    setSelectedType("");
-                    setActiveTab("all");
-                  }}
-                  className="text-sm text-brand hover:underline"
+                  onClick={clearFilters}
+                  className="text-sm text-[#c29cf2] hover:underline"
                 >
                   Сбросить фильтры
                 </button>
               </div>
             ) : (
               <>
-                {/* Счетчик найденных объектов */}
-                <div className="text-sm text-gray-500 mb-2">
+                <div className="text-sm text-zinc-500 mb-2">
                   Найдено объектов: {filteredItems.length}
                 </div>
-
-                {/* Список объектов */}
                 {filteredItems.map((o) => (
                   <ObjectCard key={o.id} obj={o} />
                 ))}
@@ -467,48 +391,42 @@ export default function ObjectsPage() {
         <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2">
           <button
             onClick={() => setShowSearch(!showSearch)}
-            className="
-              tap flex items-center justify-center
-              h-12 w-12 rounded-xl bg-white border border-gray-300
-              shadow-lg hover:shadow-xl active:scale-95
-              transition-all duration-200
-            "
-            aria-label="Поиск объектов"
+            className={cn(
+              "tap flex items-center justify-center h-12 w-12 rounded-xl bg-white border border-zinc-200",
+              "shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200",
+              "text-zinc-600 hover:text-[#c29cf2]"
+            )}
+            aria-label="Поиск"
           >
-            <Search size={20} className="text-gray-700" />
+            <Search size={20} />
           </button>
 
           <Link
             href="/map"
-            className="
-              tap flex items-center justify-center
-              h-12 w-12 rounded-xl bg-white border border-gray-800
-              shadow-lg hover:shadow-xl active:scale-95
-              transition-all duration-200 group
-            "
-            aria-label="Карта объектов"
+            className={cn(
+              "tap flex items-center justify-center h-12 w-12 rounded-xl bg-[#c29cf2] border border-[#c29cf2]",
+              "shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200",
+              "text-white"
+            )}
+            aria-label="Карта"
           >
-            <MapPinned
-              size={20}
-              className="text-gray-800 group-hover:scale-110 transition-transform"
-            />
+            <MapPinned size={20} />
           </Link>
 
           <button
-            onClick={() => console.log("Открыть модалку сортировки")}
-            className="
-              tap flex items-center justify-center
-              h-12 w-12 rounded-xl bg-white border border-gray-300
-              shadow-lg hover:shadow-xl active:scale-95
-              transition-all duration-200
-            "
+            onClick={() => console.log("Сортировка")}
+            className={cn(
+              "tap flex items-center justify-center h-12 w-12 rounded-xl bg-white border border-zinc-200",
+              "shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200",
+              "text-zinc-600 hover:text-[#c29cf2]"
+            )}
             aria-label="Сортировка"
           >
-            <SlidersHorizontal size={20} className="text-gray-700" />
+            <SlidersHorizontal size={20} />
           </button>
         </div>
 
-        {/* Поисковая строка */}
+        {/* Поиск */}
         {showSearch && (
           <div className="fixed inset-x-0 bottom-32 z-50 px-4">
             <div className="animate-in fade-in slide-in-from-bottom-2 duration-200">
@@ -517,24 +435,20 @@ export default function ObjectsPage() {
                   type="text"
                   value={searchQuery}
                   onChange={handleSearch}
-                  placeholder="Поиск по названию, городу, адресу..."
-                  className="
-                    w-full rounded-xl border border-gray-200 bg-white
-                    px-4 py-3 text-sm placeholder:text-gray-400
-                    focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand
-                    shadow-lg transition-all duration-200
-                  "
+                  placeholder="Поиск по названию, городу..."
+                  className={cn(
+                    "w-full rounded-xl border border-zinc-200 bg-white",
+                    "px-4 py-3 text-sm placeholder:text-zinc-400",
+                    "focus:outline-none focus:ring-2 focus:ring-[#c29cf2]/20 focus:border-[#c29cf2]",
+                    "shadow-lg transition-all duration-200"
+                  )}
                   autoFocus
-                  onBlur={() => searchQuery === "" && setShowSearch(false)}
                 />
-                <Search
-                  size={18}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-                />
+                <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400" />
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery("")}
-                    className="absolute right-10 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-10 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
                   >
                     ✕
                   </button>

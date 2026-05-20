@@ -18,7 +18,6 @@ type Props = {
   month?: Date;
   availableDays?: Set<string>;
   
-  // ДОБАВИТЬ ЭТИ ДВА ПРОПСА:
   onPrevMonth?: () => void;
   onNextMonth?: () => void;
 };
@@ -33,8 +32,6 @@ export default function DayTabs({
   onToggleCalendar,
   month,
   availableDays,
-  
-  // ДОБАВИТЬ ЭТИ ДВА ПРОПСА В ДЕСТРУКТУРИЗАЦИЮ:
   onPrevMonth,
   onNextMonth
 }: Props) {
@@ -46,7 +43,7 @@ export default function DayTabs({
         {onToggleCalendar ? (
           <button
             onClick={onToggleCalendar}
-            className="inline-flex items-center gap-1 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm"
+            className="inline-flex items-center gap-1 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm transition-all hover:bg-zinc-50 active:scale-[0.97]"
             aria-label="Переключить календарь"
           >
             {calendarOpen ? "Табы" : "Месяц"}
@@ -72,9 +69,9 @@ export default function DayTabs({
                   key={iso}
                   onClick={() => onChange(iso)}
                   className={cn(
-                    "relative min-w-[92px] flex-shrink-0 rounded-2xl border px-3 py-2 text-left transition",
+                    "relative min-w-[92px] flex-shrink-0 rounded-2xl border px-3 py-2 text-left transition-all active:scale-[0.98]",
                     active
-                      ? "border-zinc-900 bg-zinc-900 text-white"
+                      ? "border-[#c29cf2] bg-[#c29cf2] text-white"  // ← фиолетовый для активного
                       : "border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50"
                   )}
                 >
@@ -83,7 +80,7 @@ export default function DayTabs({
                       <span
                         className={cn(
                           "h-2 w-2 rounded-full",
-                          active ? "bg-sky-300" : "bg-sky-500"
+                          active ? "bg-sky-200" : "bg-sky-500"
                         )}
                         title="Высокий тариф"
                       />
@@ -127,7 +124,6 @@ export default function DayTabs({
           availableDays={availableDays}
           hotDays={hotDays}
           premiumDays={premiumDays}
-          // ПЕРЕДАЕМ ПРОПСЫ В MonthCalendar:
           onPrevMonth={onPrevMonth}
           onNextMonth={onNextMonth}
         />
