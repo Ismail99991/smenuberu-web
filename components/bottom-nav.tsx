@@ -46,7 +46,7 @@ export default function BottomNav() {
                 key={href}
                 href={href}
                 className={cn(
-                  "relative flex items-center justify-center py-3 rounded-xl transition-all duration-200",
+                  "relative flex items-center justify-center py-5 rounded-xl transition-all duration-200",
                   active
                     ? "text-[#c29cf2] bg-[#c29cf2]/10"
                     : "text-zinc-500 hover:text-zinc-700 active:scale-95"
