@@ -27,23 +27,23 @@ export default function BottomNav() {
 
   useLiquidWeb(glassRef, {
     mode: "prominent",
-    scale: 24,           // ↑ увеличено с 16 → сильнее искажение
-    blur: 8,             // ↑ увеличено с 2 → сильнее размытие
-    saturation: 200,     // ↑ увеличено с 170 → ярче цвета
-    aberration: 12,      // ↓ уменьшено с 18 → меньше цветных артефактов
+    scale: 24,
+    blur: 8,
+    saturation: 200,
+    aberration: 12,
   });
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-10 pb-[env(safe-area-inset-bottom)]">
-      <div className="mx-auto w-full max-w-xl px-3 pb-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-10">
+      <div className="mx-auto w-full max-w-xl px-3 pb-[env(safe-area-inset-bottom)]">
         <div
           ref={glassRef}
           className="
             grid grid-cols-5 gap-1 rounded-3xl
-            border border-white/50      // ↑ увеличена видимость границы
-            bg-white/30                 // ↑ увеличена плотность фона
-            shadow-[0_8px_32px_rgba(0,0,0,0.2)]  // ← более выраженная тень
-            backdrop-blur-xl            // ← дополнительное размытие (fallback)
+            border border-white/50
+            bg-white/30
+            shadow-[0_8px_32px_rgba(0,0,0,0.2)]
+            backdrop-blur-xl
           "
         >
           {items.map(({ href, icon: Icon }) => {
@@ -57,8 +57,8 @@ export default function BottomNav() {
                 className={cn(
                   "relative flex items-center justify-center py-4 rounded-2xl transition-all duration-200",
                   active
-                    ? "text-[#c29cf2]"  // ← фиолетовый для активной иконки
-                    : "text-zinc-400 active:scale-95"  // ← светлее неактивные
+                    ? "text-[#c29cf2]"
+                    : "text-zinc-400 active:scale-95"
                 )}
               >
                 <Icon
