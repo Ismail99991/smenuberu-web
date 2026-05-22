@@ -24,7 +24,7 @@ export default function BottomNav() {
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-10"
+      className="fixed -bottom-[35px] left-0 right-0 z-10"
       style={{
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
       }}
