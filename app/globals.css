@@ -62,3 +62,15 @@ body {
 .maplibregl-marker svg {
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
 }
+
+/* Компенсация для PWA — если браузер думает, что search bar есть */
+body:fullscreen {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Для старых браузеров */
+body:-webkit-full-screen {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
