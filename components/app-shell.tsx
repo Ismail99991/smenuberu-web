@@ -20,9 +20,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     <div className="app-shell">
       <Topbar title={title} />
 
-      {/* Скроллится только эта область — так iOS меньше показывает панели */}
       <div className="app-scroll">
-        <main className="mx-auto w-full max-w-xl px-4 pb-24 pt-4">
+        <main className="mx-auto w-full max-w-xl px-4 pt-4">
           {children}
         </main>
       </div>
