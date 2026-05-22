@@ -1,7 +1,8 @@
 "use client";
 
-import { Bell } from "lucide-react";
+import { Bell, User } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 import { uiTransition } from "@/lib/ui";
@@ -11,8 +12,10 @@ function apiBase() {
 }
 
 export default function Topbar({ title }: { title: string }) {
+  const pathname = usePathname();
   const ref = useRef<HTMLElement | null>(null);
   const [userName, setUserName] = useState<string>("Исполнитель");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   const useIsoLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
@@ -45,6 +48,7 @@ export default function Topbar({ title }: { title: string }) {
         if (data.ok && data.user) {
           const name = data.user.displayName || data.user.yandexLogin || "Исполнитель";
           setUserName(name);
+          setAvatarUrl(data.user.avatarUrl || null);
         }
       } catch (error) {
         console.error("Failed to fetch user:", error);
@@ -52,6 +56,12 @@ export default function Topbar({ title }: { title: string }) {
     }
     fetchUser();
   }, []);
+
+  const isProfilePage = pathname === "/me" || pathname.startsWith("/me/");
+
+  // Первая буква имени для аватарки-заглушки
+  const firstLetter = userName !== "Исполнитель" ? userName[0]?.toUpperCase() : "?";
+  const isDark = false; // можно позже добавить тему
 
   return (
     <header
@@ -70,11 +80,38 @@ export default function Topbar({ title }: { title: string }) {
       "
     >
       <div className="mx-auto flex w-full max-w-xl items-center justify-between px-4 py-3">
-        <div>
-          <span className="text-xs font-medium text-zinc-500">{userName}</span>
-          <h1 className="text-lg font-semibold text-zinc-900">{title}</h1>
-        </div>
+        {/* Левая часть: профиль */}
+        <Link
+          href="/me"
+          className="flex items-center gap-3 group"
+        >
+          {/* Аватарка */}
+          <div className={cn(
+            "h-10 w-10 rounded-full flex items-center justify-center overflow-hidden",
+            "bg-gradient-to-br from-[#c29cf2] to-[#b088e8]",
+            "transition-transform group-active:scale-95"
+          )}>
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={userName} className="h-full w-full object-cover" />
+            ) : (
+              <span className="text-white font-semibold text-base">
+                {firstLetter}
+              </span>
+            )}
+          </div>
 
+          {/* Имя и название раздела */}
+          <div className="flex flex-col">
+            <span className="text-xs font-medium text-zinc-500 leading-tight">
+              {isProfilePage ? "Профиль" : "Мой профиль"}
+            </span>
+            <span className="text-base font-semibold text-zinc-900 leading-tight">
+              {userName}
+            </span>
+          </div>
+        </Link>
+
+        {/* Правая часть: уведомления */}
         <Link
           href="/notifications"
           className={cn(
