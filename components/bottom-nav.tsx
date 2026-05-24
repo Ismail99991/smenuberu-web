@@ -16,14 +16,14 @@ const items = [
   { href: "/tours", icon: PlaneTakeoff },
   { href: "/objects", icon: Building2 },
   { href: "/payouts", icon: Wallet },
-  { href: "/bookings", icon: CalendarCheck },  // ← вместо /me
+  { href: "/bookings", icon: CalendarCheck },
 ];
 
 export default function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-100">
+    <div className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-100 pb-[env(safe-area-inset-bottom)]">
       <div className="flex items-center justify-around px-2 py-3">
         {items.map(({ href, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/");

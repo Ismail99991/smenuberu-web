@@ -63,10 +63,4 @@ body {
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
 }
 
-/* Принудительно обнуляем safe-area на устройствах без выреза */
-@supports (padding-bottom: env(safe-area-inset-bottom)) {
-  body, .app-viewport, .app-shell, .app-scroll, main, .fixed.bottom-0 {
-    padding-bottom: 0 !important;
-    margin-bottom: 0 !important;
-  }
-}
+

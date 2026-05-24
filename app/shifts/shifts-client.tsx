@@ -315,7 +315,7 @@ export default function ShiftsClient() {
           <EmptyState
   title="Нет заданий"
   description="На выбранную дату слотов нет или они отфильтрованы"
-  imageUrl="https://smenuberu.s3.regru.cloud/illustrations/emptystate.png"
+  imageUrl="https://s3.regru.cloud/smenuberu/illustrations/emptystate.png"
 />
         ) : (
           <div className="space-y-3" data-ptr-skip>
