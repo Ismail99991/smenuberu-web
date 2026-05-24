@@ -1,35 +1,35 @@
 "use client";
 
-import { Trophy, ChevronRight } from "lucide-react";
+import Image from "next/image";
+import { ChevronRight } from "lucide-react";
 
 export default function PromoBanner() {
   return (
-    <div className="flex items-center gap-3">
-      {/* Иконка — фон фиолетовый */}
-      <div className="h-10 w-10 rounded-full bg-[#c29cf2]/20 flex items-center justify-center flex-shrink-0">
-        <Trophy className="h-5 w-5 text-[#c29cf2]" />
+    <div className="bg-white rounded-2xl p-3 flex items-center justify-between">
+      {/* Левая часть: иконка + текст */}
+      <div className="flex items-center gap-3 flex-1">
+        {/* Квадратная иллюстрация */}
+        <div className="w-12 h-12 relative flex-shrink-0">
+          <Image
+            src="https://smenuberu.s3.regru.cloud/illustrations/promoillustration.png"
+            alt="Акция"
+            width={48}
+            height={48}
+            className="object-contain"
+          />
+        </div>
+        
+        {/* Текст */}
+        <div>
+          <div className="text-sm font-semibold text-zinc-900">Спецзадание</div>
+          <div className="text-base font-bold text-zinc-900">До 10 000 ₽</div>
+        </div>
       </div>
-      
-      {/* Контент */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold text-zinc-900">Спецзадание</span>
-          <span className="text-xs text-zinc-400 flex items-center gap-1">
-            7 дней
-            <ChevronRight className="h-3 w-3" />
-          </span>
-        </div>
-        
-        <div className="text-base font-bold text-zinc-900 mt-0.5">
-          До 10 000 ₽
-        </div>
-        
-        <div className="flex items-center justify-between mt-1.5">
-          <span className="text-xs text-zinc-500">6/10 заданий</span>
-          <div className="w-24 h-1 bg-[#c29cf2]/20 rounded-full overflow-hidden">
-            <div className="h-full bg-[#c29cf2] rounded-full" style={{ width: "60%" }} />
-          </div>
-        </div>
+
+      {/* Правая часть: срок + стрелка */}
+      <div className="flex items-center gap-1 text-[#c29cf2]">
+        <span className="text-xs font-medium">7 дней</span>
+        <ChevronRight className="h-4 w-4" />
       </div>
     </div>
   );
