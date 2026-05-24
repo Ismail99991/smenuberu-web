@@ -4,16 +4,22 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===== Базовые сбросы ===== */
+/* ===== ДИАГНОСТИКА ПОЛОСЫ ===== */
 
-html,
-body {
+html {
   height: 100%;
-
   margin: 0;
   padding: 0;
 
-  background: #0B1220;
+  background: red !important;
+}
+
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+
+  background: green !important;
 
   -webkit-text-size-adjust: 100%;
 }
@@ -24,8 +30,6 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* ===== Корневой viewport приложения ===== */
-
 .app-viewport {
   min-height: 100dvh;
 
@@ -35,22 +39,22 @@ body {
 
   display: flex;
   flex-direction: column;
-}
 
-/* ===== Основной shell ===== */
+  background: blue !important;
+}
 
 .app-shell {
   flex: 1;
 
   min-height: 0;
 
+  overflow: hidden;
+
   display: flex;
   flex-direction: column;
 
-  overflow: hidden;
+  background: yellow !important;
 }
-
-/* ===== Единственная скролл-зона ===== */
 
 .app-scroll {
   flex: 1;
@@ -62,9 +66,11 @@ body {
   -webkit-overflow-scrolling: touch;
 
   overscroll-behavior: contain;
+
+  background: pink !important;
 }
 
-/* ===== Тактильные эффекты ===== */
+/* Тактильные эффекты */
 
 .tap {
   transition:
@@ -76,7 +82,7 @@ body {
   transform: scale(0.98);
 }
 
-/* ===== Карта ===== */
+/* MapLibre */
 
 .maplibregl-marker {
   will-change: transform;
@@ -90,11 +96,9 @@ body {
 
 .maplibregl-marker svg {
   filter: drop-shadow(
-    0 2px 4px rgba(0, 0, 0, 0.1)
+    0 2px 4px rgba(0,0,0,0.1)
   );
 }
-
-/* ===== Убираем горизонтальный скролл ===== */
 
 html,
 body,
