@@ -49,7 +49,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ru" className="h-full">
-      <body className="h-full antialiased bg-[#0B1220]">
+      <body className="h-full flex flex-col antialiased">
         <AuthProvider>
           <div className="app-viewport">
             <AppShell>{children}</AppShell>
