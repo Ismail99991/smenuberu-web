@@ -211,7 +211,7 @@ export default function MapPage() {
     };
   }, [maptilerKey]);
 
-  // markers - с новой иконкой-булавкой
+  // markers
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -232,7 +232,6 @@ export default function MapPage() {
         "h-10 w-10 rounded-2xl bg-[#c29cf2] text-white shadow-[0_10px_22px_rgba(194,156,242,0.28)] flex items-center justify-center active:scale-[0.98] transition";
       el.title = o.name;
 
-      // Новая иконка-булавка (кружок с полоской внизу)
       el.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 22C12 22 18 15.5 18 10C18 5.5 14.5 2 12 2C9.5 2 6 5.5 6 10C6 15.5 12 22 12 22Z" fill="currentColor" stroke="white" stroke-width="1.2"/>
         <circle cx="12" cy="10" r="3" fill="white"/>
@@ -279,7 +278,6 @@ export default function MapPage() {
     [objects]
   );
 
-  // Фильтрация объектов по поиску
   const filteredObjects = useMemo(() => {
     if (!searchQuery) return objects;
     const query = searchQuery.toLowerCase();
@@ -375,9 +373,9 @@ export default function MapPage() {
           </div>
         </div>
 
-        {/* Список ближайших */}
-        <div className="pointer-events-auto mx-auto mt-auto w-full max-w-3xl px-4 pb-4">
-          {pos && nearest.length > 0 ? (
+        {/* Список ближайших — теперь поднят выше и не перекрывается флоатинг кнопками */}
+        <div className="pointer-events-auto mx-auto mt-4 w-full max-w-3xl px-4">
+          {pos && nearest.length > 0 && !active && (
             <div className="rounded-2xl bg-white/95 backdrop-blur-md shadow-lg border border-white/20 p-4">
               <div className="text-sm font-semibold text-zinc-900">Ближайшие объекты</div>
               <div className="mt-2 grid gap-2 max-h-[280px] overflow-y-auto">
@@ -412,11 +410,7 @@ export default function MapPage() {
                 ))}
               </div>
             </div>
-          ) : pos ? (
-            <div className="rounded-2xl bg-white/95 backdrop-blur-md shadow-lg border border-white/20 p-4 text-center text-sm text-zinc-500">
-              Поблизости нет объектов с координатами
-            </div>
-          ) : null}
+          )}
         </div>
       </div>
 
@@ -435,8 +429,8 @@ export default function MapPage() {
           <Search size={20} />
         </button>
 
-        <button
-          onClick={() => router.push("/objects")}
+        <Link
+          href="/objects"
           className={cn(
             uiTransition,
             "flex items-center justify-center h-12 w-12 rounded-xl bg-[#c29cf2] border border-[#c29cf2]",
@@ -446,10 +440,10 @@ export default function MapPage() {
           aria-label="Список объектов"
         >
           <List size={20} />
-        </button>
+        </Link>
 
-        <button
-          onClick={() => router.push("/objects")}
+        <Link
+          href="/objects"
           className={cn(
             uiTransition,
             "flex items-center justify-center h-12 w-12 rounded-xl bg-white border border-zinc-200",
@@ -459,7 +453,7 @@ export default function MapPage() {
           aria-label="Фильтры"
         >
           <SlidersHorizontal size={20} />
-        </button>
+        </Link>
       </div>
 
       {/* Поисковая строка */}
@@ -495,9 +489,9 @@ export default function MapPage() {
         </div>
       )}
 
-      {/* Активная карточка объекта */}
+      {/* Активная карточка объекта — поднята выше, чтобы не перекрываться кнопками */}
       {active ? (
-        <div className="fixed inset-x-0 bottom-[78px] z-20 pointer-events-none">
+        <div className="fixed inset-x-0 bottom-[88px] z-20 pointer-events-none">
           <div className="pointer-events-auto mx-auto max-w-3xl px-4">
             <div className="rounded-3xl border border-zinc-200 bg-white/95 backdrop-blur-md shadow-[0_18px_44px_rgba(0,0,0,0.18)] p-4">
               <div className="flex items-start justify-between gap-3">
@@ -521,7 +515,6 @@ export default function MapPage() {
                 </button>
               </div>
 
-              {/* Кнопка "Детали" */}
               <div className="mt-3">
                 <Link
                   href={`/objects/${active.id}`}
@@ -536,7 +529,6 @@ export default function MapPage() {
                 </Link>
               </div>
 
-              {/* Кнопка "Открыть в Яндекс" */}
               <div className="mt-2">
                 <a
                   href={

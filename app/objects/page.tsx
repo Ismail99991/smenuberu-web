@@ -19,7 +19,7 @@ import { cn } from "@/lib/cn";
 import FilterTabs from "@/components/FilterTabs";
 import PullToRefresh from "@/components/PullToRefresh";
 import type { FilterTabKey } from "@/components/FilterTabs";
-import SortFilterModalObjects from "@/components/sort-filter-modal-objects";
+import SortFilterModalObjects, { ObjectFilters } from "@/components/sort-filter-modal-objects";
 
 /* =======================
    Типы
@@ -37,12 +37,6 @@ type ApiObject = {
   isPremium: boolean;
   hasFood: boolean;
   isFavorite: boolean;
-};
-
-type ObjectFilters = {
-  sort: "relevance" | "name" | "date";
-  onlyWithBus: boolean;
-  objectTypes: string[];
 };
 
 /* =======================
@@ -235,7 +229,7 @@ export default function ObjectsPage() {
   const [availableTypes, setAvailableTypes] = useState<string[]>([]);
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [objectFilters, setObjectFilters] = useState<ObjectFilters>({
-    sort: "relevance" as const,
+    sort: "relevance",
     onlyWithBus: false,
     objectTypes: [],
   });
