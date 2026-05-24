@@ -23,7 +23,7 @@ export default function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-100">
+    <div className="fixed bottom-[env(safe-area-inset-bottom)] left-0 right-0 z-10 bg-white border-t border-gray-100">
       <div className="flex items-center justify-around px-2 py-3">
         {items.map(({ href, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
