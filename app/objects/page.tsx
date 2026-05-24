@@ -19,6 +19,7 @@ import { cn } from "@/lib/cn";
 import FilterTabs from "@/components/FilterTabs";
 import PullToRefresh from "@/components/PullToRefresh";
 import type { FilterTabKey } from "@/components/FilterTabs";
+import SortFilterModalObjects from "@/components/sort-filter-modal-objects";
 
 /* =======================
    Типы
@@ -36,6 +37,12 @@ type ApiObject = {
   isPremium: boolean;
   hasFood: boolean;
   isFavorite: boolean;
+};
+
+type ObjectFilters = {
+  sort: "relevance" | "name" | "date";
+  onlyWithBus: boolean;
+  objectTypes: string[];
 };
 
 /* =======================
@@ -226,6 +233,12 @@ export default function ObjectsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<string>("");
   const [availableTypes, setAvailableTypes] = useState<string[]>([]);
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [objectFilters, setObjectFilters] = useState<ObjectFilters>({
+    sort: "relevance" as const,
+    onlyWithBus: false,
+    objectTypes: [],
+  });
 
   const url = useMemo(() => `${apiBase()}/objects`, []);
 
@@ -414,16 +427,18 @@ export default function ObjectsPage() {
           </Link>
 
           <button
-            onClick={() => console.log("Сортировка")}
-            className={cn(
-              "tap flex items-center justify-center h-12 w-12 rounded-xl bg-white border border-zinc-200",
-              "shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200",
-              "text-zinc-600 hover:text-[#c29cf2]"
-            )}
-            aria-label="Сортировка"
-          >
-            <SlidersHorizontal size={20} />
-          </button>
+  onClick={() => setFilterModalOpen(true)}
+  className={cn(
+    "tap flex items-center justify-center h-12 w-12 rounded-xl bg-white border border-zinc-200",
+    "shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200",
+    objectFilters.sort !== "relevance" || objectFilters.onlyWithBus || objectFilters.objectTypes.length > 0
+      ? "text-[#c29cf2]"
+      : "text-zinc-600"
+  )}
+  aria-label="Сортировка и фильтры"
+>
+  <SlidersHorizontal size={20} />
+</button>
         </div>
 
         {/* Поиск */}
@@ -457,6 +472,12 @@ export default function ObjectsPage() {
             </div>
           </div>
         )}
+         <SortFilterModalObjects
+          open={filterModalOpen}
+          onClose={() => setFilterModalOpen(false)}
+          value={objectFilters}
+          onChange={setObjectFilters}
+        />
       </div>
     </PullToRefresh>
   );

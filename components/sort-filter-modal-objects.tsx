@@ -1,10 +1,8 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
-import type { TaskType } from "@/lib/task-types";
-import { TASK_TYPES } from "@/lib/task-types";
 import {
   uiOverlay,
   uiModal,
@@ -15,33 +13,41 @@ import {
 } from "@/lib/ui";
 import { cn } from "@/lib/cn";
 
-export type SortKey =
-  | "relevance"
-  | "pay_desc"
-  | "pay_asc"
-  | "premium_first"
+export type ObjectSortKey = 
+  | "relevance" 
+  | "name_asc" 
+  | "name_desc" 
+  | "pay_desc" 
   | "near";
 
-export type TaskFilters = {
-  onlyHot: boolean;
-  onlyPremium: boolean;
-  types: TaskType[];
-  sort: SortKey;
+export type ObjectFilters = {
+  onlyWithBus: boolean;
+  objectTypes: string[];
+  sort: ObjectSortKey;
 };
 
-export default function SortFilterModal({
+interface SortFilterModalObjectsProps {
+  open: boolean;
+  onClose: () => void;
+  value: ObjectFilters;
+  onChange: (next: ObjectFilters) => void;
+}
+
+const OBJECT_TYPES = [
+  { value: "warehouse", label: "Склад" },
+  { value: "store", label: "Магазин" },
+  { value: "restaurant", label: "Ресторан" },
+  { value: "factory", label: "Завод" },
+  { value: "office", label: "Офис" },
+];
+
+export default function SortFilterModalObjects({
   open,
   onClose,
   value,
   onChange,
-}: {
-  open: boolean;
-  onClose: () => void;
-  value: TaskFilters;
-  onChange: (next: TaskFilters) => void;
-}) {
+}: SortFilterModalObjectsProps) {
   const [mounted, setMounted] = useState(false);
-  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => setMounted(true), []);
 
@@ -66,19 +72,20 @@ export default function SortFilterModal({
     return () => document.removeEventListener("keydown", handleEscape);
   }, [open, onClose]);
 
-  const toggleType = (t: TaskType) => {
-    const has = value.types.includes(t);
+  const toggleObjectType = (type: string) => {
+    const has = value.objectTypes.includes(type);
     onChange({
       ...value,
-      types: has ? value.types.filter((x) => x !== t) : [...value.types, t],
+      objectTypes: has 
+        ? value.objectTypes.filter((t) => t !== type) 
+        : [...value.objectTypes, type],
     });
   };
 
   const reset = () => {
     onChange({
-      onlyHot: false,
-      onlyPremium: false,
-      types: [],
+      onlyWithBus: false,
+      objectTypes: [],
       sort: "relevance",
     });
   };
@@ -103,7 +110,7 @@ export default function SortFilterModal({
           {/* Header */}
           <div className="flex items-start justify-between gap-3 border-b border-zinc-200 p-4 shrink-0">
             <div>
-              <div className="text-sm text-zinc-500">Задания</div>
+              <div className="text-sm text-zinc-500">Объекты</div>
               <div className="text-base font-semibold">
                 Сортировать и фильтровать
               </div>
@@ -121,11 +128,8 @@ export default function SortFilterModal({
             </button>
           </div>
 
-          {/* Content — scroll */}
-          <div
-            ref={contentRef}
-            className="flex-1 overflow-y-auto p-4"
-          >
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto p-4">
             <div className="space-y-4">
               {/* Сортировка */}
               <div className="rounded-2xl border border-zinc-200 p-4">
@@ -134,9 +138,9 @@ export default function SortFilterModal({
                 <div className="mt-3 grid gap-2">
                   {[
                     { k: "relevance", label: "По умолчанию" },
-                    { k: "pay_desc", label: "По цене: сначала дороже" },
-                    { k: "pay_asc", label: "По цене: сначала дешевле" },
-                    { k: "premium_first", label: "Сначала высокий тариф" },
+                    { k: "name_asc", label: "По названию: А-Я" },
+                    { k: "name_desc", label: "По названию: Я-А" },
+                    { k: "pay_desc", label: "По ставке: сначала выше" },
                     { k: "near", label: "По близости" },
                   ].map((x) => {
                     const active = value.sort === x.k;
@@ -144,7 +148,7 @@ export default function SortFilterModal({
                       <button
                         key={x.k}
                         onClick={() =>
-                          onChange({ ...value, sort: x.k as SortKey })
+                          onChange({ ...value, sort: x.k as ObjectSortKey })
                         }
                         className={cn(
                           uiTransition,
@@ -165,48 +169,34 @@ export default function SortFilterModal({
               <div className="rounded-2xl border border-zinc-200 p-4">
                 <div className="text-sm font-semibold">Фильтры</div>
 
-                <div className="mt-3 grid gap-2">
-                  {[
-                    {
-                      label: "Только “горящие”",
-                      checked: value.onlyHot,
-                      onChange: (v: boolean) =>
-                        onChange({ ...value, onlyHot: v }),
-                    },
-                    {
-                      label: "Только “высокий тариф”",
-                      checked: value.onlyPremium,
-                      onChange: (v: boolean) =>
-                        onChange({ ...value, onlyPremium: v }),
-                    },
-                  ].map((f) => (
-                    <label
-                      key={f.label}
-                      className={cn(
-                        uiTransition,
-                        "flex items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm",
-                        "cursor-pointer"
-                      )}
-                    >
-                      <span>{f.label}</span>
-                      <input
-                        type="checkbox"
-                        checked={f.checked}
-                        onChange={(e) => f.onChange(e.target.checked)}
-                        className="h-4 w-4 rounded border-zinc-300 accent-[#c29cf2]"
-                      />
-                    </label>
-                  ))}
+                <div className="mt-3">
+                  <label
+                    className={cn(
+                      uiTransition,
+                      "flex items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm",
+                      "cursor-pointer"
+                    )}
+                  >
+                    <span>🚌 Есть автобусы</span>
+                    <input
+                      type="checkbox"
+                      checked={value.onlyWithBus}
+                      onChange={(e) =>
+                        onChange({ ...value, onlyWithBus: e.target.checked })
+                      }
+                      className="h-4 w-4 rounded border-zinc-300 accent-[#c29cf2]"
+                    />
+                  </label>
                 </div>
 
-                <div className="mt-4 text-sm font-semibold">Тип задания</div>
+                <div className="mt-4 text-sm font-semibold">Тип объекта</div>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {TASK_TYPES.map((t) => {
-                    const active = value.types.includes(t.value);
+                  {OBJECT_TYPES.map((t) => {
+                    const active = value.objectTypes.includes(t.value);
                     return (
                       <button
                         key={t.value}
-                        onClick={() => toggleType(t.value)}
+                        onClick={() => toggleObjectType(t.value)}
                         className={cn(
                           uiTransition,
                           "rounded-full border px-3 py-1 text-sm active:scale-[0.96]",
@@ -248,10 +238,6 @@ export default function SortFilterModal({
                 >
                   Применить
                 </button>
-              </div>
-
-              <div className="text-xs text-zinc-500 text-center">
-                UI-only: “близость” сейчас считается условно.
               </div>
             </div>
           </div>
