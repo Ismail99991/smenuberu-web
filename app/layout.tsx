@@ -8,15 +8,29 @@ export const metadata: Metadata = {
   title: "Smenuberu — Исполнитель",
   description: "Личный кабинет исполнителя",
   applicationName: "Smenuberu",
+
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "Smenuberu",
   },
+
   icons: {
-    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
-    icon: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    apple: [
+      {
+        url: "/icons/apple-touch-icon.png",
+        sizes: "180x180",
+      },
+    ],
+    icon: [
+      {
+        url: "/icons/apple-touch-icon.png",
+        sizes: "180x180",
+        type: "image/png",
+      },
+    ],
   },
+
   themeColor: "#0B1220",
 };
 
@@ -35,10 +49,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ru" className="h-full">
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-      </head>
-      <body className="h-full antialiased">
+      <body className="h-full antialiased bg-[#0B1220]">
         <AuthProvider>
           <div className="app-viewport">
             <AppShell>{children}</AppShell>
