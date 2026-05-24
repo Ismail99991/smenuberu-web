@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 
 export default function EmptyState({
   title,
@@ -20,12 +19,10 @@ export default function EmptyState({
     <div className="rounded-2xl border border-zinc-200 bg-white p-6 text-center">
       {imageUrl && (
         <div className="mb-4 flex justify-center">
-          <Image 
+          <img 
             src={imageUrl} 
             alt={imageAlt} 
-            width={160} 
-            height={160}
-            className="mx-auto"
+            className="mx-auto w-40 h-40 object-contain"
           />
         </div>
       )}
