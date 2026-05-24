@@ -35,6 +35,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ru" className="h-full">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+      </head>
       <body className="h-full antialiased">
         <AuthProvider>
           <div className="app-viewport">
