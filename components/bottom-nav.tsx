@@ -7,7 +7,6 @@ import {
   PlaneTakeoff,
   Building2,
   Wallet,
-  CalendarCheck,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
@@ -16,7 +15,6 @@ const items = [
   { href: "/tours", icon: PlaneTakeoff },
   { href: "/objects", icon: Building2 },
   { href: "/payouts", icon: Wallet },
-  { href: "/me", icon: User },
 ];
 
 export default function BottomNav() {
