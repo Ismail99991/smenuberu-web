@@ -1,5 +1,7 @@
 @import "maplibre-gl/dist/maplibre-gl.css";
-/* Tailwind directives removed because this file is being validated as plain CSS. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* Базовые сбросы */
 html,
@@ -9,7 +11,6 @@ body {
   padding: 0;
   overflow: hidden;
   -webkit-text-size-adjust: 100%;
-  background-color: #ffffff;
 }
 
 * {
@@ -23,7 +24,6 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background-color: #ffffff;
 }
 
 /* Вертикальный лейаут: топбар + скролл + боттомбар */
@@ -32,8 +32,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  min-height: 0;
-  background-color: #ffffff;
+  min-height: 0; /* важно для корректной работы flex-скролла */
 }
 
 /* Единственная прокручиваемая зона */
@@ -64,7 +63,10 @@ body {
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
 }
 
-/* Убираем возможные лишние отступы */
-.fixed.bottom-0 {
-  background-color: #ffffff;
+/* Принудительно обнуляем safe-area на устройствах без выреза */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  body, .app-viewport, .app-shell, .app-scroll, main, .fixed.bottom-0 {
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+  }
 }
