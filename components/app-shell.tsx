@@ -4,7 +4,11 @@ import { usePathname } from "next/navigation";
 import BottomNav from "@/components/bottom-nav";
 import Topbar from "@/components/topbar";
 
-export default function AppShell({ children }: { children: React.ReactNode }) {
+export default function AppShell({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
 
   const title =
@@ -21,7 +25,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <Topbar title={title} />
 
       <div className="app-scroll">
-        <main className="mx-auto w-full max-w-xl px-4 pt-4">
+        <main className="mx-auto w-full max-w-xl px-4 pt-4 pb-24">
           {children}
         </main>
       </div>
