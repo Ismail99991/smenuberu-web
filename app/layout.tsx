@@ -48,8 +48,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ru" className="h-full">
-      <body className="h-full flex flex-col antialiased">
+    <html lang="ru">
+      <body className="antialiased overflow-hidden">
         <AuthProvider>
           <div className="app-viewport">
             <AppShell>{children}</AppShell>
