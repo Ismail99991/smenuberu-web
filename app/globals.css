@@ -1,4 +1,4 @@
-@import "maplibre-gl/dist/maplibre-gl.css";
+ @import "maplibre-gl/dist/maplibre-gl.css";
 
 @tailwind base;
 @tailwind components;
@@ -6,13 +6,22 @@
 
 /* Базовые сбросы */
 
-html,
-body {
+html {
+  width: 100%;
+  height: 100dvh;
+
   margin: 0;
   padding: 0;
 
+  overflow: hidden;
+}
+
+body {
   width: 100%;
-  height: 100%;
+  height: 100dvh;
+
+  margin: 0;
+  padding: 0;
 
   overflow: hidden;
 
@@ -25,19 +34,10 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* КРИТИЧНО: body становится flex */
-
-body {
-  display: flex;
-  flex-direction: column;
-}
-
-/* Корень приложения */
+/* Корневой контейнер */
 
 .app-viewport {
-  flex: 1;
-
-  min-height: 0;
+  height: 100%;
 
   width: 100%;
 
@@ -74,7 +74,7 @@ body {
   overscroll-behavior: contain;
 }
 
-/* Тактильные эффекты */
+/* Тактильность */
 
 .tap {
   transition:
@@ -102,4 +102,10 @@ body {
   filter: drop-shadow(
     0 2px 4px rgba(0,0,0,0.1)
   );
+}
+
+html,
+body,
+#__next {
+  overflow-x: hidden;
 }
