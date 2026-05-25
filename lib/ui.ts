@@ -103,8 +103,8 @@ export const uiOverlay =
 /**
  * Контент модалки / popover
  */
-export const uiModal =
-  "transition-all duration-200 ease-out opacity-0 translate-y-2 data-[open=true]:opacity-100 data-[open=true]:translate-y-0";
+//export const uiModal =
+  //"transition-all duration-200 ease-out opacity-0 translate-y-2 data-[open=true]:opacity-100 data-[open=true]:translate-y-0";
 
 /**
  * ⚠️ Нижнее меню — ЗАПРЕЩЕНО движение
