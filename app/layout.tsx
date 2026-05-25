@@ -5,8 +5,10 @@ import { AuthProvider } from "@/components/auth-provider";
 
 export const metadata: Metadata = {
   manifest: "/manifest",
+
   title: "Smenuberu — Исполнитель",
   description: "Личный кабинет исполнителя",
+
   applicationName: "Smenuberu",
 
   appleWebApp: {
@@ -22,6 +24,7 @@ export const metadata: Metadata = {
         sizes: "180x180",
       },
     ],
+
     icon: [
       {
         url: "/icons/apple-touch-icon.png",
@@ -31,14 +34,18 @@ export const metadata: Metadata = {
     ],
   },
 
-  themeColor: "#0B1220",
+  themeColor: "#ffffff",
 };
 
 export const viewport: Viewport = {
   width: "device-width",
+
   initialScale: 1,
+
   maximumScale: 1,
+
   userScalable: false,
+
   viewportFit: "cover",
 };
 
@@ -49,7 +56,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ru">
-      <body className="antialiased overflow-hidden">
+      <body className="antialiased">
         <AuthProvider>
           <div className="app-viewport">
             <AppShell>{children}</AppShell>
