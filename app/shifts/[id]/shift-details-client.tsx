@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { AlertTriangle, Calendar, Clock, MapPin, Building2, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -48,7 +49,9 @@ type SlotDetails = {
   } | null;
 };
 
-export default function ShiftDetailsClient({ id }: { id: string }) {
+export default function ShiftDetailsClient() {
+  const params = useParams();
+  const id = params.id as string;
   const [shift, setShift] = useState<SlotDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
