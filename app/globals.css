@@ -1,26 +1,19 @@
- @import "maplibre-gl/dist/maplibre-gl.css";
+@import "maplibre-gl/dist/maplibre-gl.css";
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Базовые сбросы */
+/* ===== БАЗА ===== */
 
-html {
-  width: 100%;
-  height: 100dvh;
-
-  margin: 0;
-  padding: 0;
-
-  overflow: hidden;
-}
-
+html,
 body {
   width: 100%;
-  height: 100dvh;
+
+  height: 100%;
 
   margin: 0;
+
   padding: 0;
 
   overflow: hidden;
@@ -34,7 +27,19 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Корневой контейнер */
+/* ===== SAFE AREA OFF ===== */
+
+html,
+body,
+.app-viewport {
+  padding-top: 0 !important;
+
+  padding-bottom: 0 !important;
+
+  margin-bottom: 0 !important;
+}
+
+/* ===== ROOT ===== */
 
 .app-viewport {
   height: 100%;
@@ -44,10 +49,11 @@ body {
   overflow: hidden;
 
   display: flex;
+
   flex-direction: column;
 }
 
-/* Shell */
+/* ===== APP ===== */
 
 .app-shell {
   flex: 1;
@@ -57,10 +63,11 @@ body {
   overflow: hidden;
 
   display: flex;
+
   flex-direction: column;
 }
 
-/* Скролл */
+/* ===== SCROLL ===== */
 
 .app-scroll {
   flex: 1;
@@ -74,7 +81,18 @@ body {
   overscroll-behavior: contain;
 }
 
-/* Тактильность */
+/* ===== NAVBAR ===== */
+
+.fixed.bottom-0,
+[class*="bottom-0"] {
+  bottom: 0 !important;
+
+  padding-bottom: 0 !important;
+
+  margin-bottom: 0 !important;
+}
+
+/* ===== TAP ===== */
 
 .tap {
   transition:
@@ -86,7 +104,7 @@ body {
   transform: scale(0.98);
 }
 
-/* MapLibre */
+/* ===== MAP ===== */
 
 .maplibregl-marker {
   will-change: transform;
@@ -103,6 +121,8 @@ body {
     0 2px 4px rgba(0,0,0,0.1)
   );
 }
+
+/* ===== HORIZONTAL ===== */
 
 html,
 body,
