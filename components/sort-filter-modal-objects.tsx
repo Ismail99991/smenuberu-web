@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import {
@@ -13,11 +13,11 @@ import {
 } from "@/lib/ui";
 import { cn } from "@/lib/cn";
 
-export type ObjectSortKey = 
-  | "relevance" 
-  | "name_asc" 
-  | "name_desc" 
-  | "pay_desc" 
+export type ObjectSortKey =
+  | "relevance"
+  | "name_asc"
+  | "name_desc"
+  | "pay_desc"
   | "near";
 
 export type ObjectFilters = {
@@ -49,35 +49,59 @@ export default function SortFilterModalObjects({
 }: SortFilterModalObjectsProps) {
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => setMounted(true), []);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Блокировка скролла body
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // нормальная блокировка body для iOS
   useEffect(() => {
     if (!open) return;
 
-    const prevOverflow = document.body.style.overflow;
+    const scrollY = window.scrollY;
+
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+    document.body.style.width = "100%";
     document.body.style.overflow = "hidden";
 
     return () => {
-      document.body.style.overflow = prevOverflow;
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.width = "";
+      document.body.style.overflow = "";
+
+      window.scrollTo(0, scrollY);
     };
   }, [open]);
 
-  // Закрытие по Escape
+  // ESC
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && open) onClose();
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && open) {
+        onClose();
+      }
     };
-    document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
+
+    window.addEventListener("keydown", handler);
+
+    return () => {
+      window.removeEventListener("keydown", handler);
+    };
   }, [open, onClose]);
 
   const toggleObjectType = (type: string) => {
     const has = value.objectTypes.includes(type);
+
     onChange({
       ...value,
-      objectTypes: has 
-        ? value.objectTypes.filter((t) => t !== type) 
+      objectTypes: has
+        ? value.objectTypes.filter((x) => x !== type)
         : [...value.objectTypes, type],
     });
   };
@@ -90,52 +114,105 @@ export default function SortFilterModalObjects({
     });
   };
 
-  if (!open) return null;
-  if (!mounted) return null;
+  if (!open || !mounted) return null;
 
   const modal = (
     <div className="fixed inset-0 z-[9999]">
-      <div className={cn(uiOverlay, "touch-none")} onClick={onClose} />
 
-      <div className="absolute left-1/2 top-1/2 w-[min(560px,calc(100%-32px))] -translate-x-1/2 -translate-y-1/2">
+      <div
+        className={cn(uiOverlay)}
+        onClick={onClose}
+      />
+
+      <div className="absolute inset-0 flex items-center justify-center p-4">
+
         <div
+          data-open="true"
+          onClick={(e) => e.stopPropagation()}
           className={cn(
             uiCard,
             uiModal,
+
+            "w-full max-w-[560px]",
+
             "flex flex-col",
-            "max-h-[85vh] overflow-hidden"
+
+            "max-h-[85dvh]",
+
+            "overflow-hidden",
+
+            "rounded-[28px]",
+
+            "shadow-2xl"
           )}
-          onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
-          <div className="flex items-start justify-between gap-3 border-b border-zinc-200 p-4 shrink-0">
-            <div>
-              <div className="text-sm text-zinc-500">Объекты</div>
-              <div className="text-base font-semibold">
-                Сортировать и фильтровать
+
+          {/* HEADER */}
+
+          <div className="shrink-0 border-b border-zinc-200 bg-white/95 backdrop-blur px-5 py-4">
+
+            <div className="flex items-start justify-between gap-3">
+
+              <div>
+
+                <div className="text-sm text-zinc-500">
+                  Объекты
+                </div>
+
+                <div className="text-lg font-semibold">
+                  Сортировка и фильтры
+                </div>
+
               </div>
+
+              <button
+                onClick={onClose}
+                aria-label="Закрыть"
+                className={cn(
+                  uiButtonGhost,
+
+                  "h-10 w-10",
+
+                  "rounded-2xl",
+
+                  "border border-zinc-200",
+
+                  "active:scale-95"
+                )}
+              >
+                <X className="h-5 w-5" />
+              </button>
+
             </div>
 
-            <button
-              onClick={onClose}
-              className={cn(
-                uiButtonGhost,
-                "p-2 border border-zinc-200 rounded-xl hover:bg-zinc-50 active:scale-[0.96]"
-              )}
-              aria-label="Закрыть"
-            >
-              <X className="h-5 w-5" />
-            </button>
           </div>
 
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto p-4">
-            <div className="space-y-4">
-              {/* Сортировка */}
-              <div className="rounded-2xl border border-zinc-200 p-4">
-                <div className="text-sm font-semibold">Сортировка</div>
+          {/* CONTENT */}
+
+          <div
+            ref={scrollRef}
+            className="
+              flex-1
+              overflow-y-auto
+              overscroll-contain
+              touch-pan-y
+              p-5
+            "
+            style={{
+              WebkitOverflowScrolling: "touch",
+            }}
+          >
+
+            <div className="space-y-5">
+
+              <div className="rounded-3xl border border-zinc-200 p-4">
+
+                <div className="text-sm font-semibold">
+                  Сортировка
+                </div>
 
                 <div className="mt-3 grid gap-2">
+
                   {[
                     { k: "relevance", label: "По умолчанию" },
                     { k: "name_asc", label: "По названию: А-Я" },
@@ -143,106 +220,171 @@ export default function SortFilterModalObjects({
                     { k: "pay_desc", label: "По ставке: сначала выше" },
                     { k: "near", label: "По близости" },
                   ].map((x) => {
+
                     const active = value.sort === x.k;
+
                     return (
                       <button
                         key={x.k}
                         onClick={() =>
-                          onChange({ ...value, sort: x.k as ObjectSortKey })
+                          onChange({
+                            ...value,
+                            sort: x.k as ObjectSortKey,
+                          })
                         }
                         className={cn(
                           uiTransition,
-                          "w-full rounded-xl border px-3 py-2 text-left text-sm active:scale-[0.98]",
+
+                          "rounded-2xl",
+
+                          "border",
+
+                          "px-4 py-3",
+
+                          "text-left text-sm",
+
+                          "active:scale-[0.98]",
+
                           active
                             ? "border-[#c29cf2] bg-[#c29cf2] text-white"
-                            : "border-zinc-200 bg-white text-zinc-900 hover:bg-zinc-50"
+                            : "border-zinc-200 bg-white"
                         )}
                       >
                         {x.label}
                       </button>
                     );
+
                   })}
+
                 </div>
+
               </div>
 
-              {/* Фильтры */}
-              <div className="rounded-2xl border border-zinc-200 p-4">
-                <div className="text-sm font-semibold">Фильтры</div>
+              <div className="rounded-3xl border border-zinc-200 p-4">
 
-                <div className="mt-3">
-                  <label
-                    className={cn(
-                      uiTransition,
-                      "flex items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm",
-                      "cursor-pointer"
-                    )}
-                  >
-                    <span>🚌 Есть автобусы</span>
-                    <input
-                      type="checkbox"
-                      checked={value.onlyWithBus}
-                      onChange={(e) =>
-                        onChange({ ...value, onlyWithBus: e.target.checked })
-                      }
-                      className="h-4 w-4 rounded border-zinc-300 accent-[#c29cf2]"
-                    />
-                  </label>
+                <div className="text-sm font-semibold">
+                  Фильтры
                 </div>
 
-                <div className="mt-4 text-sm font-semibold">Тип объекта</div>
-                <div className="mt-2 flex flex-wrap gap-2">
+                <label className="
+                  mt-3
+                  flex
+                  items-center
+                  justify-between
+
+                  rounded-2xl
+
+                  border
+
+                  border-zinc-200
+
+                  px-4 py-3
+                ">
+
+                  <span>
+                    🚌 Есть автобусы
+                  </span>
+
+                  <input
+                    type="checkbox"
+                    checked={value.onlyWithBus}
+                    onChange={(e) =>
+                      onChange({
+                        ...value,
+                        onlyWithBus: e.target.checked,
+                      })
+                    }
+                    className="
+                      h-4 w-4
+                      accent-[#c29cf2]
+                    "
+                  />
+
+                </label>
+
+                <div className="mt-5 text-sm font-semibold">
+                  Тип объекта
+                </div>
+
+                <div className="mt-3 flex flex-wrap gap-2">
+
                   {OBJECT_TYPES.map((t) => {
-                    const active = value.objectTypes.includes(t.value);
+
+                    const active =
+                      value.objectTypes.includes(t.value);
+
                     return (
                       <button
                         key={t.value}
-                        onClick={() => toggleObjectType(t.value)}
+                        onClick={() =>
+                          toggleObjectType(t.value)
+                        }
                         className={cn(
                           uiTransition,
-                          "rounded-full border px-3 py-1 text-sm active:scale-[0.96]",
+
+                          "rounded-full",
+
+                          "px-4 py-2",
+
+                          "border",
+
+                          "text-sm",
+
                           active
                             ? "border-[#c29cf2] bg-[#c29cf2] text-white"
-                            : "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50"
+                            : "border-zinc-200 bg-white"
                         )}
                       >
                         {t.label}
                       </button>
                     );
+
                   })}
+
                 </div>
 
-                <div className="mt-2 text-xs text-zinc-500">
-                  Если типы не выбраны — показываем все.
-                </div>
               </div>
 
-              {/* Кнопки действий */}
               <div className="grid grid-cols-2 gap-3">
+
                 <button
                   onClick={reset}
                   className={cn(
                     uiButtonGhost,
-                    "rounded-xl border border-zinc-200 px-4 py-3 text-sm font-medium",
-                    "hover:bg-zinc-50 active:scale-[0.97]"
+
+                    "rounded-2xl",
+
+                    "border border-zinc-200",
+
+                    "py-3"
                   )}
                 >
                   Сбросить
                 </button>
+
                 <button
                   onClick={onClose}
                   className={cn(
                     uiButtonPrimary,
-                    "rounded-xl px-4 py-3 text-sm font-medium",
-                    "active:scale-[0.97]"
+
+                    "rounded-2xl",
+
+                    "py-3"
                   )}
                 >
                   Применить
                 </button>
+
               </div>
+
             </div>
+
           </div>
+
         </div>
+
       </div>
+
     </div>
   );
 

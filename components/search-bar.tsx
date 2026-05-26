@@ -9,6 +9,7 @@ interface SearchBarProps {
   showSearch: boolean;
   onToggleSearch: () => void;
   onOpenFilters: () => void;
+  onNear: () => void;
   filters: TaskFilters;
 }
 
@@ -18,6 +19,7 @@ export default function SearchBar({
   showSearch,
   onToggleSearch,
   onOpenFilters,
+  onNear,
   filters,
 }: SearchBarProps) {
   const hasActiveFilters = filters.onlyHot || filters.onlyPremium || filters.types.length > 0 || filters.sort !== "relevance";
