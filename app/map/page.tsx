@@ -374,7 +374,7 @@ export default function MapPage() {
         </div>
 
         {/* Список ближайших — теперь поднят выше и не перекрывается флоатинг кнопками */}
-        <div className="pointer-events-auto mx-auto mt-4 w-full max-w-3xl px-4">
+        <div className="pointer-events-auto mx-auto mt-12 w-full max-w-3xl px-4">
           {pos && nearest.length > 0 && !active && (
             <div className="rounded-2xl bg-white/95 backdrop-blur-md shadow-lg border border-white/20 p-4">
               <div className="text-sm font-semibold text-zinc-900">Ближайшие объекты</div>
@@ -491,7 +491,7 @@ export default function MapPage() {
 
       {/* Активная карточка объекта — поднята выше, чтобы не перекрываться кнопками */}
       {active ? (
-        <div className="fixed inset-x-0 bottom-[88px] z-20 pointer-events-none">
+        <div className="fixed inset-x-0 bottom-[140px] z-20 pointer-events-none">
           <div className="pointer-events-auto mx-auto max-w-3xl px-4">
             <div className="rounded-3xl border border-zinc-200 bg-white/95 backdrop-blur-md shadow-[0_18px_44px_rgba(0,0,0,0.18)] p-4">
               <div className="flex items-start justify-between gap-3">
