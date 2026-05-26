@@ -167,7 +167,7 @@ export default function SortFilterModal({
               touch-pan-y
               overscroll-contain
 
-              p-5
+              p-5 pb-8
 
               [-webkit-overflow-scrolling:touch]
             "
