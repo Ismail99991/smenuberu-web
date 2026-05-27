@@ -12,18 +12,6 @@ interface MapProps {
   onSlotSelect?: (slot: Slot) => void;
 }
 
-// Группировка слотов по объектам (уникальным местам)
-function groupSlotsByObject(slots: Slot[]): Slot[] {
-  const unique = new Map();
-  for (const slot of slots) {
-    const key = `${slot.city}|${slot.address}`;
-    if (!unique.has(key)) {
-      unique.set(key, slot);
-    }
-  }
-  return Array.from(unique.values());
-}
-
 export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -32,9 +20,6 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
   const [activeSlot, setActiveSlot] = useState<Slot | null>(null);
 
   const maptilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY ?? "";
-
-  // Уникальные объекты на карте (без дублей)
-  const uniqueSlots = groupSlotsByObject(slots);
 
   // Инициализация карты
   useEffect(() => {
@@ -54,7 +39,6 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "bottom-right");
 
     map.on("load", () => {
-      // Стилизация карты
       const style = map.getStyle();
       if (style && style.layers) {
         for (const layer of style.layers) {
@@ -88,11 +72,26 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
     markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
 
-    const withCoords = uniqueSlots.filter(
+    // Фильтруем слоты с координатами и группируем по адресу
+    const slotsWithCoords = slots.filter(
       (s) => typeof s.lat === "number" && typeof s.lng === "number"
     );
+    
+    // Группировка по уникальному ключу
+    const uniqueMap: { [key: string]: Slot } = {};
+    for (const slot of slotsWithCoords) {
+      const key = `${slot.city}|${slot.address}`;
+      if (!uniqueMap[key]) {
+        uniqueMap[key] = slot;
+      }
+    }
+    
+    const uniqueSlots = Object.values(uniqueMap);
 
-    for (const slot of withCoords) {
+    for (const slot of uniqueSlots) {
+      const lat = slot.lat as number;
+      const lng = slot.lng as number;
+      
       const el = document.createElement("button");
       el.type = "button";
       el.setAttribute("data-slot-pin", "1");
@@ -108,7 +107,6 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
       el.addEventListener("click", (e) => {
         e.stopPropagation();
         
-        // Сброс выделения всех маркеров
         document.querySelectorAll("[data-slot-pin='1']").forEach((n) => {
           n.classList.remove("bg-[#b088e8]", "scale-110");
           n.classList.add("bg-[#c29cf2]");
@@ -118,7 +116,7 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
         el.classList.add("bg-[#b088e8]", "scale-110");
 
         setActiveSlot(slot);
-        map.flyTo({ center: [slot.lng!, slot.lat!], zoom: 14, essential: true });
+        map.flyTo({ center: [lng, lat], zoom: 14, essential: true });
         
         if (onSlotSelect) {
           onSlotSelect(slot);
@@ -126,21 +124,20 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
       });
 
       const marker = new maplibregl.Marker({ element: el, anchor: "bottom" })
-        .setLngLat([slot.lng!, slot.lat!])
+        .setLngLat([lng, lat])
         .addTo(map);
 
       markersRef.current.push(marker);
     }
 
-    // Автоматическое центрирование, если есть объекты
-    if (withCoords.length > 0 && !expanded) {
+    if (uniqueSlots.length > 0 && !expanded) {
       const bounds = new maplibregl.LngLatBounds();
-      for (const slot of withCoords) {
-        bounds.extend([slot.lng!, slot.lat!]);
+      for (const slot of uniqueSlots) {
+        bounds.extend([slot.lng as number, slot.lat as number]);
       }
       map.fitBounds(bounds, { padding: 40, maxZoom: 12, duration: 0 });
     }
-  }, [uniqueSlots, expanded, onSlotSelect]);
+  }, [slots, expanded, onSlotSelect]);
 
   if (!maptilerKey) {
     return (
@@ -161,7 +158,6 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
         <div ref={mapContainer} className="h-full w-full" />
       </div>
       
-      {/* Кнопка раскрытия */}
       <button
         onClick={() => setExpanded(!expanded)}
         className="absolute bottom-2 right-2 rounded-lg bg-white/90 px-2 py-1 text-xs font-medium shadow-md backdrop-blur-sm hover:bg-white"
@@ -169,7 +165,6 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
         {expanded ? "Свернуть" : "Развернуть карту"}
       </button>
 
-      {/* Активный слот */}
       {activeSlot && expanded && (
         <div className="absolute bottom-12 left-2 right-2 rounded-xl bg-white/95 p-2 text-xs shadow-lg backdrop-blur-sm">
           <div className="flex items-center justify-between gap-2">
