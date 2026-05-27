@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import maplibregl, { type Map as MapLibreMap, type Marker } from "maplibre-gl";
 import { X } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -14,7 +14,7 @@ interface MapProps {
 
 // Группировка слотов по объектам (уникальным местам)
 function groupSlotsByObject(slots: Slot[]): Slot[] {
-  const unique: Map<string, Slot> = new Map();
+  const unique = new Map();
   for (const slot of slots) {
     const key = `${slot.city}|${slot.address}`;
     if (!unique.has(key)) {
@@ -58,11 +58,11 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
       const style = map.getStyle();
       if (style && style.layers) {
         for (const layer of style.layers) {
-          const id: string = layer.id || "";
+          const id = layer.id || "";
           if (id.includes("poi") || id.includes("poi-label")) {
             try {
               map.setLayoutProperty(id, "visibility", "none");
-            } catch {}
+            } catch (e) {}
           }
         }
       }
@@ -89,8 +89,7 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
     markersRef.current = [];
 
     const withCoords = uniqueSlots.filter(
-      (s): s is Slot & { lat: number; lng: number } => 
-        typeof s.lat === "number" && typeof s.lng === "number"
+      (s) => typeof s.lat === "number" && typeof s.lng === "number"
     );
 
     for (const slot of withCoords) {
@@ -119,7 +118,7 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
         el.classList.add("bg-[#b088e8]", "scale-110");
 
         setActiveSlot(slot);
-        map.flyTo({ center: [slot.lng, slot.lat], zoom: 14, essential: true });
+        map.flyTo({ center: [slot.lng!, slot.lat!], zoom: 14, essential: true });
         
         if (onSlotSelect) {
           onSlotSelect(slot);
@@ -127,7 +126,7 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
       });
 
       const marker = new maplibregl.Marker({ element: el, anchor: "bottom" })
-        .setLngLat([slot.lng, slot.lat])
+        .setLngLat([slot.lng!, slot.lat!])
         .addTo(map);
 
       markersRef.current.push(marker);
@@ -137,7 +136,7 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
     if (withCoords.length > 0 && !expanded) {
       const bounds = new maplibregl.LngLatBounds();
       for (const slot of withCoords) {
-        bounds.extend([slot.lng, slot.lat]);
+        bounds.extend([slot.lng!, slot.lat!]);
       }
       map.fitBounds(bounds, { padding: 40, maxZoom: 12, duration: 0 });
     }
