@@ -15,7 +15,13 @@ import SortFilterModal, {
 import EmptyState from "@/components/empty-state";
 import SearchBar from "@/components/search-bar";
 import PromoBanner from "@/components/promo-banner";
-import Map from "@/components/map";
+
+import dynamic from 'next/dynamic';
+
+const MapComponent = dynamic(
+  () => import('@/app/map/page').then((mod) => mod.default),
+  { ssr: false }
+);
 
 import {
   addDays,
@@ -568,11 +574,9 @@ export default function ShiftsClient() {
 
         <PromoBanner />
 
-        <Map
-          slots={filtered}
-          selectedDay={selectedDay}
-          onSlotSelect={openBooking}
-        />
+        <div className="h-[120px] w-full overflow-hidden rounded-xl">
+          <MapComponent />
+        </div>
 
         <DayTabs
           days={days}
