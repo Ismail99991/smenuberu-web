@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import maplibregl, { type Map as MapLibreMap, type Marker } from "maplibre-gl";
-import { MapPin, X } from "lucide-react";
+import { X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { Slot } from "@/lib/slots";
 
@@ -14,7 +14,7 @@ interface MapProps {
 
 // Группировка слотов по объектам (уникальным местам)
 function groupSlotsByObject(slots: Slot[]): Slot[] {
-  const unique = new Map<string, Slot>();
+  const unique: Map<string, Slot> = new Map();
   for (const slot of slots) {
     const key = `${slot.city}|${slot.address}`;
     if (!unique.has(key)) {
@@ -54,14 +54,16 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "bottom-right");
 
     map.on("load", () => {
-      // Стилизация карты (опционально)
-      const layers = map.getStyle()?.layers ?? [];
-      for (const l of layers) {
-        const id: string = l.id || "";
-        if (id.includes("poi") || id.includes("poi-label")) {
-          try {
-            map.setLayoutProperty(id, "visibility", "none");
-          } catch {}
+      // Стилизация карты
+      const style = map.getStyle();
+      if (style && style.layers) {
+        for (const layer of style.layers) {
+          const id: string = layer.id || "";
+          if (id.includes("poi") || id.includes("poi-label")) {
+            try {
+              map.setLayoutProperty(id, "visibility", "none");
+            } catch {}
+          }
         }
       }
     });
@@ -71,8 +73,10 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
     return () => {
       markersRef.current.forEach((m) => m.remove());
       markersRef.current = [];
-      map.remove();
-      mapRef.current = null;
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
     };
   }, [maptilerKey]);
 
@@ -85,8 +89,9 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
     markersRef.current = [];
 
     const withCoords = uniqueSlots.filter(
-      (s) => typeof s.lat === "number" && typeof s.lng === "number"
-    ) as Array<Slot & { lat: number; lng: number }>;
+      (s): s is Slot & { lat: number; lng: number } => 
+        typeof s.lat === "number" && typeof s.lng === "number"
+    );
 
     for (const slot of withCoords) {
       const el = document.createElement("button");
@@ -131,7 +136,9 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
     // Автоматическое центрирование, если есть объекты
     if (withCoords.length > 0 && !expanded) {
       const bounds = new maplibregl.LngLatBounds();
-      for (const slot of withCoords) bounds.extend([slot.lng, slot.lat]);
+      for (const slot of withCoords) {
+        bounds.extend([slot.lng, slot.lat]);
+      }
       map.fitBounds(bounds, { padding: 40, maxZoom: 12, duration: 0 });
     }
   }, [uniqueSlots, expanded, onSlotSelect]);
