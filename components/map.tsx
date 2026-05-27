@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import maplibregl, { type Map as MapLibreMap, type Marker } from "maplibre-gl";
 import { X } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -21,6 +21,24 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
 
   const maptilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY ?? "";
 
+  // Функция для группировки слотов
+  const getUniqueSlots = useCallback(() => {
+    const withCoords = slots.filter(
+      (s): s is Slot & { lat: number; lng: number } => 
+        s.lat !== undefined && s.lat !== null && 
+        s.lng !== undefined && s.lng !== null
+    );
+    
+    const unique: Record<string, Slot & { lat: number; lng: number }> = {};
+    for (const slot of withCoords) {
+      const key = `${slot.city}|${slot.address}`;
+      if (!unique[key]) {
+        unique[key] = slot as Slot & { lat: number; lng: number };
+      }
+    }
+    return Object.values(unique);
+  }, [slots]);
+
   // Инициализация карты
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -37,20 +55,6 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
     });
 
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "bottom-right");
-
-    map.on("load", () => {
-      const style = map.getStyle();
-      if (style && style.layers) {
-        for (const layer of style.layers) {
-          const id = layer.id || "";
-          if (id.includes("poi") || id.includes("poi-label")) {
-            try {
-              map.setLayoutProperty(id, "visibility", "none");
-            } catch (e) {}
-          }
-        }
-      }
-    });
 
     mapRef.current = map;
 
@@ -72,26 +76,9 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
     markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
 
-    // Фильтруем слоты с координатами и группируем по адресу
-    const slotsWithCoords = slots.filter(
-      (s) => typeof s.lat === "number" && typeof s.lng === "number"
-    );
-    
-    // Группировка по уникальному ключу
-    const uniqueMap: { [key: string]: Slot } = {};
-    for (const slot of slotsWithCoords) {
-      const key = `${slot.city}|${slot.address}`;
-      if (!uniqueMap[key]) {
-        uniqueMap[key] = slot;
-      }
-    }
-    
-    const uniqueSlots = Object.values(uniqueMap);
+    const uniqueSlots = getUniqueSlots();
 
     for (const slot of uniqueSlots) {
-      const lat = slot.lat as number;
-      const lng = slot.lng as number;
-      
       const el = document.createElement("button");
       el.type = "button";
       el.setAttribute("data-slot-pin", "1");
@@ -116,7 +103,7 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
         el.classList.add("bg-[#b088e8]", "scale-110");
 
         setActiveSlot(slot);
-        map.flyTo({ center: [lng, lat], zoom: 14, essential: true });
+        map.flyTo({ center: [slot.lng, slot.lat], zoom: 14, essential: true });
         
         if (onSlotSelect) {
           onSlotSelect(slot);
@@ -124,20 +111,20 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
       });
 
       const marker = new maplibregl.Marker({ element: el, anchor: "bottom" })
-        .setLngLat([lng, lat])
+        .setLngLat([slot.lng, slot.lat])
         .addTo(map);
 
       markersRef.current.push(marker);
     }
 
-    if (uniqueSlots.length > 0 && !expanded) {
+    if (uniqueSlots.length > 0) {
       const bounds = new maplibregl.LngLatBounds();
       for (const slot of uniqueSlots) {
-        bounds.extend([slot.lng as number, slot.lat as number]);
+        bounds.extend([slot.lng, slot.lat]);
       }
       map.fitBounds(bounds, { padding: 40, maxZoom: 12, duration: 0 });
     }
-  }, [slots, expanded, onSlotSelect]);
+  }, [getUniqueSlots, onSlotSelect]);
 
   if (!maptilerKey) {
     return (
