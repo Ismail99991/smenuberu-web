@@ -15,6 +15,7 @@ import SortFilterModal, {
 import EmptyState from "@/components/empty-state";
 import SearchBar from "@/components/search-bar";
 import PromoBanner from "@/components/promo-banner";
+import Map from "@/components/map";
 
 import {
   addDays,
@@ -566,6 +567,12 @@ export default function ShiftsClient() {
         />
 
         <PromoBanner />
+
+        <Map
+          slots={filtered}
+          selectedDay={selectedDay}
+          onSlotSelect={openBooking}
+        />
 
         <DayTabs
           days={days}
