@@ -16,13 +16,6 @@ import EmptyState from "@/components/empty-state";
 import SearchBar from "@/components/search-bar";
 import PromoBanner from "@/components/promo-banner";
 
-import dynamic from 'next/dynamic';
-
-const MapComponent = dynamic(
-  () => import('@/app/map/page').then((mod) => mod.default),
-  { ssr: false }
-);
-
 import {
   addDays,
   getMockSlots,
@@ -573,10 +566,6 @@ export default function ShiftsClient() {
         />
 
         <PromoBanner />
-
-        <div className="h-[120px] w-full overflow-hidden rounded-xl">
-          <MapComponent />
-        </div>
 
         <DayTabs
           days={days}
