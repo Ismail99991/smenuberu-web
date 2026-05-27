@@ -14,6 +14,7 @@ export type Slot = {
   type: TaskType;
   objectName?: string;
   logoUrl?: string;
+  objectId?: string;
 };
 
 // ✅ ИСПРАВЛЕННЫЙ API_BASE
