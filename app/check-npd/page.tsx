@@ -2,9 +2,11 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Check, X, AlertCircle, Loader2, Shield, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { uiTransition } from "@/lib/ui";
+import { setLocalSelfEmployed } from "@/lib/user-state";
 
 // Тип ответа от API
 interface CheckNpdResponse {
@@ -17,6 +19,7 @@ interface CheckNpdResponse {
 }
 
 export default function CheckNpdPage() {
+  const router = useRouter();
   const [inn, setInn] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<CheckNpdResponse | null>(null);
@@ -44,8 +47,8 @@ export default function CheckNpdPage() {
     setIsLoading(true);
 
     try {
-      // TODO: замени URL на твой реальный бэкенд
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/check-npd`, {
+      // Реальный вызов бэкенда
+      const response = await fetch("https://api.smenube.ru/check-npd", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ inn: cleanInn }),
@@ -58,6 +61,15 @@ export default function CheckNpdPage() {
       }
 
       setResult(data);
+
+      // Если статус самозанятого подтверждён — обновляем кэш и редиректим
+      if (data.success && data.isSelfEmployed) {
+        setLocalSelfEmployed(true);
+        // Даём время на сохранение в localStorage и редиректим
+        setTimeout(() => {
+          router.push("/shifts");
+        }, 1000);
+      }
     } catch (err) {
       console.error(err);
       setError(err instanceof Error ? err.message : "Не удалось проверить статус. Попробуйте позже.");
@@ -205,6 +217,16 @@ export default function CheckNpdPage() {
                     </li>
                   </ul>
                 </div>
+              )}
+
+              {/* Кнопка возврата, если статус подтверждён */}
+              {result.isSelfEmployed && (
+                <button
+                  onClick={() => router.push("/shifts")}
+                  className="mt-4 rounded-xl bg-[#c29cf2] px-4 py-2 text-sm font-medium text-white hover:bg-[#b088e8]"
+                >
+                  Вернуться к сменам
+                </button>
               )}
             </div>
           </div>
