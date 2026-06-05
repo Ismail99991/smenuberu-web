@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useMemo } from "react";
 import maplibregl, { type Map as MapLibreMap, type Marker } from "maplibre-gl";
-import { X } from "lucide-react";
+import { Maximize2, Minimize2 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { Slot } from "@/lib/slots";
 
@@ -30,7 +30,6 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
   const mapRef = useRef<MapLibreMap | null>(null);
   const markersRef = useRef<Marker[]>([]);
   const [expanded, setExpanded] = useState(false);
-  const [activeObject, setActiveObject] = useState<ObjectItem | null>(null);
   const [objects, setObjects] = useState<ObjectItem[]>([]);
 
   const maptilerKey = process.env.NEXT_PUBLIC_MAPTILER_KEY ?? "";
@@ -90,6 +89,21 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
 
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "bottom-right");
 
+    // Скрываем копирайт MapTiler и OpenStreetMap
+    map.on("load", () => {
+      // Скрываем текст атрибуции
+      const attributionControl = document.querySelector(".maplibregl-ctrl-attrib");
+      if (attributionControl) {
+        (attributionControl as HTMLElement).style.display = "none";
+      }
+      
+      // Скрываем логотип MapTiler
+      const logoControl = document.querySelector(".maplibregl-ctrl-logo");
+      if (logoControl) {
+        (logoControl as HTMLElement).style.display = "none";
+      }
+    });
+
     mapRef.current = map;
 
     return () => {
@@ -136,10 +150,8 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
         el.classList.remove("bg-[#c29cf2]");
         el.classList.add("bg-[#b088e8]", "scale-110");
 
-        setActiveObject(obj);
         map.flyTo({ center: [obj.lng, obj.lat], zoom: 14, essential: true });
         
-        // Находим слот для этого объекта и открываем бронирование
         const slotForObject = slots.find((s) => s.objectId === obj.id);
         if (slotForObject && onSlotSelect) {
           onSlotSelect(slotForObject);
@@ -162,9 +174,10 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
 
   if (!maptilerKey) {
     return (
-      <div className="w-full rounded-xl bg-gray-100 p-3 text-center text-xs text-gray-500">
-        Нет ключа MapTiler
-      </div>
+      <div className={cn(
+        "w-full rounded-xl bg-gray-100 transition-all duration-300",
+        expanded ? "h-[300px]" : "h-[120px]"
+      )} />
     );
   }
 
@@ -181,9 +194,24 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
       
       <button
         onClick={() => setExpanded(!expanded)}
-        className="absolute bottom-2 right-2 rounded-lg bg-white/90 px-2 py-1 text-xs font-medium shadow-md backdrop-blur-sm hover:bg-white"
+        className={cn(
+          "absolute bottom-2 left-2 z-10",
+          "flex items-center gap-2 rounded-xl px-4 py-2.5",
+          "bg-[#c29cf2] text-white font-medium shadow-lg",
+          "hover:bg-[#b088e8] active:scale-[0.97] transition-all duration-200"
+        )}
       >
-        {expanded ? "Свернуть" : "Развернуть карту"}
+        {expanded ? (
+          <>
+            <Minimize2 className="h-4 w-4" />
+            <span className="text-sm">Свернуть</span>
+          </>
+        ) : (
+          <>
+            <Maximize2 className="h-4 w-4" />
+            <span className="text-sm">Развернуть карту</span>
+          </>
+        )}
       </button>
     </div>
   );
