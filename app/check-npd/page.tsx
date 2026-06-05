@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { 
   ShieldCheck, 
@@ -9,7 +9,8 @@ import {
   AlertCircle,
   ExternalLink,
   Frown,
-  Smile
+  Smile,
+  X
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { setLocalSelfEmployed } from "@/lib/user-state";
@@ -30,6 +31,8 @@ export default function CheckNpdPage() {
   const [result, setResult] = useState<CheckNpdResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sheetVisible, setSheetVisible] = useState(false);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const touchStartY = useRef<number>(0);
 
   const isValidInn = (value: string) => {
     const clean = value.replace(/\D/g, "");
@@ -82,8 +85,34 @@ export default function CheckNpdPage() {
     setInn("");
     setResult(null);
     setError(null);
+  };
+
+  const closeSheet = () => {
     setSheetVisible(false);
   };
+
+  // Обработка свайпа вниз
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const deltaY = e.touches[0].clientY - touchStartY.current;
+    if (deltaY > 50) {
+      closeSheet();
+    }
+  };
+
+  // Закрытие по Escape
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && sheetVisible) {
+        closeSheet();
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [sheetVisible]);
 
   const isValid = isValidInn(inn);
 
@@ -175,46 +204,59 @@ export default function CheckNpdPage() {
         </div>
       </div>
 
-      {/* Bottom Sheet — выезжает снизу */}
+      {/* Bottom Sheet */}
       {sheetVisible && result && (
         <>
           {/* Overlay */}
           <div 
-            className="fixed inset-0 bg-black/40 z-40 transition-opacity duration-300"
-            onClick={() => setSheetVisible(false)}
+            className="fixed inset-0 bg-black/50 z-[100] transition-opacity duration-300"
+            onClick={closeSheet}
           />
           
-          {/* Sheet */}
-          <div className={cn(
-            "fixed bottom-0 left-0 right-0 z-50",
-            "bg-white rounded-t-3xl shadow-2xl",
-            "animate-in slide-in-from-bottom duration-300",
-            "flex flex-col"
-          )}
-          style={{ height: "70vh" }}>
-            
-            {/* Drag indicator */}
-            <div className="flex justify-center pt-4 pb-2">
-              <div className="w-12 h-1 bg-zinc-300 rounded-full" />
+          {/* Sheet — высота 40% */}
+          <div 
+            ref={sheetRef}
+            className={cn(
+              "fixed bottom-0 left-0 right-0 z-[101]",
+              "bg-white rounded-t-3xl shadow-2xl",
+              "animate-in slide-in-from-bottom duration-300",
+              "flex flex-col"
+            )}
+            style={{ height: "40vh" }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+          >
+            {/* Drag indicator + кнопка закрытия */}
+            <div className="flex justify-between items-center pt-4 pb-2 px-6">
+              <div className="w-12 h-1 bg-zinc-300 rounded-full mx-auto" />
+              <button 
+                onClick={closeSheet}
+                className="absolute right-4 top-4 w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center hover:bg-zinc-200 transition-colors"
+              >
+                <X className="w-4 h-4 text-zinc-500" />
+              </button>
             </div>
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto px-6 pb-8">
               {result.isSelfEmployed ? (
-                // Успех — счастливый путь
-                <div className="text-center py-8">
-                  <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center">
-                    <Smile className="w-12 h-12 text-green-600" />
+                // Успех
+                <div className="text-center py-6">
+                  <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center">
+                    <Smile className="w-10 h-10 text-green-600" />
                   </div>
-                  <h2 className="text-2xl font-bold text-zinc-900 mb-3">
+                  <h2 className="text-xl font-bold text-zinc-900 mb-2">
                     Отлично!
                   </h2>
-                  <p className="text-zinc-600 mb-6">
-                    Ваш статус самозанятого подтверждён.
+                  <p className="text-zinc-600 text-sm mb-6">
+                    Ваш статус самозанятого подтверждён.<br />
                     Теперь вам доступна запись на смены.
                   </p>
                   <button
-                    onClick={() => router.push("/shifts")}
+                    onClick={() => {
+                      closeSheet();
+                      router.push("/shifts");
+                    }}
                     className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#c29cf2] text-white font-medium hover:bg-[#b088e8] transition-colors"
                   >
                     Перейти к сменам
@@ -222,40 +264,38 @@ export default function CheckNpdPage() {
                   </button>
                 </div>
               ) : (
-                // Неудача — печальный путь
-                <div className="text-center py-8">
-                  <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center">
-                    <Frown className="w-12 h-12 text-amber-500" />
+                // Неудача
+                <div className="text-center py-6">
+                  <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center">
+                    <Frown className="w-10 h-10 text-amber-500" />
                   </div>
-                  <h2 className="text-2xl font-bold text-zinc-900 mb-3">
+                  <h2 className="text-xl font-bold text-zinc-900 mb-2">
                     К сожалению...
                   </h2>
-                  <p className="text-zinc-600 mb-2">
-                    Мы пока не можем сотрудничать с вами,
-                  </p>
-                  <p className="text-zinc-600 mb-6">
+                  <p className="text-zinc-600 text-sm mb-4">
+                    Мы пока не можем сотрудничать с вами,<br />
                     так как вы не зарегистрированы как самозанятый.
                   </p>
 
-                  <div className="bg-zinc-50 rounded-xl p-5 text-left mb-6">
-                    <p className="font-semibold text-zinc-800 mb-3">Что делать?</p>
-                    <div className="space-y-3">
+                  <div className="bg-zinc-50 rounded-xl p-4 text-left mb-4">
+                    <p className="font-semibold text-zinc-800 text-sm mb-3">Что делать?</p>
+                    <div className="space-y-2">
                       <a 
                         href="https://npd.nalog.ru/" 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="flex items-center gap-3 text-sm text-zinc-600 hover:text-[#c29cf2] transition-colors"
                       >
-                        <span className="w-6 h-6 rounded-full bg-zinc-200 flex items-center justify-center text-xs font-bold">1</span>
+                        <span className="w-5 h-5 rounded-full bg-zinc-200 flex items-center justify-center text-xs font-bold">1</span>
                         <span>Зарегистрироваться в «Мой Налог»</span>
                         <ExternalLink className="w-3 h-3 ml-auto opacity-50" />
                       </a>
                       <div className="flex items-center gap-3 text-sm text-zinc-500">
-                        <span className="w-6 h-6 rounded-full bg-zinc-200 flex items-center justify-center text-xs font-bold">2</span>
+                        <span className="w-5 h-5 rounded-full bg-zinc-200 flex items-center justify-center text-xs font-bold">2</span>
                         <span>Указать ИНН в профиле платформы</span>
                       </div>
                       <div className="flex items-center gap-3 text-sm text-zinc-500">
-                        <span className="w-6 h-6 rounded-full bg-zinc-200 flex items-center justify-center text-xs font-bold">3</span>
+                        <span className="w-5 h-5 rounded-full bg-zinc-200 flex items-center justify-center text-xs font-bold">3</span>
                         <span>После подтверждения — выплаты станут доступны</span>
                       </div>
                     </div>
