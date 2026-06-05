@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useIsSelfEmployed } from "@/lib/user-state"; // ✅ добавлено
+import { useIsSelfEmployed } from "@/lib/user-state";
+import { OnboardingCarousel } from "@/components/onboarding-carousel"; // ✅ добавлено
 
 import PullToRefresh from "@/components/PullToRefresh";
 import DayTabs from "@/components/day-tabs";
@@ -133,7 +134,7 @@ export default function ShiftsClient() {
   const router =
     useRouter();
 
-  const isSelfEmployed = useIsSelfEmployed(); // ✅ добавлено
+  const isSelfEmployed = useIsSelfEmployed();
 
   const [
     showSearch,
@@ -534,6 +535,9 @@ export default function ShiftsClient() {
       }
     >
       <div className="space-y-4 pb-24">
+
+        {/* ✅ Онбординг-карусель — только если НПД не подтверждён */}
+        {!isSelfEmployed && <OnboardingCarousel />}
 
         <SearchBar
           q={q}
