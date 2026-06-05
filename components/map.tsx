@@ -91,13 +91,11 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
 
     // Скрываем копирайт MapTiler и OpenStreetMap
     map.on("load", () => {
-      // Скрываем текст атрибуции
       const attributionControl = document.querySelector(".maplibregl-ctrl-attrib");
       if (attributionControl) {
         (attributionControl as HTMLElement).style.display = "none";
       }
       
-      // Скрываем логотип MapTiler
       const logoControl = document.querySelector(".maplibregl-ctrl-logo");
       if (logoControl) {
         (logoControl as HTMLElement).style.display = "none";
@@ -192,25 +190,21 @@ export default function Map({ slots, selectedDay, onSlotSelect }: MapProps) {
         <div ref={mapContainer} className="h-full w-full" />
       </div>
       
+      {/* Кнопка развернуть/свернуть — только иконки */}
       <button
         onClick={() => setExpanded(!expanded)}
         className={cn(
           "absolute bottom-2 left-2 z-10",
-          "flex items-center gap-2 rounded-xl px-4 py-2.5",
-          "bg-[#c29cf2] text-white font-medium shadow-lg",
+          "flex items-center justify-center rounded-xl w-8 h-8",
+          "bg-[#c29cf2] text-white shadow-lg",
           "hover:bg-[#b088e8] active:scale-[0.97] transition-all duration-200"
         )}
+        aria-label={expanded ? "Свернуть карту" : "Развернуть карту"}
       >
         {expanded ? (
-          <>
-            <Minimize2 className="h-4 w-4" />
-            <span className="text-sm">Свернуть</span>
-          </>
+          <Minimize2 className="h-4 w-4" />
         ) : (
-          <>
-            <Maximize2 className="h-4 w-4" />
-            <span className="text-sm">Развернуть карту</span>
-          </>
+          <Maximize2 className="h-4 w-4" />
         )}
       </button>
     </div>
