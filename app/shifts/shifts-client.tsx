@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useIsSelfEmployed } from "@/lib/user-state"; // ✅ добавлено
 
 import PullToRefresh from "@/components/PullToRefresh";
 import DayTabs from "@/components/day-tabs";
@@ -131,6 +132,8 @@ function pseudoNearScore(
 export default function ShiftsClient() {
   const router =
     useRouter();
+
+  const isSelfEmployed = useIsSelfEmployed(); // ✅ добавлено
 
   const [
     showSearch,
@@ -506,22 +509,22 @@ export default function ShiftsClient() {
 
   const openBooking =
     useCallback(
-      (
-        slot: Slot
-      ) => {
-        setModalPreset(
-          {
-            day: slot.date,
-            title:
-              slot.title,
-          }
-        );
+      (slot: Slot) => {
+        // Если не самозанятый — отправляем на проверку НПД
+        if (!isSelfEmployed) {
+          router.push("/check-npd");
+          return;
+        }
 
-        setModalOpen(
-          true
-        );
+        // Если самозанятый — открываем модалку записи
+        setModalPreset({
+          day: slot.date,
+          title: slot.title,
+        });
+
+        setModalOpen(true);
       },
-      []
+      [isSelfEmployed, router]
     );
 
   return (
@@ -640,9 +643,11 @@ export default function ShiftsClient() {
                     slot={
                       slot
                     }
+                    isSelfEmployed={isSelfEmployed}
                     onBook={
                       openBooking
                     }
+                    onVerifyNpd={() => router.push("/check-npd")}
                   />
                 </div>
               )
