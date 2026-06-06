@@ -20,7 +20,7 @@ const steps = [
   },
   {
     id: 3,
-    title: "мы ждем вас на объекте",
+    title: "Мы ждем вас на объекте",
     description: "не забудьте построить маршрут и получить пропуск на КПП",
     image:
       "https://s3.regru.cloud/smenuberu/drafts/cmq10s71j00023clfsgr2snse/7e32d4cd-28a7-4695-912f-c4976134e970/logo/f5867c7d-1766-4195-b9a1-2feaa366f8a2.png",
