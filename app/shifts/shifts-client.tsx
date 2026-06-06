@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useIsSelfEmployed } from "@/lib/user-state";
-import { OnboardingCarousel } from "@/components/onboarding-carousel"; // ✅ добавлено
+import { OnboardingCarousel } from "@/components/onboarding-carousel";
 
 import PullToRefresh from "@/components/PullToRefresh";
 import DayTabs from "@/components/day-tabs";
@@ -511,13 +511,11 @@ export default function ShiftsClient() {
   const openBooking =
     useCallback(
       (slot: Slot) => {
-        // Если не самозанятый — отправляем на проверку НПД
         if (!isSelfEmployed) {
           router.push("/check-npd");
           return;
         }
 
-        // Если самозанятый — открываем модалку записи
         setModalPreset({
           day: slot.date,
           title: slot.title,
@@ -534,10 +532,7 @@ export default function ShiftsClient() {
         refreshSlots
       }
     >
-      <div className="space-y-4 pb-24">
-
-        {/* ✅ Онбординг-карусель — только если НПД не подтверждён */}
-        {!isSelfEmployed && <OnboardingCarousel />}
+      <div className="space-y-3 pb-24">
 
         <SearchBar
           q={q}
@@ -614,6 +609,8 @@ export default function ShiftsClient() {
             availableDays
           }
         />
+
+        {!isSelfEmployed && <OnboardingCarousel />}
 
         {filtered.length ===
         0 ? (
