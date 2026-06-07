@@ -16,7 +16,7 @@ export default function EmptyState({
   imageAlt?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-6 text-center">
+    <div className="rounded-3xl bg-white p-6 text-center">
       {imageUrl && (
         <div className="mb-4 flex justify-center">
           <img 
