@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronRight, MapPinned, SlidersHorizontal, X } from "lucide-react";
 
@@ -104,6 +104,10 @@ export default function ShiftsClient() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [mapOpen, setMapOpen] = useState(false);
 
+  const [sheetY, setSheetY] = useState(0);
+  const dragStartYRef = useRef<number | null>(null);
+  const draggingRef = useRef(false);
+
   const [filters, setFilters] = useState<TaskFilters>({
     onlyHot: false,
     onlyPremium: false,
@@ -122,6 +126,14 @@ export default function ShiftsClient() {
       window.removeEventListener("smenube:toggle-search", handler);
     };
   }, []);
+
+  useEffect(() => {
+    if (!mapOpen) {
+      setSheetY(0);
+      dragStartYRef.current = null;
+      draggingRef.current = false;
+    }
+  }, [mapOpen]);
 
   const days = useMemo(() => getDaysWindow(today, 14), [today]);
 
@@ -263,6 +275,38 @@ export default function ShiftsClient() {
     [isSelfEmployed, router]
   );
 
+  const handleSheetTouchStart = useCallback((e: React.TouchEvent) => {
+    dragStartYRef.current = e.touches[0]?.clientY ?? null;
+    draggingRef.current = true;
+  }, []);
+
+  const handleSheetTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!draggingRef.current) return;
+    if (dragStartYRef.current == null) return;
+
+    const currentY = e.touches[0]?.clientY ?? 0;
+    const diff = currentY - dragStartYRef.current;
+
+    if (diff <= 0) {
+      setSheetY(0);
+      return;
+    }
+
+    setSheetY(Math.min(diff, 220));
+  }, []);
+
+  const handleSheetTouchEnd = useCallback(() => {
+    if (sheetY > 90) {
+      setMapOpen(false);
+      setSheetY(0);
+    } else {
+      setSheetY(0);
+    }
+
+    dragStartYRef.current = null;
+    draggingRef.current = false;
+  }, [sheetY]);
+
   return (
     <PullToRefresh onRefresh={refreshSlots}>
       <div className="space-y-3 pb-24">
@@ -352,8 +396,6 @@ export default function ShiftsClient() {
                     ? "Сначала дороже"
                     : filters.sort === "pay_asc"
                     ? "Сначала дешевле"
-                    : filters.sort === "premium_first"
-                    ? "Высокий тариф"
                     : "По близости"}
                 </span>
               ) : null}
@@ -398,14 +440,42 @@ export default function ShiftsClient() {
               onClick={() => setMapOpen(false)}
             />
 
-            <div className="absolute inset-x-0 bottom-0 max-h-[82vh] rounded-t-[28px] bg-white p-4 shadow-[0_-18px_50px_rgba(0,0,0,0.22)]">
-              <div className="mx-auto mb-3 h-1.5 w-11 rounded-full bg-zinc-200" />
+            <div
+              className="
+                absolute
+                inset-x-0
+                bottom-[calc(72px+env(safe-area-inset-bottom))]
+                max-h-[76vh]
+                rounded-t-[28px]
+                bg-white
+                p-4
+                shadow-[0_-18px_50px_rgba(0,0,0,0.22)]
+                will-change-transform
+              "
+              style={{
+                transform: `translateY(${sheetY}px)`,
+                transition: draggingRef.current ? "none" : "transform 180ms ease",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setMapOpen(false)}
+                onTouchStart={handleSheetTouchStart}
+                onTouchMove={handleSheetTouchMove}
+                onTouchEnd={handleSheetTouchEnd}
+                onTouchCancel={handleSheetTouchEnd}
+                className="mx-auto mb-3 flex h-8 w-24 touch-none items-center justify-center"
+                aria-label="Свернуть карту"
+              >
+                <span className="h-1.5 w-11 rounded-full bg-zinc-300" />
+              </button>
 
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
                   <div className="text-lg font-semibold text-zinc-900">
                     Карта объектов
                   </div>
+
                   <div className="text-sm text-zinc-500">
                     {filtered.length} смен на выбранную дату
                   </div>
