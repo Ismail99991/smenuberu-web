@@ -20,9 +20,20 @@ export default function AppShell({
     pathname.startsWith("/notifications") ? "Уведомления" :
     "Главная";
 
+  const canSearch = pathname === "/shifts" || pathname === "/";
+
   return (
-    <div className="app-shell">
-      <Topbar title={title} />
+    <div className="app-shell bg-[#c29cf2]/5">
+      <Topbar
+        title={title}
+        onToggleSearch={
+          canSearch
+            ? () => {
+                window.dispatchEvent(new CustomEvent("smenube:toggle-search"));
+              }
+            : undefined
+        }
+      />
 
       <div className="app-scroll">
         <main className="mx-auto w-full max-w-xl px-4 pt-4 pb-24">
