@@ -1,3 +1,8 @@
+Да, вижу. У тебя `-mx-4` съедает внутренний отступ секции, поэтому `pl-[18px]` почти не ощущается.
+
+Сделай проще: убираем `-mx-4`, ставим обычный `overflow-hidden`, а скроллу даём `pl-[8px]`. Тогда первая карточка реально отлипнет от контейнера.
+
+```tsx
 "use client";
 
 import { Clock3, ShieldCheck } from "lucide-react";
@@ -57,7 +62,7 @@ export function OnboardingCarousel() {
         </p>
       </div>
 
-      <div className="-mx-4 overflow-hidden">
+      <div className="overflow-hidden">
         <div
           data-ptr-skip
           className="
@@ -67,8 +72,8 @@ export function OnboardingCarousel() {
             gap-3
             overflow-x-auto
             py-2
-            pl-[18px]
-            pr-4
+            pl-[8px]
+            pr-[8px]
             [-ms-overflow-style:none]
             [scrollbar-width:none]
             [&::-webkit-scrollbar]:hidden
@@ -80,33 +85,24 @@ export function OnboardingCarousel() {
               onClick={() => router.push(step.link)}
               className="
                 h-[136px]
-                min-w-[95%]
+                min-w-[100%]
                 snap-start
                 cursor-pointer
                 overflow-hidden
                 rounded-[24px]
                 border
-                border-[#e7def8]
+                border-[#e4d7f8]
                 bg-gradient-to-br
-                from-[#f5f1fc]
-                via-[#f3eefb]
-                to-[#eadcfb]
-                shadow-[0_4px_14px_rgba(194,156,242,0.10)]
+                from-[#f2ebfc]
+                via-[#efe7fb]
+                to-[#e3d1f8]
+                shadow-[0_6px_18px_rgba(194,156,242,0.14)]
                 transition-transform
                 active:scale-[0.99]
               "
             >
               <div className="flex h-full items-center">
-                <div
-                  className="
-                    flex
-                    h-full
-                    w-[124px]
-                    shrink-0
-                    items-center
-                    justify-center
-                  "
-                >
+                <div className="flex h-full w-[124px] shrink-0 items-center justify-center">
                   <img
                     src={step.image}
                     alt={step.title}
@@ -121,7 +117,7 @@ export function OnboardingCarousel() {
 
                 <div className="flex min-w-0 flex-1 flex-col justify-center pr-3">
                   <div className="flex items-center gap-1.5">
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg bg-[#c29cf2]/20 text-[11px] font-semibold text-[#8f5ce4]">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg bg-[#c29cf2]/25 text-[11px] font-semibold text-[#8f5ce4]">
                       {step.id}
                     </span>
 
@@ -147,7 +143,7 @@ export function OnboardingCarousel() {
                           key={item.text}
                           className="flex shrink-0 items-center gap-1 text-[10px] leading-none text-zinc-500"
                         >
-                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg bg-white/55 text-[#8f5ce4]">
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg bg-white/60 text-[#8f5ce4]">
                             <Icon className="h-3 w-3" />
                           </span>
 
@@ -167,3 +163,4 @@ export function OnboardingCarousel() {
     </section>
   );
 }
+```
