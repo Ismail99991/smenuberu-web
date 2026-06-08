@@ -63,7 +63,7 @@ export function OnboardingCarousel() {
         </p>
       </div>
 
-      <div className="overflow-hidden rounded-[26px] border border-zinc-200 bg-white">
+      <div className="-mx-4 overflow-hidden">
         <div
           data-ptr-skip
           className="
@@ -72,7 +72,8 @@ export function OnboardingCarousel() {
             snap-mandatory
             gap-3
             overflow-x-auto
-            p-2
+            px-4
+            py-2
             [-ms-overflow-style:none]
             [scrollbar-width:none]
             [&::-webkit-scrollbar]:hidden
@@ -83,7 +84,7 @@ export function OnboardingCarousel() {
               key={step.id}
               onClick={() => router.push(step.link)}
               className="
-                h-[150px]
+                h-[130px]
                 min-w-[95%]
                 snap-start
                 overflow-hidden
@@ -92,15 +93,16 @@ export function OnboardingCarousel() {
                 from-white
                 via-white
                 to-[#c29cf2]/20
+                shadow-[0_4px_14px_rgba(0,0,0,0.06)]
                 active:scale-[0.99]
               "
             >
               <div className="flex h-full items-center">
-                <div className="flex h-full w-[112px] shrink-0 items-center justify-center bg-white">
+                <div className="flex h-full w-[96px] shrink-0 items-center justify-center bg-white">
                   <img
                     src={step.image}
                     alt={step.title}
-                    className="h-[92px] w-[92px] object-contain"
+                    className="h-[76px] w-[76px] object-contain"
                   />
                 </div>
 
