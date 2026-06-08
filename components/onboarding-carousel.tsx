@@ -25,7 +25,7 @@ const steps = [
       { icon: Clock3, text: "1 минута" },
       { icon: ShieldCheck, text: "Один раз" },
     ],
-    link: "/profile",
+    link: "/payouts",
     image: "/illustrations/IMG_3906.png",
   },
   {
@@ -46,7 +46,7 @@ export function OnboardingCarousel() {
   const router = useRouter();
 
   return (
-    <section className="rounded-3xl bg-white p-4">
+    <section className="rounded-3xl bg-[#fafafa] p-4">
       <div className="mb-3">
         <h2 className="text-[14px] font-semibold leading-none text-zinc-900">
           Для старта
@@ -67,7 +67,7 @@ export function OnboardingCarousel() {
             gap-3
             overflow-x-auto
             py-2
-            pl-[5px]
+            pl-[18px]
             pr-4
             [-ms-overflow-style:none]
             [scrollbar-width:none]
@@ -82,13 +82,17 @@ export function OnboardingCarousel() {
                 h-[136px]
                 min-w-[95%]
                 snap-start
+                cursor-pointer
                 overflow-hidden
                 rounded-[24px]
-                bg-gradient-to-r
-                from-[#fafafa]
-                via-[#fafafa]
-                to-[#c29cf2]/12
-                shadow-[0_2px_10px_rgba(0,0,0,0.045)]
+                border
+                border-[#e7def8]
+                bg-gradient-to-br
+                from-[#f5f1fc]
+                via-[#f3eefb]
+                to-[#eadcfb]
+                shadow-[0_4px_14px_rgba(194,156,242,0.10)]
+                transition-transform
                 active:scale-[0.99]
               "
             >
@@ -117,7 +121,7 @@ export function OnboardingCarousel() {
 
                 <div className="flex min-w-0 flex-1 flex-col justify-center pr-3">
                   <div className="flex items-center gap-1.5">
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg bg-[#c29cf2]/15 text-[11px] font-semibold text-[#9f6ee8]">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg bg-[#c29cf2]/20 text-[11px] font-semibold text-[#8f5ce4]">
                       {step.id}
                     </span>
 
@@ -143,7 +147,7 @@ export function OnboardingCarousel() {
                           key={item.text}
                           className="flex shrink-0 items-center gap-1 text-[10px] leading-none text-zinc-500"
                         >
-                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg bg-[#c29cf2]/10 text-[#9f6ee8]">
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg bg-white/55 text-[#8f5ce4]">
                             <Icon className="h-3 w-3" />
                           </span>
 
