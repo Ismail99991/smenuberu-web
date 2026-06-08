@@ -444,7 +444,7 @@ export default function ShiftsClient() {
               className="
                 absolute
                 inset-x-0
-                bottom-[calc(72px+env(safe-area-inset-bottom))]
+                bottom-[calc(40px+env(safe-area-inset-bottom))]
                 max-h-[76vh]
                 rounded-t-[28px]
                 bg-white
