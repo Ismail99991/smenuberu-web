@@ -14,7 +14,7 @@ const steps = [
       { icon: ShieldCheck, text: "Безопасно" },
       { icon: Smartphone, text: "Онлайн" },
     ],
-    action: { link: "/check-npd" },
+    link: "/check-npd",
     image:
       "https://s3.regru.cloud/smenuberu/drafts/cmq10s71j00023clfsgr2snse/7e32d4cd-28a7-4695-912f-c4976134e970/logo/98135409-28ff-487e-9f9c-1f3314b35f5a.png",
   },
@@ -28,7 +28,7 @@ const steps = [
       { icon: ShieldCheck, text: "Без звонков" },
       { icon: Smartphone, text: "В приложении" },
     ],
-    action: { link: "/shifts" },
+    link: "/shifts",
     image:
       "https://s3.regru.cloud/smenuberu/drafts/cmq10s71j00023clfsgr2snse/7e32d4cd-28a7-4695-912f-c4976134e970/logo/8abf90e9-b51b-49a6-a52b-a7a37d09cd96.png",
   },
@@ -42,7 +42,7 @@ const steps = [
       { icon: ShieldCheck, text: "Всё готово" },
       { icon: Smartphone, text: "Статус онлайн" },
     ],
-    action: { link: "/profile" },
+    link: "/profile",
     image:
       "https://s3.regru.cloud/smenuberu/drafts/cmq10s71j00023clfsgr2snse/7e32d4cd-28a7-4695-912f-c4976134e970/logo/f5867c7d-1766-4195-b9a1-2feaa366f8a2.png",
   },
@@ -53,17 +53,17 @@ export function OnboardingCarousel() {
 
   return (
     <section className="rounded-3xl bg-white p-4">
-      <div className="mb-4">
-        <h2 className="text-[24px] font-semibold leading-none tracking-[-0.03em] text-zinc-900">
+      <div className="mb-3">
+        <h2 className="text-[14px] font-semibold leading-none text-zinc-900">
           Для старта
         </h2>
 
-        <p className="mt-2 text-[17px] leading-none text-zinc-500">
+        <p className="mt-1 text-[12px] leading-none text-zinc-500">
           3 простых шага
         </p>
       </div>
 
-      <div className="-mx-4 overflow-hidden">
+      <div className="overflow-hidden rounded-[26px] border border-zinc-200 bg-white">
         <div
           data-ptr-skip
           className="
@@ -72,8 +72,7 @@ export function OnboardingCarousel() {
             snap-mandatory
             gap-3
             overflow-x-auto
-            px-4
-            pb-1
+            p-2
             [-ms-overflow-style:none]
             [scrollbar-width:none]
             [&::-webkit-scrollbar]:hidden
@@ -82,72 +81,56 @@ export function OnboardingCarousel() {
           {steps.map((step) => (
             <article
               key={step.id}
-              onClick={() => router.push(step.action.link)}
+              onClick={() => router.push(step.link)}
               className="
                 h-[150px]
                 min-w-[95%]
                 snap-start
                 overflow-hidden
-                rounded-[28px]
-                border
-                border-zinc-100
-                bg-white
-                shadow-sm
+                rounded-[22px]
+                bg-gradient-to-r
+                from-white
+                via-white
+                to-[#c29cf2]/20
                 active:scale-[0.99]
               "
             >
-              <div className="flex h-full">
-                <div className="flex w-[36%] shrink-0 items-center justify-center bg-white">
+              <div className="flex h-full items-center">
+                <div className="flex h-full w-[112px] shrink-0 items-center justify-center bg-white">
                   <img
                     src={step.image}
                     alt={step.title}
-                    className="h-[96px] w-[96px] object-contain"
+                    className="h-[92px] w-[92px] object-contain"
                   />
                 </div>
 
-                <div
-                  className="
-                    flex
-                    min-w-0
-                    flex-1
-                    flex-col
-                    justify-center
-                    rounded-l-[26px]
-                    border-l
-                    border-zinc-100
-                    bg-gradient-to-r
-                    from-white
-                    via-[#faf7ff]
-                    to-[#c29cf2]/20
-                    px-4
-                  "
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-xl bg-[#c29cf2]/15 text-[13px] font-semibold text-[#9f6ee8]">
+                <div className="flex min-w-0 flex-1 flex-col justify-center px-3">
+                  <div className="flex items-center gap-1.5">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg bg-[#c29cf2]/15 text-[11px] font-semibold text-[#9f6ee8]">
                       {step.id}
                     </span>
 
-                    <span className="truncate text-[13px] font-medium leading-none text-zinc-500">
+                    <span className="truncate text-[11px] font-medium leading-none text-zinc-500">
                       {step.label}
                     </span>
                   </div>
 
-                  <h3 className="mt-2 truncate text-[18px] font-semibold leading-tight tracking-[-0.03em] text-zinc-900">
+                  <h3 className="mt-2 truncate text-[12px] font-semibold leading-tight text-zinc-900">
                     {step.title}
                   </h3>
 
-                  <p className="mt-1 truncate text-[13px] leading-none text-zinc-500">
+                  <p className="mt-1 truncate text-[9px] leading-none text-zinc-500">
                     {step.description}
                   </p>
 
-                  <div className="mt-3 flex items-center gap-3 overflow-hidden">
+                  <div className="mt-3 flex items-center gap-2 overflow-hidden">
                     {step.meta.map((item) => {
                       const Icon = item.icon;
 
                       return (
                         <div
                           key={item.text}
-                          className="flex shrink-0 items-center gap-1 text-[12px] leading-none text-zinc-500"
+                          className="flex shrink-0 items-center gap-1 text-[10px] leading-none text-zinc-500"
                         >
                           <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg bg-[#c29cf2]/10 text-[#9f6ee8]">
                             <Icon className="h-3 w-3" />
