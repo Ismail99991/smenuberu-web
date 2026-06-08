@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock3, ShieldCheck, Smartphone } from "lucide-react";
+import { Clock3, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 const steps = [
@@ -12,7 +12,6 @@ const steps = [
     meta: [
       { icon: Clock3, text: "2 минуты" },
       { icon: ShieldCheck, text: "Безопасно" },
-      { icon: Smartphone, text: "Онлайн" },
     ],
     link: "/check-npd",
     image:
@@ -26,7 +25,6 @@ const steps = [
     meta: [
       { icon: Clock3, text: "1 минута" },
       { icon: ShieldCheck, text: "Без звонков" },
-      { icon: Smartphone, text: "В приложении" },
     ],
     link: "/shifts",
     image:
@@ -40,7 +38,6 @@ const steps = [
     meta: [
       { icon: Clock3, text: "Вовремя" },
       { icon: ShieldCheck, text: "Всё готово" },
-      { icon: Smartphone, text: "Статус онлайн" },
     ],
     link: "/profile",
     image:
@@ -72,8 +69,9 @@ export function OnboardingCarousel() {
             snap-mandatory
             gap-3
             overflow-x-auto
-            px-4
             py-2
+            pl-[5px]
+            pr-4
             [-ms-overflow-style:none]
             [scrollbar-width:none]
             [&::-webkit-scrollbar]:hidden
@@ -93,7 +91,7 @@ export function OnboardingCarousel() {
                 from-white
                 via-white
                 to-[#c29cf2]/20
-                shadow-[0_4px_14px_rgba(0,0,0,0.06)]
+                shadow-[0_2px_8px_rgba(0,0,0,0.04)]
                 active:scale-[0.99]
               "
             >
