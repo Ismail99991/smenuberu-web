@@ -13,19 +13,15 @@ export default function PromoBanner() {
   useEffect(() => {
     setMounted(true);
 
-    const hidden = localStorage.getItem("promo-hidden");
+    const timer = setTimeout(() => {
+      setOpen(true);
 
-    if (!hidden) {
-      const timer = setTimeout(() => {
-        setOpen(true);
+      requestAnimationFrame(() => {
+        setVisible(true);
+      });
+    }, 1200);
 
-        requestAnimationFrame(() => {
-          setVisible(true);
-        });
-      }, 1200);
-
-      return () => clearTimeout(timer);
-    }
+    return () => clearTimeout(timer);
   }, []);
 
   const closeBanner = () => {
@@ -66,21 +62,21 @@ export default function PromoBanner() {
           <X size={30} className="text-zinc-900" />
         </button>
 
-        <div className="max-h-[58vh] min-h-[50vh] overflow-hidden rounded-t-[34px] bg-white shadow-[0_-16px_50px_rgba(0,0,0,0.18)]">
-          <div className="relative overflow-hidden bg-gradient-to-br from-[#c29cf2] via-[#d2aff7] to-[#e3cdfb] px-6 pt-4 pb-4">
-            <div className="mx-auto mb-3 h-[5px] w-12 rounded-full bg-white/65" />
+        <div className="max-h-[62vh] min-h-[52vh] overflow-hidden rounded-t-[34px] bg-white shadow-[0_-16px_50px_rgba(0,0,0,0.18)]">
+          <div className="relative overflow-hidden bg-gradient-to-br from-[#c29cf2] via-[#d2aff7] to-[#e3cdfb]">
+            <div className="absolute left-1/2 top-4 z-20 h-[5px] w-12 -translate-x-1/2 rounded-full bg-white/65" />
 
-            <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10" />
-            <div className="absolute -left-8 bottom-0 h-24 w-24 rounded-full bg-white/10" />
+            <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-white/10" />
+            <div className="absolute -left-10 bottom-0 h-28 w-28 rounded-full bg-white/10" />
 
             <img
               src="https://s3.regru.cloud/smenuberu/illustrations/promoillustration.png"
               alt="promo"
-              className="relative z-10 mx-auto h-[135px] object-contain animate-[promoFloat_4s_ease-in-out_infinite]"
+              className="block h-[260px] w-full object-contain pt-8"
             />
           </div>
 
-          <div className="max-h-[calc(58vh-170px)] overflow-y-auto px-6 pt-5 pb-[calc(env(safe-area-inset-bottom)+18px)]">
+          <div className="max-h-[calc(62vh-260px)] overflow-y-auto px-6 pt-5 pb-[calc(env(safe-area-inset-bottom)+18px)]">
             <div className="flex gap-4">
               <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#c29cf2]/10 text-[#c29cf2]">
                 <Gift size={26} />
@@ -128,17 +124,6 @@ export default function PromoBanner() {
           </div>
         </div>
       </div>
-
-      <style>{`
-        @keyframes promoFloat {
-          0%, 100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-8px);
-          }
-        }
-      `}</style>
     </div>,
     document.body
   );
