@@ -1,8 +1,3 @@
-Да, вижу. У тебя `-mx-4` съедает внутренний отступ секции, поэтому `pl-[18px]` почти не ощущается.
-
-Сделай проще: убираем `-mx-4`, ставим обычный `overflow-hidden`, а скроллу даём `pl-[8px]`. Тогда первая карточка реально отлипнет от контейнера.
-
-```tsx
 "use client";
 
 import { Clock3, ShieldCheck } from "lucide-react";
@@ -163,4 +158,3 @@ export function OnboardingCarousel() {
     </section>
   );
 }
-```
