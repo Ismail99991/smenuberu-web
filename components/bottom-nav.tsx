@@ -46,7 +46,7 @@ function BottomNavIcon({
         "block h-7 w-7 bg-current transition-all duration-200",
         active
           ? "text-[#c29cf2] scale-105"
-          : "text-gray-400"
+          : "text-[#1f2937]"
       )}
       style={{
         WebkitMask: `url(${src}) center / contain no-repeat`,
