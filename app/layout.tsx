@@ -1,5 +1,9 @@
 import "./globals.css";
-import type { Metadata, Viewport } from "next";
+import type {
+  Metadata,
+  Viewport,
+} from "next";
+
 import AppShell from "@/components/app-shell";
 import { AuthProvider } from "@/components/auth-provider";
 
@@ -33,8 +37,6 @@ export const metadata: Metadata = {
       },
     ],
   },
-
-  themeColor: "#ffffff",
 };
 
 export const viewport: Viewport = {
@@ -47,6 +49,8 @@ export const viewport: Viewport = {
   userScalable: false,
 
   viewportFit: "cover",
+
+  themeColor: "#fcfafe",
 };
 
 export default function RootLayout({
@@ -59,7 +63,9 @@ export default function RootLayout({
       <body className="antialiased">
         <AuthProvider>
           <div className="app-viewport">
-            <AppShell>{children}</AppShell>
+            <AppShell>
+              {children}
+            </AppShell>
           </div>
         </AuthProvider>
       </body>
