@@ -20,16 +20,22 @@ export default function AppShell({
     pathname.startsWith("/notifications") ? "Уведомления" :
     "Главная";
 
-  const canSearch = pathname === "/shifts" || pathname === "/";
+  const canSearch =
+    pathname === "/shifts" ||
+    pathname === "/";
 
   return (
-    <div className="app-shell bg-[#c29cf2]/5">
+    <div className="app-shell bg-[#fcfafe]">
       <Topbar
         title={title}
         onToggleSearch={
           canSearch
             ? () => {
-                window.dispatchEvent(new CustomEvent("smenube:toggle-search"));
+                window.dispatchEvent(
+                  new CustomEvent(
+                    "smenube:toggle-search"
+                  )
+                );
               }
             : undefined
         }
