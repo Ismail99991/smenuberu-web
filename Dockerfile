@@ -17,6 +17,9 @@ RUN npm install -g pnpm@9
 
 COPY . .
 
+# 🔥 ВАЖНО: берем зависимости из deps
+COPY --from=deps /app/node_modules ./node_modules
+
 RUN pnpm build
 
 
@@ -37,8 +40,11 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/package.json ./package.json
 
+# 🔥 ВАЖНО: runtime тоже нужен next
+COPY --from=deps /app/node_modules ./node_modules
+
 USER nextjs
 
 EXPOSE 3000
 
-CMD ["node", "node_modules/next/dist/bin/next", "start", "-p", "3000"]
+CMD ["pnpm", "start"]
