@@ -1,7 +1,9 @@
 // lib/user-state.ts
 import { useAuth } from '@/components/auth-provider';
 
-// Тип пользователя (расширяется по мере необходимости)
+// =========================
+// TYPES
+// =========================
 export interface User {
   id: string;
   displayName: string | null;
@@ -9,22 +11,33 @@ export interface User {
   avatarUrl: string | null;
   yandexLogin: string | null;
   isSelfEmployed: boolean;
-  // в будущем: firstName, lastName, phone и т.д.
 }
 
-// Получить всего пользователя из контекста (реактивно)
+// =========================
+// CLIENT SAFE HOOK (PATCHED)
+// =========================
 export function useUser(): User | null {
+  // 🔥 PATCH: предотвращаем SSR crash
+  if (typeof window === 'undefined') {
+    return null as any;
+  }
+
+  // теперь hook вызывается только в браузере
   const { user } = useAuth();
   return user as User | null;
 }
 
-// Получить только статус НПД (реактивно)
+// =========================
+// CLIENT FLAG HOOK
+// =========================
 export function useIsSelfEmployed(): boolean {
   const user = useUser();
   return user?.isSelfEmployed ?? false;
 }
 
-// ---------- Fallback через localStorage (для синхронного доступа) ----------
+// =========================
+// OPTIONAL: LOCAL FALLBACK (НЕ ЛОМАЕТ SSR)
+// =========================
 export function getLocalSelfEmployed(): boolean {
   if (typeof window === 'undefined') return false;
   return localStorage.getItem('is_self_employed') === 'true';
